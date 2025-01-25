@@ -10,6 +10,11 @@
       "StackName": "amplify-foretaleapplication-dev-957de",
       "StackId": "arn:aws:cloudformation:ap-south-1:442426872653:stack/amplify-foretaleapplication-dev-957de/100fe9d0-db36-11ef-a266-06a646e22871",
       "AmplifyAppId": "d796cofozvoy1"
+    },
+    "categories": {
+      "auth": {
+        "foretaleapplicationba5dccb8": {}
+      }
     }
   }
 }
