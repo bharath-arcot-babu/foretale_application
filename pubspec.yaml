@@ -30,11 +30,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  google_fonts: ^6.2.1
   amplify_flutter: ^2.6.0
   amplify_authenticator: ^2.3.2
   amplify_auth_cognito: ^2.6.0
   provider: ^6.0.1
+  syncfusion_flutter_core: ^21.2.10
+  syncfusion_flutter_datagrid: ^21.2.10
   http: ^1.2.2    
+  dropdown_search: ^5.0.0
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -57,7 +61,8 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
+  assets:
+    - assets/images/foretale_logo.png
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

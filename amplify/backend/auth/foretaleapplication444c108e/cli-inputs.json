@@ -1,10 +1,10 @@
 {
   "version": "1",
   "cognitoConfig": {
-    "identityPoolName": "foretaleapplicationba5dccb8_identitypool_ba5dccb8",
+    "identityPoolName": "foretaleapplication444c108e_identitypool_444c108e",
     "allowUnauthenticatedIdentities": false,
-    "resourceNameTruncated": "foretaba5dccb8",
-    "userPoolName": "foretaleapplicationba5dccb8_userpool_ba5dccb8",
+    "resourceNameTruncated": "foreta444c108e",
+    "userPoolName": "foretaleapplication444c108e_userpool_444c108e",
     "autoVerifiedAttributes": [
       "email"
     ],
@@ -31,10 +31,10 @@
     "userpoolClientReadAttributes": [
       "email"
     ],
-    "userpoolClientLambdaRole": "foretaba5dccb8_userpoolclient_lambda_role",
+    "userpoolClientLambdaRole": "foreta444c108e_userpoolclient_lambda_role",
     "userpoolClientSetAttributes": false,
-    "sharedId": "ba5dccb8",
-    "resourceName": "foretaleapplicationba5dccb8",
+    "sharedId": "444c108e",
+    "resourceName": "foretaleapplication444c108e",
     "authSelections": "identityPoolAndUserPool",
     "useDefault": "default",
     "usernameAttributes": [
