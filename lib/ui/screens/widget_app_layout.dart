@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
 //utils
 import 'package:foretale_application/core/utils/util_get_cognito_user_details.dart';
+import 'package:foretale_application/ui/screens/inquiry.dart';
+import 'package:foretale_application/ui/screens/inquiry/project_questions.dart';
 //screens
 import 'package:foretale_application/ui/screens/welcome.dart';
 //themes
@@ -20,11 +22,11 @@ class AppLayout extends StatefulWidget {
 }
 
 class _AppLayoutState extends State<AppLayout> {
-  String _selectedScreen = 'Dashboard';
-  String _highlightedTile = 'Dashboard';
+  String _selectedScreen = 'Home';
+  String _highlightedTile = 'Home';
 
-  final String _display1 = "Dashboard";
-  final String _display2 = "Knowledge";
+  final String _display1 = "Home";
+  final String _display2 = "Inquiry";
   final String _display3 = "Data Request";
   final String _display4 = "Data Mapping";
   final String _display5 = "Analysis";
@@ -105,7 +107,7 @@ class _AppLayoutState extends State<AppLayout> {
     if (_selectedScreen == _display1) {
       return const WelcomePage();
     } else if (_selectedScreen == _display2) {
-      return const Placeholder();
+      return QuestionsScreen(isNew: true,);
     } else if (_selectedScreen == _display3) {
       return const Placeholder();
     } else if (_selectedScreen == _display4) {

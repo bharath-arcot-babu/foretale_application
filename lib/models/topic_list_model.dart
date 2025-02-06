@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:foretale_application/core/services/database_connect.dart';
 import 'package:foretale_application/ui/widgets/message_helper.dart';
 
-class Organization {
+class Topic {
   final int id;
   final String name;
 
-  Organization({
+  Topic({
     required this.id,
     required this.name,
   });
 
   // Factory constructor for creating an instance from JSON
-  factory Organization.fromJson(Map<String, dynamic> json) {
-    return Organization(
+  factory Topic.fromJson(Map<String, dynamic> json) {
+    return Topic(
       id: json['id'] ?? '',  // Providing default value in case key is missing
       name: json['name'] ?? '',  // Default to empty string if name is missing
     );
@@ -28,21 +28,20 @@ class Organization {
   }
 }
 
-class OrganizationList {
-  Future<List<Organization>> fetchAllActiveOrganizations(BuildContext context) async {
+class TopicList {
+  Future<List<Topic>> fetchAllActiveTopics(BuildContext context) async {
     try {
-      var jsonResponse = await FlaskApiService().readRecord('dbo.sproc_get_organizations', {});
+      var jsonResponse = await FlaskApiService().readRecord('dbo.sproc_get_subtopic', {});
 
       if (jsonResponse != null && jsonResponse['data'] != null) {
         var data = jsonResponse['data'];
-
         return data.map((json) {
           try {
-            return Organization.fromJson(json);  
+            return Topic.fromJson(json);  
           } catch (e) {
             return null;
           }
-        }).whereType<Organization>().toList();  // Filter out any null values
+        }).whereType<Topic>().toList();  // Filter out any null values
       } else {
         return [];  // Return an empty list if data or response is null
       }
@@ -56,11 +55,11 @@ class OrganizationList {
         // More detailed error message with logging for 'NOT_FOUND' error
         SnackbarMessage.showErrorMessage(
           context,
-          'Unable to get the organizations list. Please contact support for assistance.',
+          'Unable to get the topics list. Please contact support for assistance.',
           logError: true,
           errorMessage: e.toString(),
           errorStackTrace: error_stack_trace.toString(),
-          errorSource: 'organization_list_model.dart',
+          errorSource: 'topic_list_model.dart',
           severityLevel: 'Critical',
           requestPath: 'readRecord',
         );

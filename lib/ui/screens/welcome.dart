@@ -1,11 +1,13 @@
 //core
 import 'package:flutter/material.dart';
 //model
-import 'package:foretale_application/models/projects_list_model.dart';
+import 'package:foretale_application/models/project_details_model.dart';
 //screen
 import 'package:foretale_application/ui/screens/create_project/create_project.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:foretale_application/ui/widgets/custom_elevated_button.dart';
+import 'package:foretale_application/ui/widgets/message_helper.dart';
+import 'package:provider/provider.dart';
 
 class WelcomePage extends StatefulWidget {
   const WelcomePage({super.key});
@@ -14,10 +16,11 @@ class WelcomePage extends StatefulWidget {
   State<WelcomePage> createState() => _WelcomePageState();
 }
 
-class _WelcomePageState extends State<WelcomePage> {
-  Future<List<Projects>> _fetchProjects() async {
-    // Here you invoke the fetchProjectsByUserMachineId method
-    return await ProjectsList().fetchProjectsByUserMachineId(context);
+class _WelcomePageState extends State<WelcomePage> { 
+  @override
+  void initState(){
+    _loadPage();
+    super.initState();
   }
 
   @override
@@ -28,21 +31,12 @@ class _WelcomePageState extends State<WelcomePage> {
         children: [
           Expanded(
             flex: 3,
-            child: FutureBuilder<List<Projects>>(
-              future: _fetchProjects(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No projects found.'));
-                } else {
-                  List<Projects> projects = snapshot.data!;
-                  return ListView.builder(
+            child: Consumer<ProjectDetailsModel>(builder: (context, model, child){
+                    List<ProjectDetails> projects = model.projectListByUser;
+                    return ListView.builder(
                     itemCount: projects.length,
                     itemBuilder: (context, index) {
-                      Projects project = projects[index];
+                      ProjectDetails project = projects[index];
                       return Card(
                         elevation: 4.0, // Adds subtle shadow for depth
                         margin: const EdgeInsets.symmetric(
@@ -54,34 +48,28 @@ class _WelcomePageState extends State<WelcomePage> {
                         ),
                         child: InkWell(
                           onTap: () {
-                            // Navigate to project details page or show more info
-                            print('Tapped on project ${project.projectName}');
+                            _onProjectSelection(context, project);
                           },
                           child: Padding(
                             padding: const EdgeInsets.all(
-                                16.0), // Inner padding for better content spacing
+                                16.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Project Name
                                 Text(
-                                  project.projectName,
+                                  project.name,
                                   style: TextStyles.titleText(context),
                                 ),
                                 const SizedBox(
                                     height:
-                                        8.0), // Space between name and subtitle
-
-                                // Organization Name
+                                        8.0),
                                 Text(
-                                  project.organizationName,
+                                  project.organization,
                                   style: TextStyles.subtitleText(context),
                                 ),
                                 const SizedBox(
                                     height:
-                                        8.0), // Space between organization and project type
-
-                                // Project Type and Start Date
+                                        8.0),
                                 Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
@@ -91,7 +79,7 @@ class _WelcomePageState extends State<WelcomePage> {
                                       style: TextStyles.topicText(context),
                                     ),
                                     Text(
-                                      "Started on: ${project.projectStartDate}",
+                                      "Started on: ${project.createdDate}",
                                       style: TextStyles.topicText(context),
                                     ),
                                   ],
@@ -102,10 +90,7 @@ class _WelcomePageState extends State<WelcomePage> {
                         ),
                       );
                     },
-                  );
-                }
-              },
-            ),
+                  );})
           ),
           SizedBox(
               width: MediaQuery.of(context).size.width *
@@ -125,18 +110,19 @@ class _WelcomePageState extends State<WelcomePage> {
                       text: "Start a new project",
                       textSize: 16,
                       onPressed: () {
-                        // Handle Create New Project action
                         showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
-                            content: const CreateProject(),
+                            content: const CreateProject(isNew: true,),
+                            actionsAlignment: MainAxisAlignment.end,
                             actions: [
-                              TextButton(
+                               TextButton(
                                 onPressed: () {
                                   Navigator.pop(context);
                                 },
-                                child: const Text("Close"),
+                                child: Text("Close", style:  TextStyles.footerLinkTextSmall(context),),
                               ),
+                              
                             ],
                           ),
                         );
@@ -172,6 +158,19 @@ class _WelcomePageState extends State<WelcomePage> {
       ),
     );
   }
+
+  void _onProjectSelection(BuildContext context, ProjectDetails projectDetails){
+    try{
+      Provider.of<ProjectDetailsModel>(context, listen: false).updateProjectDetails(context, projectDetails);
+    } catch(e){
+      SnackbarMessage.showErrorMessage(context, "Invalid project selection.");  
+    }
+
+  }
+
+  Future<void> _loadPage() async {
+    return await Provider.of<ProjectDetailsModel>(context, listen: false).fetchProjectsByUserMachineId(context);
+  }
 }
 
 class Project {
@@ -186,7 +185,7 @@ class ResourceCard extends StatelessWidget {
   final String title;
   final String url;
 
-  const ResourceCard({required this.title, required this.url});
+  const ResourceCard({super.key, required this.title, required this.url});
 
   @override
   Widget build(BuildContext context) {

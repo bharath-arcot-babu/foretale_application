@@ -1,5 +1,6 @@
 //libraries
 import 'package:flutter/material.dart';
+import 'package:foretale_application/ui/screens/create_project/create_project.dart';
 import 'package:provider/provider.dart';
 //constants
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
@@ -38,9 +39,29 @@ class _CustomGeneralScaffoldState extends State<CustomGeneralScaffold> {
         ),
         actions: [
           Selector<ProjectDetailsModel, String>(
-            selector: (context, projectName) => projectName.name,
+            selector: (context, projectName) => projectName.getName,
             builder: (context, name, child) {
-              return Text(name, style: TextStyles.appBarTitleStyle(context));
+              return TextButton(
+                onPressed: () {
+                  showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            content: const CreateProject(isNew: false,),
+                            actionsAlignment: MainAxisAlignment.end,
+                            actions: [
+                               TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: Text("Close", style:  TextStyles.footerLinkTextSmall(context),),
+                              ),
+                              
+                            ],
+                          ),
+                        );
+                },
+                child: Text(name.isNotEmpty?'Project: $name':'', style: TextStyles.appBarTitleStyle(context)),
+              );
             },
           ),
           const SizedBox(

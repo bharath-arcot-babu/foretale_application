@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foretale_application/models/client_contacts_model.dart';
 import 'package:foretale_application/ui/themes/datagrid_theme.dart';
+import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -8,6 +9,7 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 class ClientContactsDataGrid extends StatelessWidget {
   const ClientContactsDataGrid({super.key});
 
+  
   @override
   Widget build(BuildContext context) {
     return SfDataGridTheme(
@@ -18,7 +20,7 @@ class ClientContactsDataGrid extends StatelessWidget {
             allowSorting: true,
             isScrollbarAlwaysShown: true,
             columnWidthMode: ColumnWidthMode.fill, // Expands columns to fill the grid width
-            selectionMode: SelectionMode.multiple,
+            selectionMode: SelectionMode.single,
             headerRowHeight: 30,
             source: ClientContactDataSource(context, model, model.getClientContacts),
             columns: <GridColumn>[
@@ -28,7 +30,7 @@ class ClientContactsDataGrid extends StatelessWidget {
                 label: Container(
                   padding: const EdgeInsets.all(4.0),
                   alignment: Alignment.center,
-                  child: Text('Name', style: DatagridTheme.datagridHeaderText(),),
+                  child: Text('Name', style: TextStyles.gridHeaderText(context),),
                 ),
               ),
               GridColumn(
@@ -37,7 +39,7 @@ class ClientContactsDataGrid extends StatelessWidget {
                 label: Container(
                   padding: const EdgeInsets.all(4.0),
                   alignment: Alignment.center,
-                  child: Text('Position', style: DatagridTheme.datagridHeaderText(),),
+                  child: Text('Position', style: TextStyles.gridHeaderText(context),),
                 ),
               ),
               GridColumn(
@@ -46,7 +48,7 @@ class ClientContactsDataGrid extends StatelessWidget {
                 label: Container(
                   padding: const EdgeInsets.all(4.0),
                   alignment: Alignment.center,
-                  child: Text('Function', style: DatagridTheme.datagridHeaderText(),),
+                  child: Text('Function', style: TextStyles.gridHeaderText(context),),
                 ),
               ),
               GridColumn(
@@ -55,7 +57,7 @@ class ClientContactsDataGrid extends StatelessWidget {
                 label: Container(
                   padding: const EdgeInsets.all(4.0),
                   alignment: Alignment.center,
-                  child: Text('Email', style: DatagridTheme.datagridHeaderText(),),
+                  child: Text('Email', style: TextStyles.gridHeaderText(context),),
                 ),
               ),
               // New delete column
@@ -65,7 +67,7 @@ class ClientContactsDataGrid extends StatelessWidget {
               label: Container(
                 padding: const EdgeInsets.all(4.0),
                 alignment: Alignment.center,
-                child: Text('', style: DatagridTheme.datagridHeaderText(),),
+                child: Text('', style: TextStyles.gridHeaderText(context),),
                 ),
               ),
             ],

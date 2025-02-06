@@ -1,7 +1,6 @@
 //libraries
 import 'package:flutter/material.dart';
 //constants
-import 'package:foretale_application/core/constants/colors/app_colors.dart';
 
 //constants for icons
 class AppIcons {

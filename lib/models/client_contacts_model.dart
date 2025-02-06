@@ -1,4 +1,3 @@
-import 'dart:js_interop';
 
 import 'package:flutter/material.dart';
 import 'package:foretale_application/core/services/database_connect.dart';
@@ -24,12 +23,22 @@ class ClientContact {
     required this.phone,
     required this.isClient
   });
+
+  factory ClientContact.fromJson(Map<String, dynamic> json) {
+    return ClientContact(
+      name: json['name'] ?? '',
+      position: json['position'] ?? '',
+      function: json['function'] ?? '',
+      email: json['email'] ?? '',
+      phone: json['phone'] ?? '',
+      isClient: json['is_client'] ?? 'No',
+    )..id = json['user_id'] ?? 0;
+  }
 }
 
 class ClientContactsModel with ChangeNotifier {
-  final List<ClientContact> _clientContacts = [];
-
-  List<ClientContact> get getClientContacts => _clientContacts;
+  List<ClientContact> clientContacts = [];
+  List<ClientContact> get getClientContacts => clientContacts;
 
   Future<int> addUpdateContact(BuildContext context,ClientContact contact) async{
     var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
@@ -37,10 +46,10 @@ class ClientContactsModel with ChangeNotifier {
 
     try {
 
-      if(_clientContacts.where((con) => con.email == contact.email).isEmpty)
+      if(clientContacts.where((con) => con.email == contact.email).isEmpty)
       {
           final params = {
-          'selected_project_id': projectDetailsModel.activeProjectId,
+          'selected_project_id': projectDetailsModel.getActiveProjectId,
           'name': contact.name,
           'position': contact.position,
           'function': contact.function,
@@ -48,7 +57,7 @@ class ClientContactsModel with ChangeNotifier {
           'phone': contact.phone,
           'is_client': contact.isClient,
           'record_status': 'Active',
-          'created_by': userDetailsModel.userId,
+          'created_by': userDetailsModel.getUserMachineId,
         };
 
         var jsonResponse = await FlaskApiService().insertRecord('dbo.sproc_insert_update_user_project_mapping', params);
@@ -56,8 +65,7 @@ class ClientContactsModel with ChangeNotifier {
 
         if(insertedId>0){
           contact.id = insertedId;
-          _clientContacts.add(contact);
-          notifyListeners();
+          clientContacts.add(contact);
         }
         return insertedId;
       } else{
@@ -81,6 +89,8 @@ class ClientContactsModel with ChangeNotifier {
             );
         }
         return 0;
+    } finally{
+      notifyListeners();
     }
   }
 
@@ -90,17 +100,72 @@ class ClientContactsModel with ChangeNotifier {
 
       final params = {
         'client_contact_id': contact.id,
-        'selected_project_id': projectDetailsModel.activeProjectId,
-        'last_updated_by': userDetailsModel.userId
+        'selected_project_id': projectDetailsModel.getActiveProjectId,
+        'last_updated_by': userDetailsModel.getUserMachineId
       };
 
       var jsonResponse = await FlaskApiService().deleteRecord('dbo.sproc_delete_client_contact', params);
       int deletedId = int.parse(jsonResponse['data'][0]['deleted_id'].toString());
       
       if(deletedId>0){
-        _clientContacts.remove(contact);
+        clientContacts.remove(contact);
         // After successfully saving the project, notify listeners to update UI
         notifyListeners();
       }
+  }
+
+  Future<void> fetchClientsByProjectId(BuildContext context) async {
+    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
+    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+
+    try {
+      // Ensuring user ID is available.
+      if (userDetailsModel.getUserMachineId == null) {
+        SnackbarMessage.showErrorMessage(context, "User has not logged in. Please login again.");
+        clientContacts = [];
+        return;
+      }
+
+      final params = {
+        'project_id': projectDetailsModel.getActiveProjectId
+        };
+      var jsonResponse = await FlaskApiService().readRecord('dbo.sproc_get_clients_by_project_id', params);
+      
+      if (jsonResponse != null && jsonResponse['data'] != null) {
+        var data = jsonResponse['data'];
+        clientContacts = data.map((json) {
+              try {
+                return ClientContact.fromJson(json);
+              } catch (e) {
+                return null;
+              }
+            })
+            .whereType<ClientContact>()
+            .toList()??[];      
+      } else {
+        clientContacts = [];
+      }
+    } catch (e, error_stack_trace) {
+      String errMessage = SnackbarMessage.extractErrorMessage(e.toString());
+
+      if (errMessage != 'NOT_FOUND') {
+        SnackbarMessage.showErrorMessage(context, errMessage);
+      } else {
+        // Showing a more detailed error message with logging.
+        SnackbarMessage.showErrorMessage(
+          context,
+          'Unable to get the clients list. Please contact support for assistance.',
+          logError: true,
+          errorMessage: e.toString(),
+          errorStackTrace: error_stack_trace.toString(),
+          errorSource: 'client_contacts.dart',
+          severityLevel: 'Critical',
+          requestPath: 'readRecord',
+        );
+      }
+      clientContacts = [];
+    } finally {
+      notifyListeners();
+    }
   }
 }

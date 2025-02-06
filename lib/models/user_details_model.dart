@@ -2,30 +2,99 @@ import 'package:flutter/material.dart';
 import 'package:foretale_application/core/services/database_connect.dart';
 import 'package:foretale_application/ui/widgets/message_helper.dart';
 
-class UserDetailsModel extends ChangeNotifier {
+class UserDetails extends ChangeNotifier {
+  String? userMachineId;
   String? userId;
   String? name;
+  String? position;
+  String? function;
   String? email;
-  
-  // Set the user details
-  void saveUserDetails(String id, String name, String email) {
-    userId = id;
-    this.name = name;
-    this.email = email;
-    notifyListeners();
+  String? phone;
+  String? isClient;
+  String? recordStatus;
+  String? createdBy;
+  String? lastUpdatedBy;
+
+  // Constructor
+  UserDetails({
+    this.userMachineId,
+    this.userId,
+    this.name,
+    this.position,
+    this.function,
+    this.email,
+    this.phone,
+    this.isClient,
+    this.recordStatus, 
+    this.createdBy, 
+    this.lastUpdatedBy, 
+  });
+
+  // Factory method to create an instance from JSON
+  factory UserDetails.fromJson(Map<String, dynamic> json) {
+    return UserDetails(
+      userMachineId: json['user_machine_id'],
+      userId: json['user_id'],
+      name: json['name'] ?? '',
+      position: json['position'] ?? '',
+      function: json['function'] ?? '',
+      email: json['email'] ?? '',
+      phone: json['phone'] ?? '',
+      isClient: json['is_client'] ?? '',
+      recordStatus: json['record_status'] ?? 'Active',
+      createdBy: json['created_by'] ?? '',
+      lastUpdatedBy: json['last_updated_by'] ?? '',
+    );
   }
 
-  // Reset the user details when signed out
-  void resetUser() {
-    userId = null;
-    name = null;
-    email = null;
+  // Method to convert the instance to a JSON map
+  Map<String, dynamic> toJson() {
+    return {
+      'userMachineId': userMachineId,
+      'userId': userId,
+      'name': name,
+      'position': position,
+      'function': function,
+      'email': email,
+      'phone': phone,
+      'isClient': isClient,
+      'record_status': recordStatus,
+      'created_by': createdBy,
+      'last_updated_by': lastUpdatedBy,
+    };
+  }
+
+}
+
+
+class UserDetailsModel extends ChangeNotifier {
+  UserDetails userDetails = UserDetails();
+  
+  // Getters for all properties
+  String? get getUserMachineId => userDetails.userMachineId;
+  String? get getUserId => userDetails.userId;
+  String? get getName => userDetails.name;
+  String? get getPosition => userDetails.position;
+  String? get getFunction => userDetails.function;
+  String? get getEmail => userDetails.email;
+  String? get getPhone => userDetails.phone;
+  String? get getIsClient => userDetails.isClient;
+  String? get getRecordStatus => userDetails.recordStatus;
+  String? get getCreatedBy => userDetails.createdBy;
+  String? get getLastUpdatedBy => userDetails.lastUpdatedBy;
+
+
+  // Set the user details
+  void saveUserDetails(String id, String name, String email) {
+    userDetails.userMachineId = id;
+    userDetails.name = name;
+    userDetails.email = email;
     notifyListeners();
   }
 
   Future<void> initializeUser(BuildContext context) async {
     try {
-      if (userId == null || email == null) {
+      if (getUserMachineId == null || getEmail == null) {
         SnackbarMessage.showErrorMessage(
           context,
           'Unable to initialize the user settings.',
@@ -34,17 +103,17 @@ class UserDetailsModel extends ChangeNotifier {
       }
       
       final params = {
-        'user_machine_id': userId,
+        'user_machine_id': getUserMachineId,
         'organization_id': null,
-        'name': name,
+        'name': getName,
         'position': null,
         'function': null,
-        'email': email,
+        'email': getEmail,
         'phone': null,
         'is_client': 'No',
         'record_status': 'Active',
-        'created_by': userId,
-        'last_updated_by': userId
+        'created_by': getUserMachineId,
+        'last_updated_by': getUserMachineId
       };
 
       await FlaskApiService().insertRecord('dbo.sproc_initialize_user', params);
@@ -56,7 +125,7 @@ class UserDetailsModel extends ChangeNotifier {
         } else {
             SnackbarMessage.showErrorMessage(
               context,
-              'Error initializing the tool. Please contact support for assistance.',
+              'Unable to setup the user. Please contact support for assistance.',
               logError: true,
               errorMessage: e.toString(),
               errorStackTrace: error_stack_trace.toString(),

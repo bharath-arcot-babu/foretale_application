@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:foretale_application/core/services/database_connect.dart';
-import 'package:foretale_application/models/project_details_model.dart';
 import 'package:foretale_application/models/project_settings_model.dart';
-import 'package:foretale_application/models/user_details_model.dart';
+import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:foretale_application/ui/widgets/custom_elevated_button.dart';
 import 'package:foretale_application/ui/widgets/custom_text_field.dart';
 import 'package:foretale_application/ui/widgets/custom_topic_header.dart';
 import 'package:foretale_application/ui/widgets/message_helper.dart';
 import 'package:provider/provider.dart';
 
-class ProjectSettings extends StatefulWidget {
-  const ProjectSettings({super.key});
+class ProjectSettingsScreen extends StatefulWidget {
+  final bool isNew;
+  const ProjectSettingsScreen({
+    super.key, 
+    required this.isNew
+    });
 
   @override
-  State<ProjectSettings> createState() => _ProjectSettingsState();
+  State<ProjectSettingsScreen> createState() => _ProjectSettingsScreenState();
 }
 
-class _ProjectSettingsState extends State<ProjectSettings> {
+class _ProjectSettingsScreenState extends State<ProjectSettingsScreen> {
   // Controllers for each text field
   final TextEditingController sqlHostController = TextEditingController();
   final TextEditingController sqlPortController = TextEditingController();
@@ -29,6 +31,16 @@ class _ProjectSettingsState extends State<ProjectSettings> {
 
   // GlobalKey for form validation
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState(){
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!widget.isNew) {
+        _loadPage();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,9 +64,13 @@ class _ProjectSettingsState extends State<ProjectSettings> {
             ),
             const SizedBox(height: 15,),
             // SQL Server Settings
-            const CustomTopicHeader(label: 'Database Settings'),
+            Text(
+              'Database Configuration',
+              style: TextStyles.subtitleText(context),
+            ),
             const SizedBox(height: 8),
             CustomTextField(
+              isEnabled: true,
               controller: sqlHostController,
               label: 'SQL Server Host',
               validator: (value) {
@@ -66,6 +82,7 @@ class _ProjectSettingsState extends State<ProjectSettings> {
             ),
             const SizedBox(height: 8),
             CustomTextField(
+              isEnabled: true,
               controller: sqlPortController,
               label: 'Port',
               validator: (value) {
@@ -81,6 +98,7 @@ class _ProjectSettingsState extends State<ProjectSettings> {
             ),
             const SizedBox(height: 8),
             CustomTextField(
+              isEnabled: true,
               controller: sqlDatabaseController,
               label: 'Database',
               validator: (value) {
@@ -92,11 +110,13 @@ class _ProjectSettingsState extends State<ProjectSettings> {
             ),
             const SizedBox(height: 8),
             CustomTextField(
+              isEnabled: true,
               controller: sqlUsernameController,
               label: 'Username (Leave blank for Windows Authentication)',
             ),
             const SizedBox(height: 8),
             CustomTextField(
+              isEnabled: true,
               controller: sqlPasswordController,
               label: 'Password (Leave blank for Windows Authentication)',
               obscureText: true,
@@ -104,19 +124,25 @@ class _ProjectSettingsState extends State<ProjectSettings> {
             const SizedBox(height: 8),
 
             // Amazon S3 Settings
-            const CustomTopicHeader(label: 'Amazon S3 Settings'),
+            Text(
+              'AWS S3 Configuration',
+              style: TextStyles.subtitleText(context),
+            ),
             const SizedBox(height: 8),
             CustomTextField(
+              isEnabled: true,
               controller: s3UrlController,
               label: 'Amazon S3 File Storage URL',
             ),
             const SizedBox(height: 8),
             CustomTextField(
+              isEnabled: true,
               controller: s3UsernameController,
               label: 'S3 Username',
             ),
             const SizedBox(height: 8),
             CustomTextField(
+              isEnabled: true,
               controller: s3PasswordController,
               label: 'S3 Password',
               obscureText: true,
@@ -129,18 +155,21 @@ class _ProjectSettingsState extends State<ProjectSettings> {
 
   // Function to handle form submission
   Future<void> _saveProjectSettings(BuildContext context) async {
-    var projectSettingsModel = Provider.of<ProjectSettingsModel>(context, listen: false);
+    ProjectSettingsModel projectSettingsModel = Provider.of<ProjectSettingsModel>(context, listen: false);
 
     if (_formKey.currentState?.validate() ?? false) {
       try{
-          projectSettingsModel.sqlHost = sqlHostController.text.trim();
-          projectSettingsModel.sqlPort = int.parse(sqlPortController.text.trim());
-          projectSettingsModel.sqlDatabase = sqlDatabaseController.text.trim();
-          projectSettingsModel.sqlUsername = sqlUsernameController.text.trim();
-          projectSettingsModel.sqlPassword = sqlPasswordController.text.trim();
-          projectSettingsModel.s3Url = s3UrlController.text.trim();
-          projectSettingsModel.s3Username = s3UsernameController.text.trim();
-          projectSettingsModel.s3Password = s3PasswordController.text.trim();
+          projectSettingsModel.projectSettings = ProjectSettings(
+            sqlHost: sqlHostController.text.trim(),
+            sqlPort: int.parse(sqlPortController.text.trim()),
+            sqlDatabase: sqlDatabaseController.text.trim(),
+            sqlUsername: sqlUsernameController.text.trim(),
+            sqlPassword: sqlPasswordController.text.trim(),
+            s3Url : s3UrlController.text.trim(),
+            s3Username: s3UsernameController.text.trim(),
+            s3Password: s3PasswordController.text.trim()
+          );
+
           int projectSettingId = await projectSettingsModel.saveProjectSettings(context);
           if(projectSettingId>0){
             SnackbarMessage.showSuccessMessage(context, 'Project details saved successfully.');
@@ -151,6 +180,29 @@ class _ProjectSettingsState extends State<ProjectSettings> {
       }
     } else {
       SnackbarMessage.showErrorMessage(context, 'Please fill in all required fields.');
+    }
+  }
+
+  Future<void> _fetchProjectSettings(BuildContext context) async {
+    ProjectSettingsModel projSettings = Provider.of<ProjectSettingsModel>(context, listen: false);
+    await projSettings.fetchProjectSettingsByUserMachineId(context);
+    
+    sqlHostController.text = projSettings.getSqlHost;
+    sqlPortController.text = projSettings.getSqlPort.toString();
+    sqlDatabaseController.text = projSettings.getSqlDatabase;
+    sqlUsernameController.text = projSettings.getSqlUsername;
+    sqlPasswordController.text = projSettings.getSqlPassword;
+    s3UrlController.text = projSettings.getS3Url;
+    s3UsernameController.text = projSettings.getS3Username;
+    s3PasswordController.text = projSettings.getS3Password;
+  }
+
+  Future<void> _loadPage() async {
+    try {
+      await _fetchProjectSettings(context);
+    } catch (e) {
+      SnackbarMessage.showErrorMessage(context,
+          'Something went wrong! Please contact support for assistance.');
     }
   }
 }

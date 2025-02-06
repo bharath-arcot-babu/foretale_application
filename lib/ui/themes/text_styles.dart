@@ -19,25 +19,36 @@ class TextStyles {
     double fontSize = minFontSize + (scalingFactor * (maxFontSize - minFontSize));
 
     // Optionally, clamp the value within the min and max range to ensure it doesn't go out of bounds
-    return fontSize.clamp(minFontSize, maxFontSize);
+    return fontSize.clamp(minFontSize, maxFontSize);   
   }
+
+  static TextStyle subjectText(BuildContext context) {
+    return GoogleFonts.poppins( // Apply Google Font
+      fontWeight: FontWeight.w700,
+      color: TextColors.primaryTextColor,
+      fontSize: _getFontSize(context, 16.0),
+      letterSpacing: 1.2
+    );
+  }
+
   static TextStyle titleText(BuildContext context) {
     return GoogleFonts.poppins( // Apply Google Font
-      fontWeight: FontWeight.w800,
+      fontWeight: FontWeight.w700,
       color: TextColors.primaryTextColor,
       fontSize: _getFontSize(context, 16.0), // Responsive font size
     );
   }
+
   static TextStyle subtitleText(BuildContext context) {
     return GoogleFonts.poppins( // Apply Google Font
-      fontWeight: FontWeight.w500,
+      fontWeight: FontWeight.w600,
       color: TextColors.secondaryTextColor,
       fontSize: _getFontSize(context, 12.0), // Responsive font size
     );
   }
   static TextStyle topicText(BuildContext context) {
     return GoogleFonts.poppins( // Apply Google Font
-      fontWeight: FontWeight.w300,
+      fontWeight: FontWeight.w400,
       color: TextColors.tertiaryTextColor,
       fontSize: _getFontSize(context, 10.0), // Responsive font size
     );
@@ -56,8 +67,8 @@ class TextStyles {
   // Global AppBar Title Text Style
   static TextStyle appBarTitleStyle(BuildContext context) {
     return GoogleFonts.poppins( // Apply Google Font
-      fontWeight: FontWeight.w500,
-      color: TextColors.primaryTextColor,
+      fontWeight: FontWeight.w700,
+      color: TextColors.titleColor,
       fontSize: _getFontSize(context, 16.0), // Responsive font size
     );
   }
@@ -72,9 +83,24 @@ class TextStyles {
 
   static TextStyle elevatedButtonTextStyle (BuildContext context){
     return GoogleFonts.poppins( // Apply Google Font
-      fontWeight: FontWeight.w300,
+      fontWeight: FontWeight.w500,
       color: ButtonColors.buttonTextColor,
-      fontSize: _getFontSize(context, 9.0), // Responsive font size
+    );
+  }
+
+  static TextStyle inputMainTextStyle (BuildContext context){
+    return GoogleFonts.poppins( // Apply Google Font
+      fontWeight: FontWeight.normal,
+      color: FillColors.primaryColor,
+      fontSize: 12.0
+    );
+  }
+
+  static TextStyle inputHintTextStyle (BuildContext context){
+    return GoogleFonts.poppins( // Apply Google Font
+      fontWeight: FontWeight.normal,
+      color: FillColors.primaryColor,
+      fontSize: 12.0
     );
   }
 
@@ -91,6 +117,22 @@ class TextStyles {
       fontWeight: FontWeight.w500,
       color: TextColors.linkTextColor,
       fontSize: _getFontSize(context, 16.0), // Responsive font size
+    );
+  }
+
+  static TextStyle gridHeaderText(BuildContext context) {
+    return GoogleFonts.poppins( // Apply Google Font
+      fontWeight: FontWeight.w600,
+      color: TextColors.primaryTextColor,
+      fontSize: _getFontSize(context, 14.0), // Responsive font size
+    );
+  }
+
+  static TextStyle gridText(BuildContext context) {
+    return GoogleFonts.poppins( // Apply Google Font
+      fontWeight: FontWeight.w500,
+      color: TextColors.primaryTextColor,
+      fontSize: _getFontSize(context, 13.0), // Responsive font size
     );
   }
 }

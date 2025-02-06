@@ -1,6 +1,7 @@
 //libraries
 import 'package:flutter/material.dart';
 import 'package:foretale_application/models/project_settings_model.dart';
+import 'package:foretale_application/models/question_model.dart';
 import 'package:foretale_application/models/team_contacts_model.dart';
 import 'package:provider/provider.dart';
 import 'package:foretale_application/amplifyconfiguration.dart';
@@ -95,6 +96,7 @@ class ForeTaleApp extends StatelessWidget {
           ChangeNotifierProvider(create: (_) => UserDetailsModel()),
           ChangeNotifierProvider(create: (_) => ClientContactsModel()),
           ChangeNotifierProvider(create: (_) => TeamContactsModel()),
+          ChangeNotifierProvider(create: (_) => QuestionsModel()),
         ],
         child: Authenticator(
             authenticatorBuilder: _authenticatorBuilder,

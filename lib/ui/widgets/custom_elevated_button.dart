@@ -36,25 +36,12 @@ class CustomElevatedButton extends StatelessWidget {
         width: width,
         height: height,
         child: FittedBox(
-          fit: BoxFit.contain,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (icon != null) ...[
-                Icon(
-                  icon,
-                  size: textSize * 1.2,  // Scale the icon slightly larger than text
-                  color: ButtonColors.buttonTextColor,
-                ),
-                const SizedBox(width: 8), // Space between icon and text
-              ],
-              Text(
-                text,
-                style: TextStyles.elevatedButtonTextStyle(context).copyWith(fontSize: textSize),
-              ),
-            ],
-          ),
-        ),
+           fit: BoxFit.scaleDown,
+            child: Text(
+          text,
+          style: TextStyles.elevatedButtonTextStyle(context)
+              .copyWith(fontSize: textSize),
+        )),
       ),
     );
   }

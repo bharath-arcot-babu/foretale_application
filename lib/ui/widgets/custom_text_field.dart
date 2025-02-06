@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:foretale_application/core/constants/colors/app_colors.dart';
+import 'package:foretale_application/ui/themes/text_styles.dart';
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -6,6 +8,7 @@ class CustomTextField extends StatelessWidget {
   final bool obscureText;
   final int maxLines;
   final String? Function(String?)? validator; // Add validator function
+  final bool isEnabled;
 
   const CustomTextField({
     super.key,
@@ -14,53 +17,46 @@ class CustomTextField extends StatelessWidget {
     this.obscureText = false,
     this.maxLines = 1,
     this.validator, // Add the validator parameter
+    required this.isEnabled
   });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      enabled: isEnabled,
       controller: controller,
       obscureText: obscureText,
       maxLines: maxLines,
-      style: const TextStyle(
-        fontSize: 14, // Smaller text size
-        color: Colors.black87, // Sharp text color
-      ),
+      style: TextStyles.inputMainTextStyle(context),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(
-          fontSize: 12, // Smaller label size
-          color: Colors.grey, // Subtle label color
-        ),
+        labelStyle: TextStyles.inputMainTextStyle(context),
         filled: true,
-        fillColor: Colors.grey.shade100, // Light background for the text field
+        fillColor: Colors.transparent, // Light background for the text field
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8), // Rounded corners
           borderSide: const BorderSide(
-            color: Colors.grey, // Border color
+            color: FillColors.tertiaryColor, // Border color
             width: 1.2, // Border width
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(
-            color: Colors.blueAccent, // Highlight color when focused
-            width: 1.5,
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(
+              color: BorderColors.secondaryColor, // Highlight color when focused
+              width: 1.5,
+            ),
           ),
-        ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(
-            color: Colors.grey, // Border color when not focused
+            color: BorderColors.secondaryColor, // Border color when not focused
             width: 1.2,
           ),
         ),
         contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12), // Reduced padding
         hintText: 'Enter $label', // Dynamic hint text
-        hintStyle: const TextStyle(
-          fontSize: 12, // Small hint text
-          color: Colors.grey, // Hint color
-        ),
+        hintStyle: TextStyles.inputHintTextStyle(context),
       ),
       validator: validator, // Assign the validator function
     );

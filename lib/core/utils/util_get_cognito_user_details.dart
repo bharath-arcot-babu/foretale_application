@@ -1,6 +1,5 @@
 //libraries
 import 'package:flutter/material.dart';
-import 'package:foretale_application/core/services/database_connect.dart';
 //state management
 import 'package:provider/provider.dart';
 //amplify

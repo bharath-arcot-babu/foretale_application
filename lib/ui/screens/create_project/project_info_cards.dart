@@ -5,7 +5,7 @@ class ProjectCard extends StatelessWidget {
   final DateTime startDate;
   final String status;
 
-  ProjectCard({
+  const ProjectCard({super.key, 
     required this.projectName,
     required this.startDate,
     required this.status,
@@ -23,15 +23,15 @@ class ProjectCard extends StatelessWidget {
           children: [
             Text(
               projectName,
-              style: TextStyle(
+              style: const TextStyle(
                   fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               "Start Date: ${startDate.toLocal().toString().split(' ')[0]}",
-              style: TextStyle(color: Colors.grey),
+              style: const TextStyle(color: Colors.grey),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               "Status: $status",
               style: TextStyle(

@@ -22,9 +22,16 @@ class _ClientContactsState extends State<ClientContactsPage> {
   final TextEditingController _emailController = TextEditingController();
 
   @override
-  Widget build(BuildContext context) {
-    
+  void initState(){
+    super.initState();
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadPage();     
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(50.0),
       child: Form(
@@ -38,6 +45,7 @@ class _ClientContactsState extends State<ClientContactsPage> {
                 Expanded(
                   flex: 3,
                   child: CustomTextField(
+                    isEnabled: true,
                     controller: _nameController,
                     label: 'Name',
                     validator: (value) {
@@ -52,6 +60,7 @@ class _ClientContactsState extends State<ClientContactsPage> {
                 Expanded(
                   flex: 3,
                   child: CustomTextField(
+                    isEnabled: true,
                     controller: _jobTitleController,
                     label: 'Position',
                   ),
@@ -60,6 +69,7 @@ class _ClientContactsState extends State<ClientContactsPage> {
                 Expanded(
                   flex: 3,
                   child: CustomTextField(
+                    isEnabled: true,
                     controller: _departmentController,
                     label: 'Function',
                   ),
@@ -68,8 +78,15 @@ class _ClientContactsState extends State<ClientContactsPage> {
                 Expanded(
                   flex: 3,
                   child: CustomTextField(
+                    isEnabled: true,
                     controller: _emailController,
                     label: 'Email',
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Email is required';
+                      }
+                      return null;
+                    },
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -121,6 +138,20 @@ class _ClientContactsState extends State<ClientContactsPage> {
     } else {
       SnackbarMessage.showErrorMessage(
           context, 'Please fill in all required fields.');
+    }
+  }
+
+  Future<void> _fetchClientContacts(BuildContext context) async {
+    ClientContactsModel clientContacts = Provider.of<ClientContactsModel>(context, listen: false);
+    await clientContacts.fetchClientsByProjectId(context);
+  }
+
+  Future<void> _loadPage() async {
+    try {
+      await _fetchClientContacts(context);
+    } catch (e) {
+      SnackbarMessage.showErrorMessage(context,
+          'Something went wrong! Please contact support for assistance.');
     }
   }
 }

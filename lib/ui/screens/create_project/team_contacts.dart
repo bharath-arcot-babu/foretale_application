@@ -21,6 +21,16 @@ class _TeamContactsState extends State<TeamContactsPage> {
   final TextEditingController _departmentController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
 
+
+  @override
+  void initState(){
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadPage();     
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -36,6 +46,7 @@ class _TeamContactsState extends State<TeamContactsPage> {
                 Expanded(
                   flex: 3,
                   child: CustomTextField(
+                    isEnabled: true,
                     controller: _nameController,
                     label: 'Name',
                     validator: (value) {
@@ -50,6 +61,7 @@ class _TeamContactsState extends State<TeamContactsPage> {
                 Expanded(
                   flex: 3,
                   child: CustomTextField(
+                    isEnabled: true,
                     controller: _jobTitleController,
                     label: 'Position',
                   ),
@@ -58,6 +70,7 @@ class _TeamContactsState extends State<TeamContactsPage> {
                 Expanded(
                   flex: 3,
                   child: CustomTextField(
+                    isEnabled: true,
                     controller: _departmentController,
                     label: 'Function',
                   ),
@@ -66,6 +79,7 @@ class _TeamContactsState extends State<TeamContactsPage> {
                 Expanded(
                   flex: 4,
                   child: CustomTextField(
+                    isEnabled: true,
                     controller: _emailController,
                     label: 'Email',
                      validator: (value) {
@@ -127,4 +141,19 @@ class _TeamContactsState extends State<TeamContactsPage> {
           context, 'Please fill in all required fields.');
     }
   }
+
+  Future<void> _fetchTeamContacts(BuildContext context) async {
+    TeamContactsModel teamContacts = Provider.of<TeamContactsModel>(context, listen: false);
+    await teamContacts.fetchTeamByProjectId(context);
+  }
+
+  Future<void> _loadPage() async {
+    try {
+      await _fetchTeamContacts(context);
+    } catch (e) {
+      SnackbarMessage.showErrorMessage(context,
+          'Something went wrong! Please contact support for assistance.');
+    }
+  }
+
 }

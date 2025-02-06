@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foretale_application/models/team_contacts_model.dart';
 import 'package:foretale_application/ui/themes/datagrid_theme.dart';
+import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -29,7 +30,7 @@ class TeamContactsDataGrid extends StatelessWidget {
                 label: Container(
                   padding: const EdgeInsets.all(4.0),
                   alignment: Alignment.center,
-                  child: Text('Name', style: DatagridTheme.datagridHeaderText(),),
+                  child: Text('Name', style: TextStyles.gridHeaderText(context),),
                 ),
               ),
               GridColumn(
@@ -38,7 +39,7 @@ class TeamContactsDataGrid extends StatelessWidget {
                 label: Container(
                   padding: const EdgeInsets.all(4.0),
                   alignment: Alignment.center,
-                  child: Text('Position', style: DatagridTheme.datagridHeaderText(),),
+                  child: Text('Position', style: TextStyles.gridHeaderText(context),),
                 ),
               ),
               GridColumn(
@@ -47,7 +48,7 @@ class TeamContactsDataGrid extends StatelessWidget {
                 label: Container(
                   padding: const EdgeInsets.all(4.0),
                   alignment: Alignment.center,
-                  child: Text('Function', style: DatagridTheme.datagridHeaderText(),),
+                  child: Text('Function', style: TextStyles.gridHeaderText(context),),
                 ),
               ),
               GridColumn(
@@ -56,7 +57,7 @@ class TeamContactsDataGrid extends StatelessWidget {
                 label: Container(
                   padding: const EdgeInsets.all(4.0),
                   alignment: Alignment.center,
-                  child: Text('Email', style: DatagridTheme.datagridHeaderText(),),
+                  child: Text('Email', style: TextStyles.gridHeaderText(context),),
                 ),
               ),
               // New delete column
@@ -66,7 +67,7 @@ class TeamContactsDataGrid extends StatelessWidget {
               label: Container(
                 padding: const EdgeInsets.all(4.0),
                 alignment: Alignment.center,
-                child: Text('', style: DatagridTheme.datagridHeaderText(),),
+                child: Text('', style: TextStyles.gridHeaderText(context),),
                 ),
               ),
             ],
