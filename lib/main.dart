@@ -1,5 +1,7 @@
 //libraries
 import 'package:flutter/material.dart';
+import 'package:foretale_application/models/inquiry_question_model.dart';
+
 import 'package:foretale_application/models/project_settings_model.dart';
 import 'package:foretale_application/models/question_model.dart';
 import 'package:foretale_application/models/team_contacts_model.dart';
@@ -23,7 +25,7 @@ void main() async {
   try {
     await _configureAmplify();
   } catch (e) {
-    print('Error configuring Amplify: $e');
+    
   }
   runApp(const ForeTaleApp());
 }
@@ -97,6 +99,7 @@ class ForeTaleApp extends StatelessWidget {
           ChangeNotifierProvider(create: (_) => ClientContactsModel()),
           ChangeNotifierProvider(create: (_) => TeamContactsModel()),
           ChangeNotifierProvider(create: (_) => QuestionsModel()),
+          ChangeNotifierProvider(create: (_) => InquiryQuestionModel()),
         ],
         child: Authenticator(
             authenticatorBuilder: _authenticatorBuilder,

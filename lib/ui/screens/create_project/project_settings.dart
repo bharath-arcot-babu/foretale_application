@@ -3,7 +3,6 @@ import 'package:foretale_application/models/project_settings_model.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:foretale_application/ui/widgets/custom_elevated_button.dart';
 import 'package:foretale_application/ui/widgets/custom_text_field.dart';
-import 'package:foretale_application/ui/widgets/custom_topic_header.dart';
 import 'package:foretale_application/ui/widgets/message_helper.dart';
 import 'package:provider/provider.dart';
 
@@ -54,10 +53,10 @@ class _ProjectSettingsScreenState extends State<ProjectSettingsScreen> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 CustomElevatedButton(
-                  width: 50,
-                  height: 50,
+                  width: 40,
+                  height: 40,
                   text: 'Save',
-                  textSize: 15,
+                  textSize: 14,
                   onPressed: (){_saveProjectSettings(context);}, // Call _submitForm on button press
                 ),
               ],

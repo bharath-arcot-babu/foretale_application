@@ -22,11 +22,11 @@ class _ClientContactsState extends State<ClientContactsPage> {
   final TextEditingController _emailController = TextEditingController();
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadPage();     
+      _loadPage();
     });
   }
 
@@ -90,15 +90,17 @@ class _ClientContactsState extends State<ClientContactsPage> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                CustomElevatedButton(
-                  width: 30,
-                  height: 30,
-                  text: '+',
-                  textSize: 12,
-                  onPressed: () {
-                    _saveClientContact(context);
-                  },
-                ),
+                Expanded(
+                    flex: 1,
+                    child: CustomElevatedButton(
+                      width: double.infinity,
+                      height: 40,
+                      text: '+',
+                      textSize: 12,
+                      onPressed: () {
+                        _saveClientContact(context);
+                      },
+                    )),
               ],
             ),
             const SizedBox(height: 50),
@@ -111,21 +113,24 @@ class _ClientContactsState extends State<ClientContactsPage> {
   }
 
   Future<void> _saveClientContact(BuildContext context) async {
-    var clientContactsModel = Provider.of<ClientContactsModel>(context, listen: false);
+    var clientContactsModel =
+        Provider.of<ClientContactsModel>(context, listen: false);
 
     // Validate form before proceeding
     if (_formKey.currentState?.validate() ?? false) {
       try {
-        int resultId = await clientContactsModel.addUpdateContact(context, ClientContact(
-          name: _nameController.text.trim(),
-          position: _jobTitleController.text.trim(),
-          function: _departmentController.text.trim(),
-          email: _emailController.text.trim(),
-          phone: '',
-          isClient: 'Yes'
-        ));
+        int resultId = await clientContactsModel.addUpdateContact(
+            context,
+            ClientContact(
+                name: _nameController.text.trim(),
+                position: _jobTitleController.text.trim(),
+                function: _departmentController.text.trim(),
+                email: _emailController.text.trim(),
+                phone: '',
+                isClient: 'Yes'));
         if (resultId > 0) {
-          SnackbarMessage.showSuccessMessage(context, '${_nameController.text.trim()} has been added to the project.');
+          SnackbarMessage.showSuccessMessage(context,
+              '${_nameController.text.trim()} has been added to the project.');
         }
       } catch (e) {
         SnackbarMessage.showErrorMessage(context, e.toString());
@@ -142,7 +147,8 @@ class _ClientContactsState extends State<ClientContactsPage> {
   }
 
   Future<void> _fetchClientContacts(BuildContext context) async {
-    ClientContactsModel clientContacts = Provider.of<ClientContactsModel>(context, listen: false);
+    ClientContactsModel clientContacts =
+        Provider.of<ClientContactsModel>(context, listen: false);
     await clientContacts.fetchClientsByProjectId(context);
   }
 

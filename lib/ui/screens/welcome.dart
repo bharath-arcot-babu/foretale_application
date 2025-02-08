@@ -1,11 +1,14 @@
 //core
 import 'package:flutter/material.dart';
+import 'package:foretale_application/core/constants/colors/app_colors.dart';
+import 'package:foretale_application/core/utils/util_date.dart';
 //model
 import 'package:foretale_application/models/project_details_model.dart';
 //screen
 import 'package:foretale_application/ui/screens/create_project/create_project.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:foretale_application/ui/widgets/custom_elevated_button.dart';
+import 'package:foretale_application/ui/widgets/custom_enclosure.dart';
 import 'package:foretale_application/ui/widgets/message_helper.dart';
 import 'package:provider/provider.dart';
 
@@ -16,9 +19,9 @@ class WelcomePage extends StatefulWidget {
   State<WelcomePage> createState() => _WelcomePageState();
 }
 
-class _WelcomePageState extends State<WelcomePage> { 
+class _WelcomePageState extends State<WelcomePage> {
   @override
-  void initState(){
+  void initState() {
     _loadPage();
     super.initState();
   }
@@ -30,68 +33,66 @@ class _WelcomePageState extends State<WelcomePage> {
       child: Row(
         children: [
           Expanded(
-            flex: 3,
-            child: Consumer<ProjectDetailsModel>(builder: (context, model, child){
-                    List<ProjectDetails> projects = model.projectListByUser;
-                    return ListView.builder(
-                    itemCount: projects.length,
-                    itemBuilder: (context, index) {
-                      ProjectDetails project = projects[index];
-                      return Card(
-                        elevation: 4.0, // Adds subtle shadow for depth
-                        margin: const EdgeInsets.symmetric(
-                            vertical: 8.0,
-                            horizontal: 16.0), // Margin for separation
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(12), // Rounded corners
-                        ),
-                        child: InkWell(
-                          onTap: () {
-                            _onProjectSelection(context, project);
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.all(
-                                16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  project.name,
-                                  style: TextStyles.titleText(context),
-                                ),
-                                const SizedBox(
-                                    height:
-                                        8.0),
-                                Text(
-                                  project.organization,
-                                  style: TextStyles.subtitleText(context),
-                                ),
-                                const SizedBox(
-                                    height:
-                                        8.0),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      project.projectType,
-                                      style: TextStyles.topicText(context),
-                                    ),
-                                    Text(
-                                      "Started on: ${project.createdDate}",
-                                      style: TextStyles.topicText(context),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
+              flex: 3,
+              child: CustomContainer(
+              title: "Choose an existing project",
+              child: Consumer<ProjectDetailsModel>(
+                  builder: (context, model, child) {
+                List<ProjectDetails> projects = model.projectListByUser;
+                return ListView.builder(
+                  itemCount: projects.length,
+                  itemBuilder: (context, index) {
+                    ProjectDetails project = projects[index];
+                    return Card(
+                      elevation: 4.0, // Adds subtle shadow for depth
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 8.0,
+                          horizontal: 16.0), // Margin for separation
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(12), // Rounded corners
+                      ),
+                      child: InkWell(
+                        onTap: () {
+                          _onProjectSelection(context, project);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                project.name,
+                                style: TextStyles.titleText(context),
+                              ),
+                              const SizedBox(height: 8.0),
+                              Text(
+                                project.organization,
+                                style: TextStyles.subtitleText(context),
+                              ),
+                              const SizedBox(height: 8.0),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    project.projectType,
+                                    style: TextStyles.topicText(context),
+                                  ),
+                                  Text(
+                                    "Started on: ${convertToDateString(project.createdDate.toString())}",
+                                    style: TextStyles.topicText(context),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
-                      );
-                    },
-                  );})
-          ),
+                      ),
+                    );
+                  },
+                );
+              }))),
           SizedBox(
               width: MediaQuery.of(context).size.width *
                   0.08), // Space between left and right column
@@ -113,16 +114,22 @@ class _WelcomePageState extends State<WelcomePage> {
                         showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
-                            content: const CreateProject(isNew: true,),
+                            backgroundColor: AppColors.backgroundColor,
+                            content: const CreateProject(
+                              isNew: true,
+                            ),
                             actionsAlignment: MainAxisAlignment.end,
                             actions: [
-                               TextButton(
+                              TextButton(
                                 onPressed: () {
                                   Navigator.pop(context);
                                 },
-                                child: Text("Close", style:  TextStyles.footerLinkTextSmall(context),),
+                                child: Text(
+                                  "Close",
+                                  style:
+                                      TextStyles.footerLinkTextSmall(context),
+                                ),
                               ),
-                              
                             ],
                           ),
                         );
@@ -159,17 +166,19 @@ class _WelcomePageState extends State<WelcomePage> {
     );
   }
 
-  void _onProjectSelection(BuildContext context, ProjectDetails projectDetails){
-    try{
-      Provider.of<ProjectDetailsModel>(context, listen: false).updateProjectDetails(context, projectDetails);
-    } catch(e){
-      SnackbarMessage.showErrorMessage(context, "Invalid project selection.");  
+  void _onProjectSelection(
+      BuildContext context, ProjectDetails projectDetails) {
+    try {
+      Provider.of<ProjectDetailsModel>(context, listen: false)
+          .updateProjectDetails(context, projectDetails);
+    } catch (e) {
+      SnackbarMessage.showErrorMessage(context, "Invalid project selection.");
     }
-
   }
 
   Future<void> _loadPage() async {
-    return await Provider.of<ProjectDetailsModel>(context, listen: false).fetchProjectsByUserMachineId(context);
+    return await Provider.of<ProjectDetailsModel>(context, listen: false)
+        .fetchProjectsByUserMachineId(context);
   }
 }
 
@@ -190,32 +199,31 @@ class ResourceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
-          children: [
-            const Icon(Icons.link, color: Colors.blue),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(fontSize: 16),
-                overflow: TextOverflow.ellipsis,
-              ),
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
+              children: [
+                const Icon(Icons.link, color: Colors.blue),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(fontSize: 16),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // You can use url_launcher package to open the URL here
+                  },
+                  child:
+                      const Text("Open", style: TextStyle(color: Colors.blue)),
+                ),
+              ],
             ),
-            TextButton(
-              onPressed: () {
-                // Launch the URL
-                print("Opening $url");
-                // You can use url_launcher package to open the URL here
-              },
-              child: const Text("Open", style: TextStyle(color: Colors.blue)),
-            ),
-          ],
-        ),
-      ),
-    );
+          ),
+        );
   }
 }

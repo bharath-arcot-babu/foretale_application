@@ -21,13 +21,12 @@ class _TeamContactsState extends State<TeamContactsPage> {
   final TextEditingController _departmentController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
 
-
   @override
-  void initState(){
+  void initState() {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadPage();     
+      _loadPage();
     });
   }
 
@@ -82,7 +81,7 @@ class _TeamContactsState extends State<TeamContactsPage> {
                     isEnabled: true,
                     controller: _emailController,
                     label: 'Email',
-                     validator: (value) {
+                    validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Email is required';
                       }
@@ -91,15 +90,17 @@ class _TeamContactsState extends State<TeamContactsPage> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                CustomElevatedButton(
-                  width: 30,
-                  height: 30,
-                  text: '+',
-                  textSize: 12,
-                  onPressed: () {
-                    _saveTeamContact(context);
-                  },
-                ),
+                Expanded(
+                    flex: 1,
+                    child: CustomElevatedButton(
+                      width: 30,
+                      height: 40,
+                      text: '+',
+                      textSize: 12,
+                      onPressed: () {
+                        _saveTeamContact(context);
+                      },
+                    )),
               ],
             ),
             const SizedBox(height: 50),
@@ -112,21 +113,24 @@ class _TeamContactsState extends State<TeamContactsPage> {
   }
 
   Future<void> _saveTeamContact(BuildContext context) async {
-    var teamContactsModel = Provider.of<TeamContactsModel>(context, listen: false);
+    var teamContactsModel =
+        Provider.of<TeamContactsModel>(context, listen: false);
 
     // Validate form before proceeding
     if (_formKey.currentState?.validate() ?? false) {
       try {
-        int resultId = await teamContactsModel.addUpdateContact(context, TeamContact(
-          name: _nameController.text.trim(),
-          position: _jobTitleController.text.trim(),
-          function: _departmentController.text.trim(),
-          email: _emailController.text.trim(),
-          phone: '',
-          isClient: 'No'
-        ));
+        int resultId = await teamContactsModel.addUpdateContact(
+            context,
+            TeamContact(
+                name: _nameController.text.trim(),
+                position: _jobTitleController.text.trim(),
+                function: _departmentController.text.trim(),
+                email: _emailController.text.trim(),
+                phone: '',
+                isClient: 'No'));
         if (resultId > 0) {
-          SnackbarMessage.showSuccessMessage(context, '${_nameController.text.trim()} has been added to the project.');
+          SnackbarMessage.showSuccessMessage(context,
+              '${_nameController.text.trim()} has been added to the project.');
         }
       } catch (e) {
         SnackbarMessage.showErrorMessage(context, e.toString());
@@ -143,7 +147,8 @@ class _TeamContactsState extends State<TeamContactsPage> {
   }
 
   Future<void> _fetchTeamContacts(BuildContext context) async {
-    TeamContactsModel teamContacts = Provider.of<TeamContactsModel>(context, listen: false);
+    TeamContactsModel teamContacts =
+        Provider.of<TeamContactsModel>(context, listen: false);
     await teamContacts.fetchTeamByProjectId(context);
   }
 
@@ -155,5 +160,4 @@ class _TeamContactsState extends State<TeamContactsPage> {
           'Something went wrong! Please contact support for assistance.');
     }
   }
-
 }

@@ -41,7 +41,7 @@ class Question {
       topic: map['topic'],
       status: map['status']?? 'Active',
       createdDate: map['created_date'],
-      createdBy: map['created_by'],
+      createdBy: map['created_by']??'',
       lastUpdatedBy: map['last_updated_by']??'',
       lastUpdatedDate: map['last_updated_date']??'',
       questionId: map['question_id'],
@@ -94,7 +94,7 @@ class QuestionsModel with ChangeNotifier {
         // Showing a more detailed error message with logging.
         SnackbarMessage.showErrorMessage(
           context,
-          'Unable to get the team list. Please contact support for assistance.',
+          'Unable to get the questions.',
           logError: true,
           errorMessage: e.toString(),
           errorStackTrace: error_stack_trace.toString(),
@@ -139,7 +139,46 @@ class QuestionsModel with ChangeNotifier {
         } else {
             SnackbarMessage.showErrorMessage(
               context,
-              'Unable to assign the question. Please contact support for assistance.',
+              'Unable to assign the question.',
+              logError: true,
+              errorMessage: e.toString(),
+              errorStackTrace: error_stack_trace.toString(),
+              errorSource: 'question_model.dart',
+              severityLevel: 'Critical',
+              requestPath: 'insertRecord',
+            );
+        }
+        return 0;
+    }
+  }
+
+  Future<int> addNewQuestionByProjectId(BuildContext context, String questionText, String topic) async {
+    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
+    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+
+    try {
+      var params = {
+        'selected_project_id': projectDetailsModel.getActiveProjectId,
+        'question_text': questionText,
+        'created_by': userDetailsModel.getUserMachineId, 
+        'industry': projectDetailsModel.getIndustry,
+        'project_type': projectDetailsModel.getProjectType,
+        'topic': topic
+      };
+
+      var jsonResponse = await FlaskApiService().insertRecord('dbo.sproc_insert_new_question_by_project', params);
+      int insertedId = int.parse(jsonResponse['data'][0]['inserted_id'].toString());
+
+      return insertedId;
+
+    } catch (e, error_stack_trace) {
+        String errMessage = SnackbarMessage.extractErrorMessage(e.toString());
+        if (errMessage != 'NOT_FOUND') {
+          SnackbarMessage.showErrorMessage(context, errMessage);
+        } else {
+            SnackbarMessage.showErrorMessage(
+              context,
+              'Unable to add the question.',
               logError: true,
               errorMessage: e.toString(),
               errorStackTrace: error_stack_trace.toString(),
@@ -181,7 +220,7 @@ class QuestionsModel with ChangeNotifier {
         } else {
             SnackbarMessage.showErrorMessage(
               context,
-              'Unable to remove the question assignment. Please contact support for assistance.',
+              'Unable to remove the question.',
               logError: true,
               errorMessage: e.toString(),
               errorStackTrace: error_stack_trace.toString(),

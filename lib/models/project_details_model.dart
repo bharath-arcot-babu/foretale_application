@@ -59,6 +59,7 @@ class ProjectDetailsModel with ChangeNotifier {
   List<ProjectDetails> projectListByUser = [];
 
   // Getters for all fields
+  bool get getHasProject => (projectDetails.activeProjectId > 0)?true:false;
   String get getName => projectDetails.name;
   String get getDescription => projectDetails.description;
   String get getOrganization => projectDetails.organization;

@@ -1,42 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:foretale_application/core/utils/util_date.dart';
-import 'package:foretale_application/models/question_model.dart';
+import 'package:foretale_application/models/inquiry_question_model.dart';
 import 'package:foretale_application/ui/themes/datagrid_theme.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
+import 'package:foretale_application/ui/widgets/custom_dropdown_search.dart';
 import 'package:foretale_application/ui/widgets/message_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
-class QuestionsDataGrid extends StatelessWidget {
-  const QuestionsDataGrid({super.key});
+class QuestionsInquiryGrid extends StatelessWidget {
+  const QuestionsInquiryGrid({super.key});
  
   @override
   Widget build(BuildContext context) {
     return SfDataGridTheme(
       data: SFDataGridTheme.sfCustomDataGridTheme,
-      child: Consumer<QuestionsModel>(builder: (context, model, child) {
+      child: Consumer<InquiryQuestionModel>(builder: (context, model, child) {
         return Expanded(
           child: SfDataGrid(
             allowEditing: true,
             allowSorting: true,
             allowFiltering: true,
+            allowColumnsResizing: true,
             isScrollbarAlwaysShown: true,
             columnWidthMode: ColumnWidthMode.fill, // Expands columns to fill the grid width
             selectionMode: SelectionMode.single,
             source: QuestionsDataSource(context, model, model.getQuestionsList),
             columns: <GridColumn>[
-              GridColumn(
-                width: 50,
-                allowSorting: false,
-                allowFiltering: false,
-                columnName: 'isSelected',
-                label: Container(
-                  padding: const EdgeInsets.all(4.0),
-                  alignment: Alignment.center,
-                  child: Text('', style: TextStyles.gridHeaderText(context),),
-                  ),
-              ),
               GridColumn(
                 filterPopupMenuOptions: const FilterPopupMenuOptions(
                   filterMode: FilterMode.checkboxFilter,
@@ -94,6 +85,7 @@ class QuestionsDataGrid extends StatelessWidget {
               GridColumn(
                 columnWidthMode: ColumnWidthMode.fitByColumnName,
                 columnName: 'createdDate',
+                visible: false,
                 label: Container(
                   padding: const EdgeInsets.all(2.0),
                   alignment: Alignment.center,
@@ -106,10 +98,47 @@ class QuestionsDataGrid extends StatelessWidget {
                   showColumnName: false, 
                   canShowSortingOptions: false),
                 columnName: 'createdBy',
+                visible: false,
                 label: Container(
                   padding: const EdgeInsets.all(2.0),
                   alignment: Alignment.center,
                   child: Text('Created By', style: TextStyles.gridHeaderText(context),),
+                ),
+              ),
+              GridColumn(
+                filterPopupMenuOptions: const FilterPopupMenuOptions(
+                  filterMode: FilterMode.checkboxFilter,
+                  showColumnName: false, 
+                  canShowSortingOptions: false),
+                columnName: 'lastResponseBy',
+                label: Container(
+                  padding: const EdgeInsets.all(2.0),
+                  alignment: Alignment.center,
+                  child: Text('Last Response By', style: TextStyles.gridHeaderText(context),),
+                ),
+              ),
+              GridColumn(
+                filterPopupMenuOptions: const FilterPopupMenuOptions(
+                  filterMode: FilterMode.checkboxFilter,
+                  showColumnName: false, 
+                  canShowSortingOptions: false),
+                columnName: 'lastResponseDate',
+                label: Container(
+                  padding: const EdgeInsets.all(2.0),
+                  alignment: Alignment.center,
+                  child: Text('Last Response Date', style: TextStyles.gridHeaderText(context),),
+                ),
+              ),
+              GridColumn(
+                filterPopupMenuOptions: const FilterPopupMenuOptions(
+                  filterMode: FilterMode.checkboxFilter,
+                  showColumnName: false, 
+                  canShowSortingOptions: false),
+                columnName: 'questionStatus',
+                label: Container(
+                  padding: const EdgeInsets.all(2.0),
+                  alignment: Alignment.center,
+                  child: Text('Status', style: TextStyles.gridHeaderText(context),),
                 ),
               ),
               GridColumn(
@@ -136,8 +165,8 @@ class QuestionsDataGrid extends StatelessWidget {
 class QuestionsDataSource extends DataGridSource {
   final BuildContext context;
   List<DataGridRow> dataGridRows = [];
-  List<Question> questionsList;
-  QuestionsModel questionsModel;
+  List<InquiryQuestion> questionsList;
+  InquiryQuestionModel questionsModel;
 
   QuestionsDataSource(
     this.context,
@@ -150,41 +179,34 @@ class QuestionsDataSource extends DataGridSource {
   void buildDataGridRows() {
     dataGridRows = questionsList.map<DataGridRow>((row) {
       return DataGridRow(cells: [
-        
-        if(row.isSelected)
-        DataGridCell<Widget>(columnName: 'isSelected', value: IconButton(
-          icon: const Icon(Icons.check_box, color: Colors.red),
-          onPressed: () async {
-            try{
-              int resultId = await questionsModel.removeQuestion(context, row);
-              if(resultId>0){
-                buildDataGridRows();
-                notifyListeners();
-              }
-            }catch(e){
-              SnackbarMessage.showErrorMessage(context, e.toString());
-            }
-          })),
-        if(!row.isSelected)
-        DataGridCell<Widget>(columnName: 'isSelected', value: IconButton(
-        icon: const Icon(Icons.check_box_outline_blank, color: Colors.red),
-        onPressed: () async {
-          try{
-              int resultId = await questionsModel.selectQuestion(context, row);
-              if(resultId>0){
-                buildDataGridRows();
-                notifyListeners();
-              }
-            }catch(e){
-              SnackbarMessage.showErrorMessage(context, e.toString());
-            }
-        })),
         DataGridCell<String>(columnName: 'questionText', value: row.questionText),
         DataGridCell<String>(columnName: 'industry', value: row.industry),
         DataGridCell<String>(columnName: 'projectType', value: row.projectType),
         DataGridCell<String>(columnName: 'topic', value: row.topic),
         DataGridCell<String>(columnName: 'createdDate', value: convertToDateString(row.createdDate)),
         DataGridCell<String>(columnName: 'createdBy', value: row.createdBy),
+        DataGridCell<String>(columnName: 'lastResponseBy', value: row.createdBy),
+        DataGridCell<String>(columnName: 'lastResponseDate', value: row.createdBy),
+        DataGridCell<Widget>(columnName: 'questionStatus', value: CustomDropdownSearch(
+              items: const ['Open', 'Close', 'Defer'],
+              hintText: 'Status',
+              labelText: 'Status',
+              isEnabled: true,
+              selectedItem: row.questionStatus,
+              onChanged: (value) async{
+                try{
+                  int resultId = await questionsModel.updateQuestionStatus(context, row, value);
+                  print(resultId);
+                  if(resultId>0){
+                    buildDataGridRows();
+                    notifyListeners();
+                  }
+                }catch(e){
+                  print(e.toString());
+                  SnackbarMessage.showErrorMessage(context, e.toString());
+                }
+              },
+            )),
         DataGridCell<int>(columnName: 'questionId', value: row.questionId),
       ]);
     }).toList();
@@ -200,12 +222,11 @@ class QuestionsDataSource extends DataGridSource {
         // For the widget column
         if (dataGridCell.value is Widget) {
           return Container(
-            padding: const EdgeInsets.all(1.0),
+            padding: const EdgeInsets.all(10.0),
             alignment: Alignment.center,
             child: dataGridCell.value as Widget,
           );
         }
-
         // Check if the column is "questionText" and apply center-left alignment
         Alignment alignment = dataGridCell.columnName == "questionText"
             ? Alignment.centerLeft

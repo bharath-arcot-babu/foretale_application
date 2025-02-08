@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 
 class SFDataGridTheme {
@@ -16,6 +16,7 @@ class SFDataGridTheme {
       size: 12,
       color: Colors.black, // Neutral, elegant blue-grey sort icon color
     ),
+    filterPopupTextStyle: TextStyles.gridFilterText(),
   );
 
   

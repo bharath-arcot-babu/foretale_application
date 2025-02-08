@@ -55,7 +55,7 @@ class CustomTextField extends StatelessWidget {
           ),
         ),
         contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12), // Reduced padding
-        hintText: 'Enter $label', // Dynamic hint text
+        hintText: '', // Dynamic hint text
         hintStyle: TextStyles.inputHintTextStyle(context),
       ),
       validator: validator, // Assign the validator function

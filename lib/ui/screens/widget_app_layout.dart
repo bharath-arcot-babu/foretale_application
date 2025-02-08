@@ -5,7 +5,6 @@ import 'package:foretale_application/core/constants/colors/app_colors.dart';
 //utils
 import 'package:foretale_application/core/utils/util_get_cognito_user_details.dart';
 import 'package:foretale_application/ui/screens/inquiry.dart';
-import 'package:foretale_application/ui/screens/inquiry/project_questions.dart';
 //screens
 import 'package:foretale_application/ui/screens/welcome.dart';
 //themes
@@ -107,7 +106,7 @@ class _AppLayoutState extends State<AppLayout> {
     if (_selectedScreen == _display1) {
       return const WelcomePage();
     } else if (_selectedScreen == _display2) {
-      return QuestionsScreen(isNew: true,);
+      return const InquiryPage();
     } else if (_selectedScreen == _display3) {
       return const Placeholder();
     } else if (_selectedScreen == _display4) {

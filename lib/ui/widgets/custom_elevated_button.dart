@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 // Constants
-import 'package:foretale_application/core/constants/colors/app_colors.dart';
 // Themes
 import 'package:foretale_application/ui/themes/button_styles.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';

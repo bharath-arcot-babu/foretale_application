@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:foretale_application/core/services/database_connect.dart';
+import 'package:foretale_application/models/project_details_model.dart';
 import 'package:foretale_application/ui/widgets/message_helper.dart';
+import 'package:provider/provider.dart';
 
 class Topic {
   final int id;
@@ -30,8 +32,15 @@ class Topic {
 
 class TopicList {
   Future<List<Topic>> fetchAllActiveTopics(BuildContext context) async {
+    ProjectDetailsModel projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+
     try {
-      var jsonResponse = await FlaskApiService().readRecord('dbo.sproc_get_subtopic', {});
+      var params = {
+        'industry': projectDetailsModel.getIndustry,
+        'project_type': projectDetailsModel.getProjectType
+      };
+
+      var jsonResponse = await FlaskApiService().readRecord('dbo.sproc_get_subtopic', params);
 
       if (jsonResponse != null && jsonResponse['data'] != null) {
         var data = jsonResponse['data'];

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foretale_application/core/constants/colors/app_colors.dart';
 import 'package:foretale_application/models/team_contacts_model.dart';
 import 'package:foretale_application/ui/themes/datagrid_theme.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
@@ -103,7 +104,7 @@ class TeamContactDataSource extends DataGridSource {
         DataGridCell<String>(columnName: 'email', value: teamContact.email),
         // Add delete icon to each row
         DataGridCell<Widget>(columnName: 'delete', value: IconButton(
-          icon: const Icon(Icons.delete, color: Colors.red),
+          icon: const Icon(Icons.delete, color: AppColors.primaryColor),
           onPressed: () {
             // Remove the contact from the list
             teamContactsModel.removeContact(_context, teamContact);

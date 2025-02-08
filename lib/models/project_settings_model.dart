@@ -120,7 +120,6 @@ class ProjectSettingsModel with ChangeNotifier {
 
         var jsonResponse = await FlaskApiService().readRecord('dbo.sproc_get_project_settings_by_user_machine_id', params);
         if (jsonResponse != null && jsonResponse['data'] != null) {
-          print(jsonResponse['data']);
           var data = jsonResponse['data'];
           projectSettingsList = data
               .map((json) {
@@ -140,7 +139,6 @@ class ProjectSettingsModel with ChangeNotifier {
         projectSettings = projectSettingsList.firstOrNull??ProjectSettings();
 
     } catch (e, error_stack_trace) {
-      print(e.toString());
       projectSettings = ProjectSettings();
       String errMessage = SnackbarMessage.extractErrorMessage(e.toString());
       if (errMessage != 'NOT_FOUND') {

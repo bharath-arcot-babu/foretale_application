@@ -4,7 +4,6 @@ import 'package:foretale_application/models/industry_list_model.dart';
 import 'package:foretale_application/models/organization_list_model.dart';
 import 'package:foretale_application/models/project_details_model.dart';
 import 'package:foretale_application/models/project_type_list_model.dart';
-import 'package:foretale_application/ui/widgets/custom_dropdown_search.dart';
 import 'package:foretale_application/ui/widgets/custom_future_dropdown.dart';
 import 'package:provider/provider.dart';
 //models
@@ -61,8 +60,8 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 CustomElevatedButton(
-                  width: 80, // Adjusted width to fit the text
-                  height: 50,
+                  width: 40, // Adjusted width to fit the text
+                  height: 40,
                   text: 'Save',
                   textSize: 14,
                   onPressed: () {
