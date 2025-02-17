@@ -18,22 +18,24 @@ class ProjectSettingsScreen extends StatefulWidget {
 }
 
 class _ProjectSettingsScreenState extends State<ProjectSettingsScreen> {
-  // Controllers for each text field
-  final TextEditingController sqlHostController = TextEditingController();
-  final TextEditingController sqlPortController = TextEditingController();
-  final TextEditingController sqlDatabaseController = TextEditingController();
-  final TextEditingController sqlUsernameController = TextEditingController();
-  final TextEditingController sqlPasswordController = TextEditingController();
-  final TextEditingController s3UrlController = TextEditingController();
-  final TextEditingController s3UsernameController = TextEditingController();
-  final TextEditingController s3PasswordController = TextEditingController();
-
-  // GlobalKey for form validation
+  final String _currentFileName = "project_settings.dart";
   final _formKey = GlobalKey<FormState>();
+  // Controllers for each text field
+  final TextEditingController _sqlHostController = TextEditingController();
+  final TextEditingController _sqlPortController = TextEditingController();
+  final TextEditingController _sqlDatabaseController = TextEditingController();
+  final TextEditingController _sqlUsernameController = TextEditingController();
+  final TextEditingController _sqlPasswordController = TextEditingController();
+  final TextEditingController _s3UrlController = TextEditingController();
+  final TextEditingController _s3UsernameController = TextEditingController();
+  final TextEditingController _s3PasswordController = TextEditingController();
+  late ProjectSettingsModel _projectSettingsModel;
 
   @override
   void initState(){
     super.initState();
+    _projectSettingsModel = Provider.of<ProjectSettingsModel>(context, listen: false);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!widget.isNew) {
         _loadPage();
@@ -70,7 +72,7 @@ class _ProjectSettingsScreenState extends State<ProjectSettingsScreen> {
             const SizedBox(height: 8),
             CustomTextField(
               isEnabled: true,
-              controller: sqlHostController,
+              controller: _sqlHostController,
               label: 'SQL Server Host',
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -82,7 +84,7 @@ class _ProjectSettingsScreenState extends State<ProjectSettingsScreen> {
             const SizedBox(height: 8),
             CustomTextField(
               isEnabled: true,
-              controller: sqlPortController,
+              controller: _sqlPortController,
               label: 'Port',
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -98,7 +100,7 @@ class _ProjectSettingsScreenState extends State<ProjectSettingsScreen> {
             const SizedBox(height: 8),
             CustomTextField(
               isEnabled: true,
-              controller: sqlDatabaseController,
+              controller: _sqlDatabaseController,
               label: 'Database',
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -110,13 +112,13 @@ class _ProjectSettingsScreenState extends State<ProjectSettingsScreen> {
             const SizedBox(height: 8),
             CustomTextField(
               isEnabled: true,
-              controller: sqlUsernameController,
+              controller: _sqlUsernameController,
               label: 'Username (Leave blank for Windows Authentication)',
             ),
             const SizedBox(height: 8),
             CustomTextField(
               isEnabled: true,
-              controller: sqlPasswordController,
+              controller: _sqlPasswordController,
               label: 'Password (Leave blank for Windows Authentication)',
               obscureText: true,
             ),
@@ -130,19 +132,19 @@ class _ProjectSettingsScreenState extends State<ProjectSettingsScreen> {
             const SizedBox(height: 8),
             CustomTextField(
               isEnabled: true,
-              controller: s3UrlController,
+              controller: _s3UrlController,
               label: 'Amazon S3 File Storage URL',
             ),
             const SizedBox(height: 8),
             CustomTextField(
               isEnabled: true,
-              controller: s3UsernameController,
+              controller: _s3UsernameController,
               label: 'S3 Username',
             ),
             const SizedBox(height: 8),
             CustomTextField(
               isEnabled: true,
-              controller: s3PasswordController,
+              controller: _s3PasswordController,
               label: 'S3 Password',
               obscureText: true,
             ),
@@ -154,55 +156,64 @@ class _ProjectSettingsScreenState extends State<ProjectSettingsScreen> {
 
   // Function to handle form submission
   Future<void> _saveProjectSettings(BuildContext context) async {
-    ProjectSettingsModel projectSettingsModel = Provider.of<ProjectSettingsModel>(context, listen: false);
 
     if (_formKey.currentState?.validate() ?? false) {
       try{
-          projectSettingsModel.projectSettings = ProjectSettings(
-            sqlHost: sqlHostController.text.trim(),
-            sqlPort: int.parse(sqlPortController.text.trim()),
-            sqlDatabase: sqlDatabaseController.text.trim(),
-            sqlUsername: sqlUsernameController.text.trim(),
-            sqlPassword: sqlPasswordController.text.trim(),
-            s3Url : s3UrlController.text.trim(),
-            s3Username: s3UsernameController.text.trim(),
-            s3Password: s3PasswordController.text.trim()
+          _projectSettingsModel.projectSettings = ProjectSettings(
+            sqlHost: _sqlHostController.text.trim(),
+            sqlPort: int.parse(_sqlPortController.text.trim()),
+            sqlDatabase: _sqlDatabaseController.text.trim(),
+            sqlUsername: _sqlUsernameController.text.trim(),
+            sqlPassword: _sqlPasswordController.text.trim(),
+            s3Url : _s3UrlController.text.trim(),
+            s3Username: _s3UsernameController.text.trim(),
+            s3Password: _s3PasswordController.text.trim()
           );
 
-          int projectSettingId = await projectSettingsModel.saveProjectSettings(context);
+          int projectSettingId = await _projectSettingsModel.saveProjectSettings(context);
           if(projectSettingId>0){
-            SnackbarMessage.showSuccessMessage(context, 'Project details saved successfully.');
+            SnackbarMessage.showSuccessMessage(context, 'Project settings saved successfully.');
           }
       } 
-      catch(e){
-          SnackbarMessage.showErrorMessage(context, e.toString());
+      catch(e, error_stack_trace){
+          SnackbarMessage.showErrorMessage(context, 
+            e.toString(),
+            logError: true,
+            errorMessage: e.toString(),
+            errorStackTrace: error_stack_trace.toString(),
+            errorSource: _currentFileName,
+            severityLevel: 'Critical',
+            requestPath: "_saveProjectSettings");
       }
-    } else {
-      SnackbarMessage.showErrorMessage(context, 'Please fill in all required fields.');
     }
   }
 
   Future<void> _fetchProjectSettings(BuildContext context) async {
-    ProjectSettingsModel projSettings = Provider.of<ProjectSettingsModel>(context, listen: false);
-    await projSettings.fetchProjectSettingsByUserMachineId(context);
+    await _projectSettingsModel.fetchProjectSettingsByUserMachineId(context);
     
-    sqlHostController.text = projSettings.getSqlHost;
-    sqlPortController.text = projSettings.getSqlPort.toString();
-    sqlDatabaseController.text = projSettings.getSqlDatabase;
-    sqlUsernameController.text = projSettings.getSqlUsername;
-    sqlPasswordController.text = projSettings.getSqlPassword;
-    s3UrlController.text = projSettings.getS3Url;
-    s3UsernameController.text = projSettings.getS3Username;
-    s3PasswordController.text = projSettings.getS3Password;
+    _sqlHostController.text = _projectSettingsModel.getSqlHost;
+    _sqlPortController.text = _projectSettingsModel.getSqlPort.toString();
+    _sqlDatabaseController.text = _projectSettingsModel.getSqlDatabase;
+    _sqlUsernameController.text = _projectSettingsModel.getSqlUsername;
+    _sqlPasswordController.text = _projectSettingsModel.getSqlPassword;
+    _s3UrlController.text = _projectSettingsModel.getS3Url;
+    _s3UsernameController.text = _projectSettingsModel.getS3Username;
+    _s3PasswordController.text = _projectSettingsModel.getS3Password;
   }
 
   Future<void> _loadPage() async {
     try {
       await _fetchProjectSettings(context);
-    } catch (e) {
-      SnackbarMessage.showErrorMessage(context,
-          'Something went wrong! Please contact support for assistance.');
-    }
+    } catch(e, error_stack_trace){
+          SnackbarMessage.showErrorMessage(context, 
+            e.toString(),
+            logError: true,
+            errorMessage: e.toString(),
+            errorStackTrace: error_stack_trace.toString(),
+            errorSource: _currentFileName,
+            severityLevel: 'Critical',
+            requestPath: "_loadPage");
+      }
   }
 }
 

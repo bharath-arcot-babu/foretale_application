@@ -18,7 +18,7 @@ class ProjectDetailsScreen extends StatefulWidget {
 
   ProjectDetailsScreen({
       super.key,
-      required this.isNew
+      required this.isNew 
   });
 
   @override
@@ -26,18 +26,21 @@ class ProjectDetailsScreen extends StatefulWidget {
 }
 
 class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
-  // Form key to manage validation state
+  final String _currentFileName = "project_details.dart";
   final _formKey = GlobalKey<FormState>();
-
   final TextEditingController _projectNameController = TextEditingController();
   final TextEditingController _projectDescriptionController = TextEditingController(); 
   String? _selectedProjectType;
   String? _selectedOrganization;
   String? _selectedIndustry;
+  late UserDetailsModel _userDetailsModel;
+  late ProjectDetailsModel _projectDetailsModel;
 
   @override
   void initState(){
     super.initState();
+    _userDetailsModel =  Provider.of<UserDetailsModel>(context, listen: false);
+    _projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!widget.isNew) {
@@ -49,18 +52,17 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Form(
-      key: _formKey, // Assign the form key for validation
+      key: _formKey,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Save Button - Positioned at the top-right corner
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 CustomElevatedButton(
-                  width: 40, // Adjusted width to fit the text
+                  width: 40,
                   height: 40,
                   text: 'Save',
                   textSize: 14,
@@ -74,7 +76,6 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Project Name and Company Name Fields
                 Row(
                   children: [
                     Expanded(
@@ -88,11 +89,9 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                           }
                           return null;
                         },
-                      ),
-                    ),
+                      ),),
                     const SizedBox(
                         width: 15),
-                        
                     Expanded(
                         child: FutureDropdownSearch(
                       fetchData: _fetchOrganizations,
@@ -171,68 +170,76 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
   }
 
   Future<void> _fetchProjectDetails(BuildContext context) async {
-    ProjectDetailsModel projDetails = Provider.of<ProjectDetailsModel>(context, listen: false);
-    await projDetails.fetchProjectsByUserMachineId(context);
+    await _projectDetailsModel.fetchProjectsByUserMachineId(context);
 
     if (mounted) {
       setState(() {     
-        _selectedOrganization = projDetails.getOrganization;
-        _selectedProjectType = projDetails.getProjectType;
-        _selectedIndustry = projDetails.getIndustry;
+        _selectedOrganization = _projectDetailsModel.getOrganization;
+        _selectedProjectType = _projectDetailsModel.getProjectType;
+        _selectedIndustry = _projectDetailsModel.getIndustry;
       });
     }
 
-    _projectNameController.text = projDetails.getName;
-    _projectDescriptionController.text = projDetails.getDescription;
+    _projectNameController.text = _projectDetailsModel.getName;
+    _projectDescriptionController.text = _projectDetailsModel.getDescription;
 
   }
 
   Future<void> _saveProjectDetails(BuildContext context) async {
-    var userDetailsModel =  Provider.of<UserDetailsModel>(context, listen: false);
-    final projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
 
-    // Validate form before proceeding
     if (_formKey.currentState?.validate() ?? false) {
       try {
-        projectDetailsModel.projectDetails = ProjectDetails(
+        _projectDetailsModel.projectDetails = ProjectDetails(
           name: _projectNameController.text.trim(),
           description: _projectDescriptionController.text.trim(),
           organization: _selectedOrganization!.trim(),
           recordStatus: 'Active',
-          createdBy: userDetailsModel.getUserMachineId!,
-          activeProjectId: widget.isNew? 0: projectDetailsModel.getActiveProjectId,
+          createdBy: _userDetailsModel.getUserMachineId!,
+          activeProjectId: widget.isNew? 0: _projectDetailsModel.getActiveProjectId,
           projectType: _selectedProjectType!,
-          createdByName: userDetailsModel.getName!,
-          createdByEmail: userDetailsModel.getEmail!,
+          createdByName: _userDetailsModel.getName!,
+          createdByEmail: _userDetailsModel.getEmail!,
           industry: _selectedIndustry!
         );
 
-        int resultId = await projectDetailsModel.saveProjectDetails(context);
+        int resultId = await _projectDetailsModel.saveProjectDetails(context);
 
         if (resultId > 0) {
-          await projectDetailsModel.fetchProjectsByUserMachineId(context);
+
+          await _projectDetailsModel.fetchProjectsByUserMachineId(context);
+
           setState(() {
             widget.isNew = false;
           });
 
-          SnackbarMessage.showSuccessMessage(context,
-              'Project ${_projectNameController.text.trim()} has been saved successfully.');
+          SnackbarMessage.showSuccessMessage(context, 'Project "${_projectNameController.text.trim()}" has been saved successfully.');
         }
-      } catch (e) {
-        SnackbarMessage.showErrorMessage(context, e.toString());
+      } catch (e, error_stack_trace) {
+         SnackbarMessage.showErrorMessage(context, 
+            e.toString(),
+            logError: true,
+            errorMessage: e.toString(),
+            errorStackTrace: error_stack_trace.toString(),
+            errorSource: _currentFileName,
+            severityLevel: 'Critical',
+            requestPath: "_saveProjectDetails");
+
       }
-    } else {
-      SnackbarMessage.showErrorMessage(
-          context, 'Please fill in all required fields.');
     }
   }
 
   Future<void> _loadPage() async {
     try {
       await _fetchProjectDetails(context);
-    } catch (e) {
-      SnackbarMessage.showErrorMessage(context,
-          'Something went wrong! Please contact support for assistance.');
+    } catch (e, error_stack_trace) {
+      SnackbarMessage.showErrorMessage(context, 
+            e.toString(),
+            logError: true,
+            errorMessage: e.toString(),
+            errorStackTrace: error_stack_trace.toString(),
+            errorSource: _currentFileName,
+            severityLevel: 'Critical',
+            requestPath: "_saveProjectDetails");
     }
   }
 }

@@ -1,8 +1,10 @@
+//core
 import 'package:flutter/material.dart';
-import 'package:foretale_application/core/services/database_connect.dart';
-import 'package:foretale_application/models/project_details_model.dart';
-import 'package:foretale_application/ui/widgets/message_helper.dart';
 import 'package:provider/provider.dart';
+//models
+import 'package:foretale_application/models/project_details_model.dart';
+//utils
+import 'package:foretale_application/core/utils/handling_crud.dart';
 
 class Topic {
   final int id;
@@ -13,68 +15,34 @@ class Topic {
     required this.name,
   });
 
-  // Factory constructor for creating an instance from JSON
   factory Topic.fromJson(Map<String, dynamic> json) {
     return Topic(
-      id: json['id'] ?? '',  // Providing default value in case key is missing
-      name: json['name'] ?? '',  // Default to empty string if name is missing
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
     );
-  }
-
-  // Method to convert Organization instance to JSON
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-    };
   }
 }
 
 class TopicList {
+  final CRUD _crudService = CRUD();
+  List<Topic> topicList = [];
+
   Future<List<Topic>> fetchAllActiveTopics(BuildContext context) async {
     ProjectDetailsModel projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
 
-    try {
-      var params = {
-        'industry': projectDetailsModel.getIndustry,
-        'project_type': projectDetailsModel.getProjectType
-      };
+    var params = {
+      'industry': projectDetailsModel.getIndustry,
+      'project_type': projectDetailsModel.getProjectType
+    };
 
-      var jsonResponse = await FlaskApiService().readRecord('dbo.sproc_get_subtopic', params);
+    topicList = await _crudService.getRecords<Topic>(
+      context,
+      'dbo.sproc_get_subtopic',
+      params,
+      (json) => Topic.fromJson(json),
+    );
 
-      if (jsonResponse != null && jsonResponse['data'] != null) {
-        var data = jsonResponse['data'];
-        return data.map((json) {
-          try {
-            return Topic.fromJson(json);  
-          } catch (e) {
-            return null;
-          }
-        }).whereType<Topic>().toList();  // Filter out any null values
-      } else {
-        return [];  // Return an empty list if data or response is null
-      }
-    } catch (e, error_stack_trace) {
-      String errMessage = SnackbarMessage.extractErrorMessage(e.toString());
-
-      if (errMessage != 'NOT_FOUND') {
-        // Show error message if it's not a "Not Found" error
-        SnackbarMessage.showErrorMessage(context, errMessage);
-      } else {
-        // More detailed error message with logging for 'NOT_FOUND' error
-        SnackbarMessage.showErrorMessage(
-          context,
-          'Unable to get the topics list. Please contact support for assistance.',
-          logError: true,
-          errorMessage: e.toString(),
-          errorStackTrace: error_stack_trace.toString(),
-          errorSource: 'topic_list_model.dart',
-          severityLevel: 'Critical',
-          requestPath: 'readRecord',
-        );
-      }
-      return []; 
-    }
+    return topicList;
   }
 }
 

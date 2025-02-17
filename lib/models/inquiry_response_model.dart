@@ -1,10 +1,12 @@
+//core
 import 'package:flutter/material.dart';
-import 'package:foretale_application/core/services/database_connect.dart';
+import 'package:provider/provider.dart';
+//models
 import 'package:foretale_application/models/inquiry_question_model.dart';
 import 'package:foretale_application/models/project_details_model.dart';
 import 'package:foretale_application/models/user_details_model.dart';
-import 'package:foretale_application/ui/widgets/message_helper.dart';
-import 'package:provider/provider.dart';
+//utils
+import 'package:foretale_application/core/utils/handling_crud.dart';
 
 class InquiryResponse {
   int responseId;
@@ -91,6 +93,7 @@ class InquiryAttachment {
 
 
 class InquiryResponseModel with ChangeNotifier {
+  final CRUD _crudService = CRUD();
   List<InquiryResponse> responseList = [];
   List<InquiryResponse> get getResponseList => responseList;
 
@@ -103,61 +106,22 @@ class InquiryResponseModel with ChangeNotifier {
   }
 
   Future<void> fetchResponsesByQuestion(BuildContext context) async {
-    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
     var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
     var questionModel = Provider.of<InquiryQuestionModel>(context, listen: false);
-    
-    try {
-      // Ensuring user ID is available.
-      if (userDetailsModel.getUserMachineId == null) {
-        SnackbarMessage.showErrorMessage(context, "User has not logged in. Please login again.");
-        responseList = [];
-        return;
-      }
 
-      final params = {
-        'selected_project_id': projectDetailsModel.getActiveProjectId,
-        'question_id': questionModel.getSelectedInquiryQuestionId
-        };
+    final params = {
+      'selected_project_id': projectDetailsModel.getActiveProjectId,
+      'question_id': questionModel.getSelectedInquiryQuestionId
+      };
 
-      var jsonResponse = await FlaskApiService().readJsonRecord('dbo.sproc_get_responses_with_attachments', params);
+    responseList = await _crudService.getJsonRecords<InquiryResponse>(
+      context,
+      'dbo.sproc_get_responses_with_attachments',
+      params,
+      (json) => InquiryResponse.fromJson(json),
+    );
 
-      if (jsonResponse != null && jsonResponse['data'] != null) {
-        var data = jsonResponse['data'];
-        responseList = data.map((json) {
-              try {
-                return InquiryResponse.fromJson(json);
-              } catch (e) {
-                return null;
-              }
-            })
-            .whereType<InquiryResponse>()
-            .toList()??[];   
-      } else {
-        responseList = [];
-      }
-    } catch (e, error_stack_trace) {
-      String errMessage = SnackbarMessage.extractErrorMessage(e.toString());
-
-      if (errMessage != 'NOT_FOUND') {
-        SnackbarMessage.showErrorMessage(context, errMessage);
-      } else {
-        // Showing a more detailed error message with logging.
-        SnackbarMessage.showErrorMessage(
-          context,
-          'Unable to get the response list.',
-          logError: true,
-          errorMessage: e.toString(),
-          errorStackTrace: error_stack_trace.toString(),
-          errorSource: 'inquiry_response_model.dart',
-          severityLevel: 'Critical',
-          requestPath: 'readRecord',
-        );
-      }
-      responseList = [];
-    } finally {
-      notifyListeners();
-    }
+    notifyListeners();
   }
 
   Future<int> insertResponseByQuestion(BuildContext context, String? responseText) async {
@@ -165,40 +129,24 @@ class InquiryResponseModel with ChangeNotifier {
     var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
     var questionModel = Provider.of<InquiryQuestionModel>(context, listen: false);
 
-    try {
-      var params = {
-        'selected_project_id': projectDetailsModel.getActiveProjectId,
-        'question_id': questionModel.getSelectedInquiryQuestionId,
-        'response_text': responseText??'',
-        'last_updated_by': userDetailsModel.getUserMachineId,
-      };
+    var params = {
+      'selected_project_id': projectDetailsModel.getActiveProjectId,
+      'question_id': questionModel.getSelectedInquiryQuestionId,
+      'response_text': responseText??'',
+      'last_updated_by': userDetailsModel.getUserMachineId,
+    };
 
-      var jsonResponse = await FlaskApiService().insertRecord('dbo.sproc_insert_response_by_question', params);
-      int insertedId = int.parse(jsonResponse['data'][0]['inserted_id'].toString());
+    int insertedId = await _crudService.addRecord(
+      context,
+      'dbo.sproc_insert_response_by_question',
+      params,
+    );
 
-      if(insertedId>0){
-        await fetchResponsesByQuestion(context);
-        notifyListeners();
-      }
-      return insertedId;
-    } catch (e, error_stack_trace) {
-        String errMessage = SnackbarMessage.extractErrorMessage(e.toString());
-        if (errMessage != 'NOT_FOUND') {
-          SnackbarMessage.showErrorMessage(context, errMessage);
-        } else {
-            SnackbarMessage.showErrorMessage(
-              context,
-              'Unable to update the response.',
-              logError: true,
-              errorMessage: e.toString(),
-              errorStackTrace: error_stack_trace.toString(),
-              errorSource: 'inquiry_response_model.dart',
-              severityLevel: 'Critical',
-              requestPath: 'insertRecord',
-            );
-        }
-        return 0;
+    if(insertedId>0){
+      await fetchResponsesByQuestion(context);
+      notifyListeners();
     }
+    return insertedId;
   }
 
   Future<int> insertAttachmentByResponse(BuildContext context, String? s3FilePath, String fileName, String fileType, int fileSize) async {
@@ -206,39 +154,23 @@ class InquiryResponseModel with ChangeNotifier {
     var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
     var questionModel = Provider.of<InquiryQuestionModel>(context, listen: false);
 
-    try {
-      var params = {
-        'selected_project_id': projectDetailsModel.getActiveProjectId,
-        'question_id': questionModel.getSelectedInquiryQuestionId,
-        'response_id': _selectedInquiryResponseId,
-        'file_path': s3FilePath,
-        'file_name': fileName,
-        'fiel_type': fileType,
-        'file_size': fileSize,
-        'created_by': userDetailsModel.getUserMachineId
-      };
+    var params = {
+      'selected_project_id': projectDetailsModel.getActiveProjectId,
+      'question_id': questionModel.getSelectedInquiryQuestionId,
+      'response_id': _selectedInquiryResponseId,
+      'file_path': s3FilePath,
+      'file_name': fileName,
+      'fiel_type': fileType,
+      'file_size': fileSize,
+      'created_by': userDetailsModel.getUserMachineId
+    };
 
-      var jsonResponse = await FlaskApiService().insertRecord('dbo.sproc_insert_attachments_by_response_id', params);
-      int insertedId = int.parse(jsonResponse['data'][0]['inserted_id'].toString());
+    int insertedId = await _crudService.addRecord(
+      context,
+      'dbo.sproc_insert_attachments_by_response_id',
+      params,
+    );
 
-      return insertedId;
-    } catch (e, error_stack_trace) {
-        String errMessage = SnackbarMessage.extractErrorMessage(e.toString());
-        if (errMessage != 'NOT_FOUND') {
-          SnackbarMessage.showErrorMessage(context, errMessage);
-        } else {
-            SnackbarMessage.showErrorMessage(
-              context,
-              'Unable to update the attachment.',
-              logError: true,
-              errorMessage: e.toString(),
-              errorStackTrace: error_stack_trace.toString(),
-              errorSource: 'inquiry_response_model.dart',
-              severityLevel: 'Critical',
-              requestPath: 'insertRecord',
-            );
-        }
-        return 0;
-    }
+    return insertedId;
   }
 }

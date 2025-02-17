@@ -1,6 +1,10 @@
+//core 
 import 'package:flutter/material.dart';
+
 import 'package:foretale_application/core/services/database_connect.dart';
 import 'package:foretale_application/ui/widgets/message_helper.dart';
+//utils
+import 'package:foretale_application/core/utils/handling_crud.dart';
 
 class UserDetails extends ChangeNotifier {
   String? userMachineId;
@@ -46,28 +50,10 @@ class UserDetails extends ChangeNotifier {
       lastUpdatedBy: json['last_updated_by'] ?? '',
     );
   }
-
-  // Method to convert the instance to a JSON map
-  Map<String, dynamic> toJson() {
-    return {
-      'userMachineId': userMachineId,
-      'userId': userId,
-      'name': name,
-      'position': position,
-      'function': function,
-      'email': email,
-      'phone': phone,
-      'isClient': isClient,
-      'record_status': recordStatus,
-      'created_by': createdBy,
-      'last_updated_by': lastUpdatedBy,
-    };
-  }
-
 }
 
-
 class UserDetailsModel extends ChangeNotifier {
+  final CRUD _crudService = CRUD();
   UserDetails userDetails = UserDetails();
   
   // Getters for all properties
@@ -83,7 +69,6 @@ class UserDetailsModel extends ChangeNotifier {
   String? get getCreatedBy => userDetails.createdBy;
   String? get getLastUpdatedBy => userDetails.lastUpdatedBy;
 
-
   // Set the user details
   void saveUserDetails(String id, String name, String email) {
     userDetails.userMachineId = id;
@@ -93,47 +78,24 @@ class UserDetailsModel extends ChangeNotifier {
   }
 
   Future<void> initializeUser(BuildContext context) async {
-    try {
-      if (getUserMachineId == null || getEmail == null) {
-        SnackbarMessage.showErrorMessage(
-          context,
-          'Unable to initialize the user settings.',
-        );
-        return;
-      }
-      
-      final params = {
-        'user_machine_id': getUserMachineId,
-        'organization_id': null,
-        'name': getName,
-        'position': null,
-        'function': null,
-        'email': getEmail,
-        'phone': null,
-        'is_client': 'No',
-        'record_status': 'Active',
-        'created_by': getUserMachineId,
-        'last_updated_by': getUserMachineId
-      };
+    final params = {
+      'user_machine_id': getUserMachineId,
+      'organization_id': null,
+      'name': getName,
+      'position': null,
+      'function': null,
+      'email': getEmail,
+      'phone': null,
+      'is_client': 'No',
+      'record_status': 'Active',
+      'created_by': getUserMachineId,
+      'last_updated_by': getUserMachineId
+    };
 
-      await FlaskApiService().insertRecord('dbo.sproc_initialize_user', params);
-      
-    } catch (e, error_stack_trace) {
-        String errMessage = SnackbarMessage.extractErrorMessage(e.toString());
-        if (errMessage != 'NOT_FOUND') {
-          SnackbarMessage.showErrorMessage(context, errMessage);
-        } else {
-            SnackbarMessage.showErrorMessage(
-              context,
-              'Unable to setup the user. Please contact support for assistance.',
-              logError: true,
-              errorMessage: e.toString(),
-              errorStackTrace: error_stack_trace.toString(),
-              errorSource: 'user_details_model.dart',
-              severityLevel: 'Critical',
-              requestPath: 'insertRecord',
-            );
-        }
-    }
+    int insertedId = await _crudService.addRecord(
+      context,
+      'dbo.sproc_initialize_user',
+      params,
+    );
   }
 }

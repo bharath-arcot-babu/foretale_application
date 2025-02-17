@@ -1,11 +1,13 @@
 
+//core
 import 'package:flutter/material.dart';
-import 'package:foretale_application/core/services/database_connect.dart';
+import 'package:provider/provider.dart';
+//utils
 import 'package:foretale_application/core/utils/handling_crud.dart';
+//models
 import 'package:foretale_application/models/project_details_model.dart';
 import 'package:foretale_application/models/user_details_model.dart';
-import 'package:foretale_application/ui/widgets/message_helper.dart';
-import 'package:provider/provider.dart';
+
 
 class ClientContact {
   int id = 0;
@@ -62,7 +64,7 @@ class ClientContactsModel with ChangeNotifier {
         'created_by': userDetailsModel.getUserMachineId,
       };
 
-      int insertedId = await _crudService.addUpdateRecord(
+      int insertedId = await _crudService.addRecord(
         context,
         'dbo.sproc_insert_update_user_project_mapping',
         params,
@@ -77,7 +79,7 @@ class ClientContactsModel with ChangeNotifier {
       return insertedId;
 
     } else{
-      throw Exception("${contact.name} has already been assigned.");
+      throw Exception("<ERR_START>${contact.name} has already been assigned.<ERR_END>");
     }
   }
 
@@ -118,7 +120,5 @@ class ClientContactsModel with ChangeNotifier {
       clientContacts.remove(contact);
       notifyListeners();
     }
-  }
-
-  
+  }  
 }

@@ -22,6 +22,7 @@ class InquiryPage extends StatefulWidget {
 }
 
 class _InquiryPageState extends State<InquiryPage> {
+  final String _currentFileName = "inquiry.dart";
   final TextEditingController _responseController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
   late InquiryQuestionModel inquiryQuestionModel;
@@ -289,6 +290,7 @@ Widget _buildInputArea() {
   }
 
   Future<void> pickFile() async {
+    
     FilePickerResult? newFiles = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: [
@@ -301,6 +303,7 @@ Widget _buildInputArea() {
     );
 
     if (newFiles != null) {
+      
       if (filePickerResult == null) {
         filePickerResult = newFiles;
       } else {
@@ -311,27 +314,32 @@ Widget _buildInputArea() {
         List<PlatformFile> uniqueFiles = newFiles.files
             .where((f) => !existingFiles.contains(f.name))
             .toList();
-
-        // Add only unique files
         filePickerResult!.files.addAll(uniqueFiles);
       }
-
-      setState(() {}); // Refresh UI to show updated file list
+      setState(() {});
     }
-  }
-
-
-  Future<void> _loadPage() async {
-    final stopwatch = Stopwatch()..start();
-
-    await inquiryQuestionModel.fetchQuestionsByProject(context);
-    if (inquiryQuestionModel.getSelectedInquiryQuestionId > 0) {
-      await _loadResponses();
-    }
-    stopwatch.stop();
   }
 
   Future<void> _loadResponses() async {
     await inquiryResponseModel.fetchResponsesByQuestion(context);
+  }
+
+  Future<void> _loadPage() async {
+    try{
+      await inquiryQuestionModel.fetchQuestionsByProject(context);
+
+      if (inquiryQuestionModel.getSelectedInquiryQuestionId > 0) {
+        await _loadResponses();
+      }
+    } catch (e, error_stack_trace) {
+      SnackbarMessage.showErrorMessage(context, 
+            e.toString(),
+            logError: true,
+            errorMessage: e.toString(),
+            errorStackTrace: error_stack_trace.toString(),
+            errorSource: _currentFileName,
+            severityLevel: 'Critical',
+            requestPath: "_loadPage");
+    }
   }
 }

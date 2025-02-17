@@ -14,20 +14,24 @@ class TeamContactsPage extends StatefulWidget {
 }
 
 class _TeamContactsState extends State<TeamContactsPage> {
+  final String _currentFileName = "team_contacts.dart";
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   // Controllers for Team Contact Fields
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _jobTitleController = TextEditingController();
   final TextEditingController _departmentController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  late TeamContactsModel _teamContacts;
 
   @override
   void initState() {
     super.initState();
+    _teamContacts = Provider.of<TeamContactsModel>(context, listen: false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadPage();
     });
+
   }
 
   @override
@@ -35,11 +39,10 @@ class _TeamContactsState extends State<TeamContactsPage> {
     return Padding(
       padding: const EdgeInsets.all(50.0),
       child: Form(
-        key: _formKey, // Assign the form key for validation
+        key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Team Contact Form
             Row(
               children: [
                 Expanded(
@@ -113,13 +116,11 @@ class _TeamContactsState extends State<TeamContactsPage> {
   }
 
   Future<void> _saveTeamContact(BuildContext context) async {
-    var teamContactsModel =
-        Provider.of<TeamContactsModel>(context, listen: false);
-
     // Validate form before proceeding
     if (_formKey.currentState?.validate() ?? false) {
       try {
-        int resultId = await teamContactsModel.addUpdateContact(
+
+        int resultId = await _teamContacts.addUpdateContact(
             context,
             TeamContact(
                 name: _nameController.text.trim(),
@@ -128,36 +129,49 @@ class _TeamContactsState extends State<TeamContactsPage> {
                 email: _emailController.text.trim(),
                 phone: '',
                 isClient: 'No'));
+
         if (resultId > 0) {
-          SnackbarMessage.showSuccessMessage(context,
-              '${_nameController.text.trim()} has been added to the project.');
+          SnackbarMessage.showSuccessMessage(context,'"${_nameController.text.trim()}" has been added to the project.');
         }
-      } catch (e) {
-        SnackbarMessage.showErrorMessage(context, e.toString());
+
+      } catch (e, error_stack_trace) {
+
+        SnackbarMessage.showErrorMessage(context, 
+            e.toString(),
+            logError: true,
+            errorMessage: e.toString(),
+            errorStackTrace: error_stack_trace.toString(),
+            errorSource: _currentFileName,
+            severityLevel: 'Critical',
+            requestPath: "_saveTeamContact");
+
       } finally {
+
         _nameController.clear();
         _jobTitleController.clear();
         _departmentController.clear();
         _emailController.clear();
+
       }
-    } else {
-      SnackbarMessage.showErrorMessage(
-          context, 'Please fill in all required fields.');
     }
   }
 
   Future<void> _fetchTeamContacts(BuildContext context) async {
-    TeamContactsModel teamContacts =
-        Provider.of<TeamContactsModel>(context, listen: false);
-    await teamContacts.fetchTeamByProjectId(context);
+    await _teamContacts.fetchTeamByProjectId(context);
   }
 
   Future<void> _loadPage() async {
     try {
       await _fetchTeamContacts(context);
-    } catch (e) {
-      SnackbarMessage.showErrorMessage(context,
-          'Something went wrong! Please contact support for assistance.');
-    }
+    } catch (e, error_stack_trace) {
+        SnackbarMessage.showErrorMessage(context, 'Something went wrong!',
+            logError: true,
+            errorMessage: e.toString(),
+            errorStackTrace: error_stack_trace.toString(),
+            errorSource: _currentFileName,
+            severityLevel: 'Critical',
+            requestPath: "_loadPage");
+
+      } 
   }
 }

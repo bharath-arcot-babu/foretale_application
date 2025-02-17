@@ -1,9 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:foretale_application/core/services/database_connect.dart';
 import 'package:foretale_application/ui/widgets/message_helper.dart';
 
 class CRUD {
-  Future<int> addUpdateRecord(BuildContext context, String storedProcedure, Map<String, dynamic> params) async {
+  Future<int> addRecord(BuildContext context, String storedProcedure, Map<String, dynamic> params) async {
     try {
       var jsonResponse = await FlaskApiService().insertRecord(storedProcedure, params);
       int insertedId = int.parse(jsonResponse['data'][0]['inserted_id'].toString());
@@ -11,10 +13,26 @@ class CRUD {
       if (insertedId > 0) {
         return insertedId;
       } else {
-        throw Exception('Failed to add/update record');
+        throw Exception('Failed to add record');
       }
     } catch (e, error_stack_trace) {
       _handleError(context, e, error_stack_trace, storedProcedure, 'insertRecord');
+      return 0;
+    }
+  }
+
+  Future<int> updateRecord(BuildContext context, String storedProcedure, Map<String, dynamic> params) async {
+    try {
+      var jsonResponse = await FlaskApiService().updateRecord(storedProcedure, params);
+      int updatedId = int.parse(jsonResponse['data'][0]['updated_id'].toString());
+
+      if (updatedId > 0) {
+        return updatedId;
+      } else {
+        throw Exception('Failed to update record');
+      }
+    } catch (e, error_stack_trace) {
+      _handleError(context, e, error_stack_trace, storedProcedure, 'updateRecord');
       return 0;
     }
   }
@@ -58,19 +76,44 @@ class CRUD {
         return [];
       }
     } catch (e, error_stack_trace) {
+      print(e.toString());
       _handleError(context, e, error_stack_trace, storedProcedure, 'readRecord');
+      return [];
+    }
+  }
+
+  Future<List<T>> getJsonRecords<T>(BuildContext context, String storedProcedure, Map<String, dynamic> params, T Function(Map<String, dynamic>) fromJson) async {
+    try {
+      var jsonResponse = await FlaskApiService().readJsonRecord(storedProcedure, params);
+      if (jsonResponse != null && jsonResponse['data'] != null) {
+        var data = jsonResponse['data'];
+
+        if(data is! List){
+          return [];
+        }
+        
+        return data.map<T?>((json) {
+          try {
+            return fromJson(json)!;
+          } catch (e) {
+            return null;
+          }
+
+        }).whereType<T>().toList();
+        
+      } else {
+        return [];
+      }
+    } catch (e, error_stack_trace) {
+      print(e.toString());
+      _handleError(context, e, error_stack_trace, storedProcedure, 'readJsonRecord');
       return [];
     }
   }
 
   // Handle errors and show messages to users
   void _handleError(BuildContext context, dynamic error, StackTrace stackTrace, String storedProcedure, String action) {
-    String errMessage = SnackbarMessage.extractErrorMessage(error.toString());
-
-    if (errMessage != 'NOT_FOUND') {
-      SnackbarMessage.showErrorMessage(context, errMessage);
-    } else {
-      SnackbarMessage.showErrorMessage(
+    SnackbarMessage.showErrorMessage(
         context,
         'Unable to complete the action. Please contact support for assistance.',
         logError: true,
@@ -80,6 +123,5 @@ class CRUD {
         severityLevel: 'Critical',
         requestPath: action,
       );
-    }
   }
 }

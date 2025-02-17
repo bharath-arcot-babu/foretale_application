@@ -14,17 +14,19 @@ class ClientContactsPage extends StatefulWidget {
 }
 
 class _ClientContactsState extends State<ClientContactsPage> {
-  final String currentFileName = "client_contacts.dart";
+  final String _currentFileName = "client_contacts.dart";
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   // Controllers for Client Contact Fields
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _jobTitleController = TextEditingController();
   final TextEditingController _departmentController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  late ClientContactsModel _clientContacts = Provider.of<ClientContactsModel>(context, listen: false);
 
   @override
   void initState() {
     super.initState();
+    _clientContacts = Provider.of<ClientContactsModel>(context, listen: false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadPage();
@@ -36,11 +38,10 @@ class _ClientContactsState extends State<ClientContactsPage> {
     return Padding(
       padding: const EdgeInsets.all(50.0),
       child: Form(
-        key: _formKey, // Assign the form key for validation
+        key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Client Contact Form
             Row(
               children: [
                 Expanded(
@@ -114,11 +115,9 @@ class _ClientContactsState extends State<ClientContactsPage> {
   }
 
   Future<void> _saveClientContact(BuildContext context) async {
-    var clientContactsModel = Provider.of<ClientContactsModel>(context, listen: false);
-
     if (_formKey.currentState?.validate() ?? false) {
       try {
-        int resultId = await clientContactsModel.addUpdateContact(
+        int resultId = await _clientContacts.addUpdateContact(
             context,
             ClientContact(
                 name: _nameController.text.trim(),
@@ -127,30 +126,34 @@ class _ClientContactsState extends State<ClientContactsPage> {
                 email: _emailController.text.trim(),
                 phone: '',
                 isClient: 'Yes'));
+
         if (resultId > 0) {
-          SnackbarMessage.showSuccessMessage(context,
-              '${_nameController.text.trim()} has been added to the project.');
+          SnackbarMessage.showSuccessMessage(context,'"${_nameController.text.trim()}" has been added to the project.');
         }
+
       } catch (e, error_stack_trace) {
-        SnackbarMessage.showErrorMessage(context, 'Something went wrong!',
+        SnackbarMessage.showErrorMessage(context, 
+            e.toString(),
             logError: true,
             errorMessage: e.toString(),
             errorStackTrace: error_stack_trace.toString(),
-            errorSource: currentFileName,
+            errorSource: _currentFileName,
             severityLevel: 'Critical',
             requestPath: "_saveClientContact");
+
       } finally {
+
         _nameController.clear();
         _jobTitleController.clear();
         _departmentController.clear();
         _emailController.clear();
+
       }
     }
   }
 
   Future<void> _fetchClientContacts(BuildContext context) async {
-    ClientContactsModel clientContacts = Provider.of<ClientContactsModel>(context, listen: false);
-    await clientContacts.fetchClientsByProjectId(context);
+    await _clientContacts.fetchClientsByProjectId(context);
   }
 
   Future<void> _loadPage() async {
@@ -161,7 +164,7 @@ class _ClientContactsState extends State<ClientContactsPage> {
             logError: true,
             errorMessage: e.toString(),
             errorStackTrace: error_stack_trace.toString(),
-            errorSource: currentFileName,
+            errorSource: _currentFileName,
             severityLevel: 'Critical',
             requestPath: "_loadPage");
       } 
