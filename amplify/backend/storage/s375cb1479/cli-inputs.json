@@ -1,0 +1,13 @@
+{
+  "resourceName": "s375cb1479",
+  "policyUUID": "75cb1479",
+  "bucketName": "foretaleapplication24783bf682ff4b3dbe61719ba699",
+  "storageAccess": "auth",
+  "guestAccess": [],
+  "authAccess": [
+    "CREATE_AND_UPDATE",
+    "READ",
+    "DELETE"
+  ],
+  "groupAccess": {}
+}

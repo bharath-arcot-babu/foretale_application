@@ -152,7 +152,6 @@ class ProjectDetailsModel with ChangeNotifier {
 
       final params = {'user_machine_id': userDetailsModel.getUserMachineId};
       var jsonResponse = await FlaskApiService().readRecord('dbo.sproc_get_projects_by_user_machine_id', params);
-      
       if (jsonResponse != null && jsonResponse['data'] != null) {
         var projectsListData = jsonResponse['data'];
         projectListByUser = projectsListData.map((json) {

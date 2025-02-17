@@ -14,6 +14,7 @@ class ClientContactsPage extends StatefulWidget {
 }
 
 class _ClientContactsState extends State<ClientContactsPage> {
+  final String currentFileName = "client_contacts.dart";
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   // Controllers for Client Contact Fields
   final TextEditingController _nameController = TextEditingController();
@@ -113,10 +114,8 @@ class _ClientContactsState extends State<ClientContactsPage> {
   }
 
   Future<void> _saveClientContact(BuildContext context) async {
-    var clientContactsModel =
-        Provider.of<ClientContactsModel>(context, listen: false);
+    var clientContactsModel = Provider.of<ClientContactsModel>(context, listen: false);
 
-    // Validate form before proceeding
     if (_formKey.currentState?.validate() ?? false) {
       try {
         int resultId = await clientContactsModel.addUpdateContact(
@@ -132,32 +131,39 @@ class _ClientContactsState extends State<ClientContactsPage> {
           SnackbarMessage.showSuccessMessage(context,
               '${_nameController.text.trim()} has been added to the project.');
         }
-      } catch (e) {
-        SnackbarMessage.showErrorMessage(context, e.toString());
+      } catch (e, error_stack_trace) {
+        SnackbarMessage.showErrorMessage(context, 'Something went wrong!',
+            logError: true,
+            errorMessage: e.toString(),
+            errorStackTrace: error_stack_trace.toString(),
+            errorSource: currentFileName,
+            severityLevel: 'Critical',
+            requestPath: "_saveClientContact");
       } finally {
         _nameController.clear();
         _jobTitleController.clear();
         _departmentController.clear();
         _emailController.clear();
       }
-    } else {
-      SnackbarMessage.showErrorMessage(
-          context, 'Please fill in all required fields.');
     }
   }
 
   Future<void> _fetchClientContacts(BuildContext context) async {
-    ClientContactsModel clientContacts =
-        Provider.of<ClientContactsModel>(context, listen: false);
+    ClientContactsModel clientContacts = Provider.of<ClientContactsModel>(context, listen: false);
     await clientContacts.fetchClientsByProjectId(context);
   }
 
   Future<void> _loadPage() async {
     try {
       await _fetchClientContacts(context);
-    } catch (e) {
-      SnackbarMessage.showErrorMessage(context,
-          'Something went wrong! Please contact support for assistance.');
-    }
+    } catch (e, error_stack_trace) {
+        SnackbarMessage.showErrorMessage(context, 'Something went wrong!',
+            logError: true,
+            errorMessage: e.toString(),
+            errorStackTrace: error_stack_trace.toString(),
+            errorSource: currentFileName,
+            severityLevel: 'Critical',
+            requestPath: "_loadPage");
+      } 
   }
 }

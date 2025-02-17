@@ -4,7 +4,7 @@ import 'package:foretale_application/ui/screens/create_project/client_contacts.d
 import 'package:foretale_application/ui/screens/create_project/project_details.dart';
 import 'package:foretale_application/ui/screens/create_project/project_settings.dart';
 import 'package:foretale_application/ui/screens/create_project/team_contacts.dart';
-import 'package:foretale_application/ui/screens/inquiry/project_questions.dart';
+import 'package:foretale_application/ui/screens/create_project/project_questions.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
 
 class CreateProject extends StatefulWidget {

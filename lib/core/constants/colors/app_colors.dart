@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class AppColors {
   static const Color primaryColor = Color(0xFFEE4266);
   static const Color secondaryColor = Color(0xFF03DAC6);
-  static const Color backgroundColor = Color(0xFFE1E2EF);
+  static const Color backgroundColor = Color(0xFFFFFFFF);
   static const Color accentColor = Color(0xFF03DAC6);
 }
 
@@ -24,7 +24,7 @@ class LeftPaneControlColors {
 }
 
 class BodyColors {
-  static const Color bodyBackgroundColor = Color(0xFFE1E2EF);
+  static const Color bodyBackgroundColor = Color(0xFFFFFFFF);
 }
 
 class TextColors {
@@ -60,6 +60,7 @@ class DatagridColors{
   static const Color datagridHeaderColor = Color(0xFFA2AEBB);
   static const Color datagridHeaderText = Color(0xFFE1E2EF);
   static const Color datagridHeaderHoverColor = Color(0xFFEE4266);
+   static const Color datagridRowSelectionColor = Color(0xFF1C1C1C);
 }
 
 class ErrorColors {

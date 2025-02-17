@@ -98,7 +98,7 @@ class TextStyles {
 
   static TextStyle inputMainTextStyle (BuildContext context){
     return GoogleFonts.poppins( // Apply Google Font
-      fontWeight: FontWeight.normal,
+      fontWeight: FontWeight.w500,
       color: FillColors.primaryColor,
       fontSize: 12.0
     );
@@ -132,7 +132,7 @@ class TextStyles {
     return GoogleFonts.poppins( // Apply Google Font
       fontWeight: FontWeight.w600,
       color: TextColors.primaryTextColor,
-      fontSize: _getFontSize(context, 14.0), // Responsive font size
+      fontSize: _getFontSize(context, 12.0), // Responsive font size
     );
   }
 
@@ -140,7 +140,7 @@ class TextStyles {
     return GoogleFonts.poppins( // Apply Google Font
       fontWeight: FontWeight.w500,
       color: TextColors.primaryTextColor,
-      fontSize: _getFontSize(context, 13.0), // Responsive font size
+      fontSize: _getFontSize(context, 11.0), // Responsive font size
     );
   }
 
@@ -149,6 +149,30 @@ class TextStyles {
       fontWeight: FontWeight.w500,
       color: TextColors.primaryTextColor,
       fontSize: 10.0, // Responsive font size
+    );
+  }
+
+  static TextStyle responseText(BuildContext context) {
+    return GoogleFonts.poppins( // Apply Google Font
+      fontWeight: FontWeight.w500,
+      color: TextColors.primaryTextColor,
+      fontSize: _getFontSize(context, 10.0), // Responsive font size
+    );
+  }
+
+  static TextStyle smallSupplementalInfo(BuildContext context) {
+    return GoogleFonts.poppins( // Apply Google Font
+      fontWeight: FontWeight.w400,
+      color: TextColors.primaryTextColor,
+      fontSize: _getFontSize(context, 9.0), // Responsive font size
+    );
+  }
+
+  static TextStyle responseTextFileInfo(BuildContext context) {
+    return GoogleFonts.poppins( // Apply Google Font
+      fontWeight: FontWeight.w400,
+      color: TextColors.primaryTextColor,
+      fontSize: _getFontSize(context, 9.0), // Responsive font size
     );
   }
 }

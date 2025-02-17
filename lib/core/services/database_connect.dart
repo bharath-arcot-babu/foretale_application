@@ -42,6 +42,19 @@ class FlaskApiService {
     return _handleResponse(response);
   }
 
+  Future<dynamic> readJsonRecord(String procedureName, Map<String, dynamic> params) async {
+
+    final uri = Uri.parse('$baseUrl/read_json_record').replace(queryParameters: {
+      "procedure_name": procedureName,
+      ...params.map((key, value) => MapEntry(key, value.toString())),
+    });
+    final response = await http.get(
+      uri,
+      headers: {"Accept": "application/json"});
+
+    return _handleResponse(response);
+  }
+
   Future<http.Response> _post(String endpoint, Map<String, dynamic> body) async {
     final uri = Uri.parse('$baseUrl$endpoint');
 

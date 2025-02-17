@@ -4,6 +4,7 @@ import 'package:foretale_application/models/project_details_model.dart';
 import 'package:foretale_application/models/user_details_model.dart';
 import 'package:foretale_application/ui/widgets/message_helper.dart';
 import 'package:provider/provider.dart';
+import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class InquiryQuestion {
   String questionText;  
@@ -51,8 +52,54 @@ class InquiryQuestion {
 class InquiryQuestionModel with ChangeNotifier {
   List<InquiryQuestion> questionsList = [];
   List<InquiryQuestion> get getQuestionsList => questionsList;
+  List<InquiryQuestion> filteredQuestionsList = [];
+  List<InquiryQuestion> get getFilteredQuestionsList => filteredQuestionsList;
+
+  int _selectedInquiryQuestionId = 0;
+  int get getSelectedInquiryQuestionId => _selectedInquiryQuestionId;
+  String _currentSortColumn = 'lastResponseDate';
+  String get getCurrentSortColumn => _currentSortColumn;
+  DataGridSortDirection currentSortDirection = DataGridSortDirection.descending;
+  DataGridSortDirection get getCurrentSortDirection => currentSortDirection; // Default direction
+
+
+  void updateQuestionIdSelection(int questionId ){
+    _selectedInquiryQuestionId = questionId;
+    notifyListeners();
+  }
+
+  void updateSortColumn(String sortColumnName){
+    if (_currentSortColumn == sortColumnName) {
+      currentSortDirection = (currentSortDirection == DataGridSortDirection.descending)
+          ? DataGridSortDirection.ascending
+          : DataGridSortDirection.descending;
+    } else {
+      _currentSortColumn = sortColumnName;
+      currentSortDirection = DataGridSortDirection.descending;
+    }
+    notifyListeners();
+  }
+
+  void filterData(String query) {
+    String lowerCaseQuery = query.trim().toLowerCase();
+    
+    if (query.isEmpty) {
+      filteredQuestionsList = List.from(questionsList);
+    } else {
+      filteredQuestionsList = filteredQuestionsList.where((inquiryQuestion) {
+        return inquiryQuestion.questionText.toLowerCase().contains(lowerCaseQuery) ||
+               inquiryQuestion.topic.toLowerCase().contains(lowerCaseQuery) ||
+               inquiryQuestion.questionStatus.toLowerCase().contains(lowerCaseQuery) ||
+               inquiryQuestion.lastResponseBy.toLowerCase().contains(lowerCaseQuery);
+
+      }).toList();
+    }
+
+    notifyListeners();
+  }
 
   Future<void> fetchQuestionsByProject(BuildContext context) async {
+    final stopwatch = Stopwatch()..start();
     var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
     var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
     
@@ -68,21 +115,24 @@ class InquiryQuestionModel with ChangeNotifier {
         'project_id': projectDetailsModel.getActiveProjectId
         };
       var jsonResponse = await FlaskApiService().readRecord('dbo.sproc_get_inquiry_questions_by_project_id', params);
-      
       if (jsonResponse != null && jsonResponse['data'] != null) {
         var data = jsonResponse['data'];
+        
         questionsList = data.map((json) {
               try {
                 return InquiryQuestion.fromJson(json);
               } catch (e) {
+
                 return null;
               }
             })
             .whereType<InquiryQuestion>()
             .toList()??[];   
+            
       } else {
         questionsList = [];
       }
+      stopwatch.stop();
     } catch (e, error_stack_trace) {
       String errMessage = SnackbarMessage.extractErrorMessage(e.toString());
 
@@ -103,6 +153,7 @@ class InquiryQuestionModel with ChangeNotifier {
       }
       questionsList = [];
     } finally {
+      filteredQuestionsList = questionsList;
       notifyListeners();
     }
   }
@@ -115,7 +166,7 @@ class InquiryQuestionModel with ChangeNotifier {
       var params = {
         'selected_project_id': projectDetailsModel.getActiveProjectId,
         'question_id': question.questionId,
-        'question_status': question.questionStatus,
+        'question_status': updatedQuestionStatus??question.questionStatus,
         'last_updated_by': userDetailsModel.getUserMachineId, 
       };
 
@@ -132,7 +183,6 @@ class InquiryQuestionModel with ChangeNotifier {
       return updatedId;
 
     } catch (e, error_stack_trace) {
-        print(e.toString());  
         String errMessage = SnackbarMessage.extractErrorMessage(e.toString());
         if (errMessage != 'NOT_FOUND') {
           SnackbarMessage.showErrorMessage(context, errMessage);

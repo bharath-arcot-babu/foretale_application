@@ -4,19 +4,20 @@ import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 
 class SFDataGridTheme {
-  static SfDataGridThemeData sfCustomDataGridTheme = SfDataGridThemeData(
+  static SfDataGridThemeData sfCustomDataGridTheme = SfDataGridThemeData( 
     headerColor: DatagridColors.datagridHeaderColor, // Light blue header background for better readability
-    headerHoverColor: DatagridColors.datagridHeaderHoverColor, // Subtle hover effect for the header
-    selectionColor: Colors.transparent,
-    gridLineColor: const Color(0xFFE0E0E0), // Light grey grid lines for a softer look
-    gridLineStrokeWidth: 0.8, // Slightly thicker grid lines for better visibility
+    headerHoverColor: DatagridColors.datagridHeaderColor, // Subtle hover effect for the header
+    selectionColor: DatagridColors.datagridRowSelectionColor,
+    //gridLineColor: BorderColors.secondaryColor, // Light grey grid lines for a softer look
+    //gridLineStrokeWidth: 0.5, // Slightly thicker grid lines for better visibility
     rowHoverColor: Colors.transparent, // Light row hover color for a clean effect
     sortIcon: const Icon(
       Icons.sort,
-      size: 12,
+      size: 8,
       color: Colors.black, // Neutral, elegant blue-grey sort icon color
     ),
     filterPopupTextStyle: TextStyles.gridFilterText(),
+    filterPopupDisabledTextStyle: TextStyles.gridFilterText(),
   );
 
   

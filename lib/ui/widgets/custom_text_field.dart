@@ -9,6 +9,8 @@ class CustomTextField extends StatelessWidget {
   final int maxLines;
   final String? Function(String?)? validator; // Add validator function
   final bool isEnabled;
+  final Function(String)? onChanged;
+  
 
   const CustomTextField({
     super.key,
@@ -17,7 +19,8 @@ class CustomTextField extends StatelessWidget {
     this.obscureText = false,
     this.maxLines = 1,
     this.validator, // Add the validator parameter
-    required this.isEnabled
+    required this.isEnabled,
+    this.onChanged
   });
 
   @override
@@ -59,6 +62,7 @@ class CustomTextField extends StatelessWidget {
         hintStyle: TextStyles.inputHintTextStyle(context),
       ),
       validator: validator, // Assign the validator function
+      onChanged: onChanged 
     );
   }
 }

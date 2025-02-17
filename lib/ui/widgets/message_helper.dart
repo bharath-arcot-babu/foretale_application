@@ -29,11 +29,13 @@ class SnackbarMessage {
       String errorSource = "",
       String severityLevel = "",
       String requestPath = ""}) async {
+
     _showSnackBar(context, message, const Color.fromARGB(255, 167, 34, 25), SnackBarBehavior.floating);
 
     try {
       if (logError) {
-        var userDetailsModel = Provider.of<UserDetailsModel>(context);
+        var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
+
         Map<String, dynamic> params = {
           "error_message": errorMessage,
           "error_stack_trace": errorStackTrace,
@@ -46,6 +48,7 @@ class SnackbarMessage {
         await FlaskApiService().insertRecord("dbo.SPROC_LOG_ERROR", params);
       }
     } catch (e) {
+      print(e.toString());
       //Do nothing
     }
   }
