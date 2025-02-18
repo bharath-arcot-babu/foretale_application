@@ -79,7 +79,7 @@ class QuestionsModel with ChangeNotifier {
     var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
 
     var params = {
-      'selected_project_id': projectDetailsModel.getActiveProjectId,
+      'project_id': projectDetailsModel.getActiveProjectId,
       'question_id': question.questionId,
       'created_by': userDetailsModel.getUserMachineId, 
     };
@@ -106,7 +106,7 @@ class QuestionsModel with ChangeNotifier {
     var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
 
     var params = {
-      'selected_project_id': projectDetailsModel.getActiveProjectId,
+      'project_id': projectDetailsModel.getActiveProjectId,
       'question_text': questionText,
       'created_by': userDetailsModel.getUserMachineId, 
       'industry': projectDetailsModel.getIndustry,
@@ -128,7 +128,7 @@ class QuestionsModel with ChangeNotifier {
     var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
 
       final params = {
-        'selected_project_id': projectDetailsModel.getActiveProjectId,
+        'project_id': projectDetailsModel.getActiveProjectId,
         'question_id': question.questionId,
         'last_updated_by': userDetailsModel.getUserMachineId
       };

@@ -91,7 +91,7 @@ class ProjectSettingsModel with ChangeNotifier {
     var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
 
     var params = {
-        'selected_project_id' : projectDetailsModel.getActiveProjectId,
+        'project_id' : projectDetailsModel.getActiveProjectId,
         'user_machine_id' : userDetailsModel.getUserMachineId
     };
 

@@ -53,7 +53,7 @@ class ClientContactsModel with ChangeNotifier {
     if(!emailSet.contains(contact.email))
     {
         final params = {
-        'selected_project_id': projectDetailsModel.getActiveProjectId,
+        'project_id': projectDetailsModel.getActiveProjectId,
         'name': contact.name,
         'position': contact.position,
         'function': contact.function,
@@ -106,7 +106,7 @@ class ClientContactsModel with ChangeNotifier {
 
     final params = {
       'client_contact_id': contact.id,
-      'selected_project_id': projectDetailsModel.getActiveProjectId,
+      'project_id': projectDetailsModel.getActiveProjectId,
       'last_updated_by': userDetailsModel.getUserMachineId
     };
 

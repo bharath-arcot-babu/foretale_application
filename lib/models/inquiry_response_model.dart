@@ -110,7 +110,7 @@ class InquiryResponseModel with ChangeNotifier {
     var questionModel = Provider.of<InquiryQuestionModel>(context, listen: false);
 
     final params = {
-      'selected_project_id': projectDetailsModel.getActiveProjectId,
+      'project_id': projectDetailsModel.getActiveProjectId,
       'question_id': questionModel.getSelectedInquiryQuestionId
       };
 
@@ -130,7 +130,7 @@ class InquiryResponseModel with ChangeNotifier {
     var questionModel = Provider.of<InquiryQuestionModel>(context, listen: false);
 
     var params = {
-      'selected_project_id': projectDetailsModel.getActiveProjectId,
+      'project_id': projectDetailsModel.getActiveProjectId,
       'question_id': questionModel.getSelectedInquiryQuestionId,
       'response_text': responseText??'',
       'last_updated_by': userDetailsModel.getUserMachineId,
@@ -155,7 +155,7 @@ class InquiryResponseModel with ChangeNotifier {
     var questionModel = Provider.of<InquiryQuestionModel>(context, listen: false);
 
     var params = {
-      'selected_project_id': projectDetailsModel.getActiveProjectId,
+      'project_id': projectDetailsModel.getActiveProjectId,
       'question_id': questionModel.getSelectedInquiryQuestionId,
       'response_id': _selectedInquiryResponseId,
       'file_path': s3FilePath,

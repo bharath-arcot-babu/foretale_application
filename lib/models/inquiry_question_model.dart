@@ -126,7 +126,7 @@ class InquiryQuestionModel with ChangeNotifier {
     var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
 
     var params = {
-      'selected_project_id': projectDetailsModel.getActiveProjectId,
+      'project_id': projectDetailsModel.getActiveProjectId,
       'question_id': question.questionId,
       'question_status': updatedQuestionStatus??question.questionStatus,
       'last_updated_by': userDetailsModel.getUserMachineId, 

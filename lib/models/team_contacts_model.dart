@@ -54,7 +54,7 @@ class TeamContactsModel with ChangeNotifier {
     if(!emailSet.contains(contact.email))
     {
         final params = {
-        'selected_project_id': projectDetailsModel.getActiveProjectId,
+        'project_id': projectDetailsModel.getActiveProjectId,
         'name': contact.name.trim(),
         'position': contact.position.trim(),
         'function': contact.function.trim(),
@@ -107,7 +107,7 @@ class TeamContactsModel with ChangeNotifier {
 
     final params = {
       'team_contact_id': contact.id,
-      'selected_project_id': projectDetailsModel.getActiveProjectId,
+      'project_id': projectDetailsModel.getActiveProjectId,
       'last_updated_by': userDetailsModel.getUserMachineId
     };
 
