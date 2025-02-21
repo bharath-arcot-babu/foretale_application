@@ -73,13 +73,13 @@ class ProjectSettingsModel with ChangeNotifier {
       "s3_file_storage": getS3Url,
       "s3_username": getS3Username,
       "s3_password_hash": getS3Password,
-      "record_status": "Active",
+      "record_status": "A",
       "created_by": userDetailsModel.getUserMachineId,
     };
 
     int insertedId = await _crudService.addRecord(
       context,
-      'dbo.SPROC_INSERT_UPDATE_PROJECT_SETTINGS',
+      'dbo.sproc_insert_update_project_settings',
       params,
     );
 

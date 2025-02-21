@@ -37,7 +37,7 @@ class TopicList {
 
     topicList = await _crudService.getRecords<Topic>(
       context,
-      'dbo.sproc_get_subtopic',
+      'dbo.sproc_get_subtopics',
       params,
       (json) => Topic.fromJson(json),
     );

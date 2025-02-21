@@ -166,28 +166,17 @@ class _WelcomePageState extends State<WelcomePage> {
     );
   }
 
-  void _onProjectSelection(
-      BuildContext context, ProjectDetails projectDetails) {
+  void _onProjectSelection(BuildContext context, ProjectDetails projectDetails) {
     try {
-      Provider.of<ProjectDetailsModel>(context, listen: false)
-          .updateProjectDetails(context, projectDetails);
+      Provider.of<ProjectDetailsModel>(context, listen: false).updateProjectDetails(context, projectDetails);
     } catch (e) {
       SnackbarMessage.showErrorMessage(context, "Invalid project selection.");
     }
   }
 
   Future<void> _loadPage() async {
-    return await Provider.of<ProjectDetailsModel>(context, listen: false)
-        .fetchProjectsByUserMachineId(context);
+    return await Provider.of<ProjectDetailsModel>(context, listen: false).fetchProjectsByUserMachineId(context);
   }
-}
-
-class Project {
-  final String name;
-  final DateTime startDate;
-  final String status;
-
-  Project({required this.name, required this.startDate, required this.status});
 }
 
 class ResourceCard extends StatelessWidget {

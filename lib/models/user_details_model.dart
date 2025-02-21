@@ -45,7 +45,7 @@ class UserDetails extends ChangeNotifier {
       email: json['email'] ?? '',
       phone: json['phone'] ?? '',
       isClient: json['is_client'] ?? '',
-      recordStatus: json['record_status'] ?? 'Active',
+      recordStatus: json['record_status'] ?? 'A',
       createdBy: json['created_by'] ?? '',
       lastUpdatedBy: json['last_updated_by'] ?? '',
     );
@@ -87,7 +87,7 @@ class UserDetailsModel extends ChangeNotifier {
       'email': getEmail,
       'phone': null,
       'is_client': 'No',
-      'record_status': 'Active',
+      'record_status': 'A',
       'created_by': getUserMachineId,
       'last_updated_by': getUserMachineId
     };

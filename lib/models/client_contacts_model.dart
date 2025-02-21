@@ -60,7 +60,7 @@ class ClientContactsModel with ChangeNotifier {
         'email': contact.email,
         'phone': contact.phone,
         'is_client': contact.isClient,
-        'record_status': 'Active',
+        'record_status': 'A',
         'created_by': userDetailsModel.getUserMachineId,
       };
 

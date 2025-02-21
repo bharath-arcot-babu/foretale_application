@@ -61,7 +61,7 @@ class TeamContactsModel with ChangeNotifier {
         'email': contact.email.trim(),
         'phone': contact.phone.trim(),
         'is_client': contact.isClient.trim(),
-        'record_status': 'Active',
+        'record_status': 'A',
         'created_by': userDetailsModel.getUserMachineId,
       };
 

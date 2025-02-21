@@ -114,12 +114,17 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                       selectedItem: _selectedIndustry,
                       onChanged: (String? selectedItem) {
                         _selectedIndustry = selectedItem;
+                        
+                        setState(() {
+                          _fetchProjectTypes(_selectedIndustry??'');
+                        });
+
                       },
                     )),
                     const SizedBox(width: 15),
                     Expanded(
                         child: FutureDropdownSearch(
-                      fetchData: _fetchProjectTypes,
+                      fetchData: (){return _fetchProjectTypes(_selectedIndustry??'');},
                       isEnabled: widget.isNew,
                       hintText: '',
                       labelText: "Project Type",
@@ -164,8 +169,8 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     return lkpList.map((obj) => obj.name).toList();
   }
 
-  Future<List<String>> _fetchProjectTypes() async {
-    List<ProjectType> lkpList = await ProjectTypeList().fetchAllActiveProjectTypes(context);
+  Future<List<String>> _fetchProjectTypes(String selectedIndustry) async {
+    List<ProjectType> lkpList = await ProjectTypeList().fetchAllActiveProjectTypes(context, selectedIndustry);
     return lkpList.map((obj) => obj.name).toList();
   }
 
@@ -193,7 +198,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           name: _projectNameController.text.trim(),
           description: _projectDescriptionController.text.trim(),
           organization: _selectedOrganization!.trim(),
-          recordStatus: 'Active',
+          recordStatus: 'A',
           createdBy: _userDetailsModel.getUserMachineId!,
           activeProjectId: widget.isNew? 0: _projectDetailsModel.getActiveProjectId,
           projectType: _selectedProjectType!,
@@ -215,6 +220,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           SnackbarMessage.showSuccessMessage(context, 'Project "${_projectNameController.text.trim()}" has been saved successfully.');
         }
       } catch (e, error_stack_trace) {
+         
          SnackbarMessage.showErrorMessage(context, 
             e.toString(),
             logError: true,
@@ -223,7 +229,6 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             errorSource: _currentFileName,
             severityLevel: 'Critical',
             requestPath: "_saveProjectDetails");
-
       }
     }
   }

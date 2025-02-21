@@ -41,7 +41,7 @@ class SnackbarMessage {
             "error_stack_trace": errorStackTrace,
             "error_source": errorSource,
             "severity_level": severityLevel,
-            "user_id": userDetailsModel.getUserMachineId,
+            "user_machine_id": userDetailsModel.getUserMachineId,
             "request_path": requestPath,
           };
 

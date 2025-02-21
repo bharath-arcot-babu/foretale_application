@@ -26,7 +26,7 @@ class ProjectDetails {
     this.description = '',
     this.organizationId = 0,
     this.organization = '',
-    this.recordStatus = 'Active',
+    this.recordStatus = 'A',
     this.createdBy = '',
     this.activeProjectId = 0,
     this.projectType = '',
@@ -43,7 +43,7 @@ class ProjectDetails {
       description: json['description'] ?? '',
       organizationId: json['organization_id']?? 0,
       organization: json['organization_name'] ?? '',
-      recordStatus: json['record_status'] ?? 'Active',
+      recordStatus: json['record_status'] ?? 'A',
       createdBy: json['created_by'] ?? '',
       activeProjectId: json['project_id'] ?? 0,
       projectType: json['project_type'] ?? '',
@@ -100,6 +100,7 @@ class ProjectDetailsModel with ChangeNotifier {
     );
 
     if(insertedId>0){
+
       params = {
           'project_id' : insertedId
       };
@@ -112,9 +113,10 @@ class ProjectDetailsModel with ChangeNotifier {
       );
 
       projectDetails = projectsList.firstOrNull??ProjectDetails();
+
       notifyListeners();
     }
-  
+
     return getActiveProjectId;
   }
 
