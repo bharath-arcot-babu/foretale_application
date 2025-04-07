@@ -175,4 +175,20 @@ class TextStyles {
       fontSize: _getFontSize(context, 9.0), // Responsive font size
     );
   }
+
+  static TextStyle tabSelectedLabelText(BuildContext context) {
+    return GoogleFonts.poppins( // Apply Google Font
+      fontWeight: FontWeight.w600,
+      color: TextColors.primaryTextColor,
+      fontSize: _getFontSize(context, 16), // Responsive font size
+    );
+  }
+
+  static TextStyle tabUnselectedLabelText(BuildContext context) {
+    return GoogleFonts.poppins( // Apply Google Font
+      fontWeight: FontWeight.normal,
+      color: TextColors.primaryTextColor,
+      fontSize: _getFontSize(context, 16), // Responsive font size
+    );
+  }
 }

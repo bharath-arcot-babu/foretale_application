@@ -91,11 +91,7 @@ class QuestionsModel with ChangeNotifier {
     );
 
     if(insertedId>0){
-      var index = questionsList.indexWhere((q) => q.questionId == question.questionId);
-      if (index != -1) {
-        questionsList[index].isSelected = true;
-      }
-      notifyListeners();
+      _updateQuestionList(question.questionId, true);
     }
 
     return insertedId;
@@ -140,13 +136,19 @@ class QuestionsModel with ChangeNotifier {
       );
 
       if(deletedId>0){
-        var index = questionsList.indexWhere((q) => q.questionId == question.questionId);
-        if (index != -1) {
-          questionsList[index].isSelected = false;
-        }
-        notifyListeners();
+        _updateQuestionList(question.questionId, false);
       }
 
       return deletedId;
   }
+
+  void _updateQuestionList(int questionId, bool isSelected) {
+    var index = questionsList.indexWhere((q) => q.questionId == questionId);
+    if (index != -1) {
+      questionsList[index].isSelected = isSelected;
+    }
+
+    notifyListeners();
+  }
+
 }

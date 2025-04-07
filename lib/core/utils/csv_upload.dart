@@ -122,7 +122,6 @@ class CsvUpload {
           ..rowSeparator = "\n"
           ..errorRows = errorRows.length + duplicateRows.length
           ..rowsWithoutError = rowCount - errorRows.length);
-          
         }
       }
     } else {

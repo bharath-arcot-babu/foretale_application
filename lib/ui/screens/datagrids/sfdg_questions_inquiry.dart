@@ -1,15 +1,22 @@
+//core
 import 'package:flutter/material.dart';
-import 'package:foretale_application/core/constants/colors/app_colors.dart';
-import 'package:foretale_application/core/utils/util_date.dart';
-import 'package:foretale_application/models/inquiry_question_model.dart';
-import 'package:foretale_application/models/inquiry_response_model.dart';
-import 'package:foretale_application/ui/themes/datagrid_theme.dart';
-import 'package:foretale_application/ui/themes/text_styles.dart';
-import 'package:foretale_application/ui/widgets/custom_dropdown_search.dart';
-import 'package:foretale_application/ui/widgets/message_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+//themes
+import 'package:foretale_application/core/constants/colors/app_colors.dart';
+import 'package:foretale_application/ui/themes/datagrid_theme.dart';
+import 'package:foretale_application/ui/themes/text_styles.dart';
+//utils
+import 'package:foretale_application/core/utils/grid_builder.dart';
+import 'package:foretale_application/core/utils/util_date.dart';
+//models
+import 'package:foretale_application/models/inquiry_question_model.dart';
+import 'package:foretale_application/models/inquiry_response_model.dart';
+//widgets
+import 'package:foretale_application/ui/widgets/custom_dropdown_search.dart';
+import 'package:foretale_application/ui/widgets/message_helper.dart';
+
 
 class QuestionsInquiryGrid extends StatefulWidget {
   const QuestionsInquiryGrid({super.key});
@@ -20,9 +27,9 @@ class QuestionsInquiryGrid extends StatefulWidget {
 
 class _QuestionsInquiryGridState extends State<QuestionsInquiryGrid> {
   final DataGridController _dataGridController = DataGridController();
+  late DataGridSource _dataGridSource;
   late final InquiryQuestionModel questionModel;
   late final InquiryResponseModel inquiryResponseModel;
-  late DataGridSource _dataGridSource;
 
   @override
   void initState() {
@@ -64,42 +71,42 @@ class _QuestionsInquiryGridState extends State<QuestionsInquiryGrid> {
               GridColumn(
                 columnName: 'topic',
                 columnWidthMode: ColumnWidthMode.fill,
-                label: _buildHeader("topic", "Topic"),
+                label: buildHeader(context, model, "topic", "Topic"),
               ),
               GridColumn(
                 columnWidthMode: ColumnWidthMode.fill,
                 columnName: 'questionText',
-                label: _buildHeader("questionText", "Question")
+                label: buildHeader(context, model, "questionText", "Question")
               ),
               GridColumn(
                 visible: false,
                 columnName: 'industry',
-                label: _buildHeader("industry", "industry"),
+                label: buildHeader(context, model, "industry", "industry"),
               ),
               GridColumn(
                 visible: false,
                 columnName: 'projectType',
-                label: _buildHeader("projectType", "Proj. Type"),
+                label: buildHeader(context, model, "projectType", "Proj. Type"),
               ),          
               GridColumn(
                 columnName: 'createdDate',
                 visible: false,
-                label: _buildHeader("createdDate", "Create Date"),
+                label: buildHeader(context, model, "createdDate", "Create Date"),
               ),
               GridColumn(
                 columnName: 'createdBy',
                 visible: false,
-                label: _buildHeader("createdBy", "Creator"),
+                label: buildHeader(context, model, "createdBy", "Creator"),
               ),
               GridColumn(
                 columnName: 'lastResponseBy',
                 columnWidthMode: ColumnWidthMode.fill,
-                label: _buildHeader("lastResponseBy", "Response By"),
+                label: buildHeader(context, model, "lastResponseBy", "Response By"),
               ),
               GridColumn(
                 columnName: 'lastResponseDate',
                 columnWidthMode: ColumnWidthMode.fill,
-                label: _buildHeader("lastResponseDate", "Response Date"),
+                label: buildHeader(context, model, "lastResponseDate", "Response Date"),
               ),
               GridColumn(
                 visible: false,
@@ -123,44 +130,6 @@ class _QuestionsInquiryGridState extends State<QuestionsInquiryGrid> {
             ],
           );
       }),
-    );
-  }
-
-  Widget _buildHeader(String columnName, String title) {
-    return Container(
-      alignment: Alignment.center,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            alignment: Alignment.center,
-            child: Text(
-              title,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyles.gridHeaderText(context),
-            ),
-          ),
-          SizedBox(
-            width: MediaQuery.sizeOf(context).width * 0.009,
-          ),
-          getSortIcon(columnName),
-        ],
-      ),
-    );
-  }
-
-  Widget getSortIcon(String title) {
-    bool isCurrentColumn = questionModel.getCurrentSortColumn == title;
-    double iconSize = MediaQuery.sizeOf(context).height * 0.014;
-    return Transform.rotate(
-      angle: isCurrentColumn
-          ? (questionModel.getCurrentSortDirection == DataGridSortDirection.descending ? 0: 3.14159)
-          : 0,
-      child: Icon(
-        Icons.sort_sharp,
-        size: iconSize,
-        color: Colors.red,
-      ),
     );
   }
 }
@@ -220,16 +189,9 @@ class QuestionsDataSource extends DataGridSource {
 
   @override
   Future<void> performSorting(List<DataGridRow> rows) {
-    // Use the current sort column and direction
-    String columnName = inquiryQuestionsModel.getCurrentSortColumn;
-    DataGridSortDirection direction = inquiryQuestionsModel.getCurrentSortDirection;
 
-    rows.sort((a, b) {
-      var aValue = a.getCells().firstWhere((cell) => cell.columnName == columnName).value;
-      var bValue = b.getCells().firstWhere((cell) => cell.columnName == columnName).value;
-      return direction == DataGridSortDirection.ascending ? aValue.compareTo(bValue) : bValue.compareTo(aValue);
-    });
-
+    performColumnSorting(inquiryQuestionsModel, rows);
+    
     return super.performSorting(rows);
   }
 

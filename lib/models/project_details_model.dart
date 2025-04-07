@@ -15,10 +15,12 @@ class ProjectDetails {
   String createdBy;
   int activeProjectId;
   String projectType;
+  int projectTypeId;
   String createdDate;
   String createdByName;
   String createdByEmail;
   String industry;
+  int industryId;
 
   // Constructor with default values
   ProjectDetails({
@@ -30,10 +32,12 @@ class ProjectDetails {
     this.createdBy = '',
     this.activeProjectId = 0,
     this.projectType = '',
+    this.projectTypeId = 0,
     this.createdDate = '',
     this.createdByName = '',
     this.createdByEmail = '',
-    this.industry = ''
+    this.industry = '',
+    this.industryId = 0
   });
 
   // Factory method to create an instance from a JSON map
@@ -47,10 +51,12 @@ class ProjectDetails {
       createdBy: json['created_by'] ?? '',
       activeProjectId: json['project_id'] ?? 0,
       projectType: json['project_type'] ?? '',
+      projectTypeId: json['project_type_id'] ?? 0,
       createdDate: json['created_date'] ?? '',
       createdByName: json['user_name'] ?? '',
       createdByEmail: json['user_email'] ?? '',
       industry: json['industry'] ?? '',
+      industryId: json['industry_id'] ?? 0
     );
   }
 }
@@ -69,9 +75,12 @@ class ProjectDetailsModel with ChangeNotifier {
   String get getCreatedBy => projectDetails.createdBy;
   int get getActiveProjectId => projectDetails.activeProjectId;
   String get getProjectType => projectDetails.projectType;
+  int get getProjectTypeId => projectDetails.projectTypeId;
   String get getCreatedByName => projectDetails.createdByName;
   String get getCreatedByEmail => projectDetails.createdByEmail;
   String get getIndustry => projectDetails.industry;
+  int get getIndustryId => projectDetails.industryId;
+
 
   void updateProjectDetails(BuildContext context, ProjectDetails projDetails) {
     projectDetails = projDetails;

@@ -20,8 +20,7 @@ class CreateProject extends StatefulWidget {
   State<CreateProject> createState() => _CreateProjectState();
 }
 
-class _CreateProjectState extends State<CreateProject>
-    with SingleTickerProviderStateMixin {
+class _CreateProjectState extends State<CreateProject> with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -44,15 +43,12 @@ class _CreateProjectState extends State<CreateProject>
               style: TextStyles.subjectText(context),
             ),
             const SizedBox(height: 20),
-            // TabBar with custom tabs
             TabBar(
               controller: _tabController,
               indicatorColor: AppColors.primaryColor,
               indicatorWeight: 4,
-              labelStyle:
-                  const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-              unselectedLabelStyle:
-                  const TextStyle(fontWeight: FontWeight.normal, fontSize: 16),
+              labelStyle: TextStyles.tabSelectedLabelText(context),
+              unselectedLabelStyle: TextStyles.tabUnselectedLabelText(context),
               tabs: [
                 buildTab(icon: Icons.info, label: 'Details'),
                 buildTab(icon: Icons.settings, label: 'Settings'),
@@ -62,7 +58,6 @@ class _CreateProjectState extends State<CreateProject>
               ],
             ),
             const SizedBox(height: 20),
-            // Elevated container for each tab content
             Expanded(
               child: TabBarView(
                 controller: _tabController,

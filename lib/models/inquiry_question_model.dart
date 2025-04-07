@@ -66,7 +66,6 @@ class InquiryQuestionModel with ChangeNotifier {
   DataGridSortDirection currentSortDirection = DataGridSortDirection.descending;
   DataGridSortDirection get getCurrentSortDirection => currentSortDirection; 
   
-
   void updateQuestionIdSelection(int questionId ){
     _selectedInquiryQuestionId = questionId;
     notifyListeners();

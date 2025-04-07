@@ -4,10 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
 //utils
 import 'package:foretale_application/core/utils/util_get_cognito_user_details.dart';
-import 'package:foretale_application/ui/screens/inquiry.dart';
-import 'package:foretale_application/ui/screens/upload_screen.dart';
+
 //screens
 import 'package:foretale_application/ui/screens/welcome.dart';
+import 'package:foretale_application/ui/screens/inquiry.dart';
+import 'package:foretale_application/ui/screens/test_config.dart';
+import 'package:foretale_application/ui/screens/upload_screen.dart';
+import 'package:foretale_application/ui/screens/upload_screen_wizard.dart';
 //themes
 import 'package:foretale_application/ui/themes/scaffold_styles.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
@@ -28,7 +31,7 @@ class _AppLayoutState extends State<AppLayout> {
   final String _display1 = "Home";
   final String _display2 = "Inquiry";
   final String _display3 = "Data Request";
-  final String _display4 = "Data Mapping";
+  final String _display4 = "Test Configurations";
   final String _display5 = "Analysis";
   final String _display6 = "Review";
   final String _display7 = "Report";
@@ -109,9 +112,9 @@ class _AppLayoutState extends State<AppLayout> {
     } else if (_selectedScreen == _display2) {
       return const InquiryPage();
     } else if (_selectedScreen == _display3) {
-      return const FileUpload();
+      return UploadScreenWizard();
     } else if (_selectedScreen == _display4) {
-      return const Placeholder();
+      return const TestConfigPage();
     } else if (_selectedScreen == _display5) {
       return const Placeholder();
     } else if (_selectedScreen == _display6) {

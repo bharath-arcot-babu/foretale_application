@@ -7,6 +7,7 @@ import 'package:foretale_application/models/inquiry_response_model.dart';
 import 'package:foretale_application/models/project_settings_model.dart';
 import 'package:foretale_application/models/question_model.dart';
 import 'package:foretale_application/models/team_contacts_model.dart';
+import 'package:foretale_application/models/tests_model.dart';
 import 'package:provider/provider.dart';
 import 'package:foretale_application/amplifyconfiguration.dart';
 //screens
@@ -98,6 +99,7 @@ class ForeTaleApp extends StatelessWidget {
           ChangeNotifierProvider(create: (_) => QuestionsModel()),
           ChangeNotifierProvider(create: (_) => InquiryQuestionModel()),
           ChangeNotifierProvider(create: (_) => InquiryResponseModel()),
+          ChangeNotifierProvider(create: (_) => TestsModel()),
         ],
         child: Authenticator(
             authenticatorBuilder: _authenticatorBuilder,
