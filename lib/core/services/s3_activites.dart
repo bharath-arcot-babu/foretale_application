@@ -1,18 +1,26 @@
 import 'package:amplify_core/amplify_core.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class S3Service {
-  // Upload a file to S3
   Future<void> uploadFile(PlatformFile file, String storagePath) async {
+    final awsFile = kIsWeb
+        ? AWSFile.fromData(
+            file.bytes!,
+            name: file.name,
+          )
+        : AWSFile.fromStream(
+            file.readStream!,
+            size: file.size,
+          );
+
     await Amplify.Storage.uploadFile(
-      localFile: AWSFile.fromStream(
-        file.readStream!,
-        size: file.size,
-      ),
+      localFile: awsFile,
       path: StoragePath.fromString('$storagePath/${file.name}'),
     ).result;
   }
+
 
   // Delete a file from S3
   Future<void> deleteFile(String path) async {

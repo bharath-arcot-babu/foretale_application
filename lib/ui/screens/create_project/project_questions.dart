@@ -25,8 +25,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
   // Form key to manage validation state
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _industryTextController = TextEditingController();
-  final TextEditingController _projectTypeTextController =
-      TextEditingController();
+  final TextEditingController _projectTypeTextController = TextEditingController();
   final TextEditingController _questionTextController = TextEditingController();
   String? _selectedTopic;
 

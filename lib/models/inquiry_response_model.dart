@@ -7,7 +7,7 @@ import 'package:foretale_application/models/project_details_model.dart';
 import 'package:foretale_application/models/user_details_model.dart';
 import 'package:foretale_application/models/inquiry_attachment_model.dart';
 //utils
-import 'package:foretale_application/core/utils/handling_crud.dart';
+import 'package:foretale_application/core/services/handling_crud.dart';
 
 class InquiryResponse {
   int responseId;
@@ -116,7 +116,13 @@ class InquiryResponseModel with ChangeNotifier {
     return insertedId;
   }
 
-  Future<int> insertAttachmentByResponse(BuildContext context, String? s3FilePath, String fileName, String fileType, int fileSize) async {
+  Future<int> insertAttachmentByResponse(
+      BuildContext context,
+      String? s3FilePath,
+      String fileName,
+      String fileType,
+      int fileSize
+      ) async {
     var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
     var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
     var questionModel = Provider.of<InquiryQuestionModel>(context, listen: false);

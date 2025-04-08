@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:foretale_application/llm_api_config';
 
 
-Future<void> callMistral(String prompt, {int maxTokens = 128, double temperature = 0.5, double topP = 0.9, int topK = 50}) async {
+Future<dynamic> callMistral(String prompt, {int maxTokens = 128, double temperature = 0.5, double topP = 0.9, int topK = 50}) async {
   const String url = "https://pw4lylhb3g.execute-api.us-east-1.amazonaws.com/dev/bedrock_invoker_resource";
 
   final headers = {
@@ -19,23 +19,18 @@ Future<void> callMistral(String prompt, {int maxTokens = 128, double temperature
     "temperature": temperature,
     "top_p": topP,
     "top_k": topK,
-    "system_instruction": "You are a data extraction tool that responds with ONLY the exact answer - nothing more. No explanations, no periods, no extra words. For example, if asked 'What is the capital of France?' you should respond ONLY with 'Paris'. Format your answer as a single word or phrase without any additional text."
+    "system_instruction": ""
   });
 
-  try {
-    final response = await http.post(
-      Uri.parse(url), 
-      headers: headers, 
-      body: body);
+  final response = await http.post(
+    Uri.parse(url), 
+    headers: headers, 
+    body: body);
 
-    if (response.statusCode == 200) {
-      print("Response: ${response.body}");
-    } else {
-      print("Error: ${response.statusCode}, ${response.body}");
-    }
-  } catch (e) {
-    print("Network Error: $e");
-  }
+  final outer = jsonDecode(response.body);
+  final innerJsonBody = jsonDecode(outer['body']);
+  
+  return jsonDecode(innerJsonBody['model_response']);
 }
 
 

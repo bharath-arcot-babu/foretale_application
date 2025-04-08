@@ -72,13 +72,8 @@ class _TestConfigPageState extends State<TestConfigPage> {
 
   Future<void> _loadPage() async {
     try{
-      callMistral("what is your context length?");
-
+      //callMistral("what is your context length?");
       await testsModel.fetchTestsByProject(context);
-
-      if (testsModel.getSelectedTestId > 0) {
-        //await _loadResponses();
-      }
     } catch (e, error_stack_trace) {
       SnackbarMessage.showErrorMessage(context, 
             e.toString(),

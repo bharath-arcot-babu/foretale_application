@@ -1,7 +1,7 @@
 //core
 import 'package:flutter/material.dart';
 //utils
-import 'package:foretale_application/core/utils/handling_crud.dart';
+import 'package:foretale_application/core/services/handling_crud.dart';
 
 class Organization {
   final int id;

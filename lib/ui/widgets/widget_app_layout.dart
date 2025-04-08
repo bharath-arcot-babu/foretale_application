@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 //constants
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
 //utils
-import 'package:foretale_application/core/utils/util_get_cognito_user_details.dart';
+import 'package:foretale_application/core/services/util_get_cognito_user_details.dart';
 
 //screens
 import 'package:foretale_application/ui/screens/welcome.dart';

@@ -1,7 +1,7 @@
 //libraries
 import 'package:flutter/material.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
-import 'package:foretale_application/core/utils/csv_upload.dart';
+import 'package:foretale_application/core/services/csv_upload.dart';
 import 'package:foretale_application/ui/widgets/custom_elevated_button.dart';
 import 'package:foretale_application/ui/widgets/custom_progress_bar.dart';
 

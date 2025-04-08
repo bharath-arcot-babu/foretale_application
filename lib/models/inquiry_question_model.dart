@@ -6,7 +6,7 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:foretale_application/models/project_details_model.dart';
 import 'package:foretale_application/models/user_details_model.dart';
 //utils
-import 'package:foretale_application/core/utils/handling_crud.dart';
+import 'package:foretale_application/core/services/handling_crud.dart';
 
 class InquiryQuestion {
   String questionText;  

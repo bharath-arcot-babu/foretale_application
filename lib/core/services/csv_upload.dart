@@ -4,6 +4,8 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:csv/csv.dart';
 import 'package:foretale_application/core/services/azure_upload.dart';
+import 'dart:convert';
+import 'dart:io';
 
 class CsvFileDetails {
   String? fileName;
@@ -212,7 +214,26 @@ class CsvUpload {
         duplicateRows.add(list); // Add to duplicates if already seen
       } 
       seen.add(listString); // Mark as seen
+    }
   }
+
+  Future<List<List<dynamic>>> readTopRowsFromCsv(File file, {int maxRows = 200}) async {
+    final input = file.openRead();
+    final rows = <List<dynamic>>[];
+
+    // Stream the file and decode line-by-line
+    await input
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .take(maxRows) // Only take the first `maxRows` lines
+        .forEach((line) {
+          final row = const CsvToListConverter().convert(line, eol: '\n');
+          if (row.isNotEmpty) {
+            rows.add(row.first);
+          }
+        });
+
+    return rows;
   }
 }
 

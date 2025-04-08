@@ -18,6 +18,7 @@ class InquiryAttachment {
   });
 
   factory InquiryAttachment.fromJson(Map<String, dynamic> map) {
+    print("InquiryAttachment.fromJson: $map");
     return InquiryAttachment(
       attachmentId: map['attachment_id'] ?? 0,
       filePath: map['file_path'] ?? '',

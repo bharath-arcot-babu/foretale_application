@@ -1,15 +1,12 @@
-//libraries
-import 'package:amplify_storage_s3/amplify_storage_s3.dart';
+//core
 import 'package:flutter/material.dart';
-import 'package:foretale_application/models/inquiry_question_model.dart';
-import 'package:foretale_application/models/inquiry_response_model.dart';
-
-import 'package:foretale_application/models/project_settings_model.dart';
-import 'package:foretale_application/models/question_model.dart';
-import 'package:foretale_application/models/team_contacts_model.dart';
-import 'package:foretale_application/models/tests_model.dart';
 import 'package:provider/provider.dart';
 import 'package:foretale_application/amplifyconfiguration.dart';
+import 'package:amplify_storage_s3/amplify_storage_s3.dart';
+//auth amplify
+import 'package:amplify_authenticator/amplify_authenticator.dart';
+import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 //screens
 import 'package:foretale_application/ui/widgets/widget_app_layout.dart';
 import 'package:foretale_application/ui/widgets/widget_login_scaffold.dart';
@@ -17,10 +14,15 @@ import 'package:foretale_application/ui/widgets/widget_login_scaffold.dart';
 import 'package:foretale_application/models/project_details_model.dart';
 import 'package:foretale_application/models/user_details_model.dart';
 import 'package:foretale_application/models/client_contacts_model.dart';
-//auth amplify
-import 'package:amplify_authenticator/amplify_authenticator.dart';
-import 'package:amplify_flutter/amplify_flutter.dart';
-import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
+import 'package:foretale_application/models/file_upload_summary_model.dart';
+import 'package:foretale_application/models/inquiry_question_model.dart';
+import 'package:foretale_application/models/inquiry_response_model.dart';
+import 'package:foretale_application/models/project_settings_model.dart';
+import 'package:foretale_application/models/question_model.dart';
+import 'package:foretale_application/models/team_contacts_model.dart';
+import 'package:foretale_application/models/tests_model.dart';
+import 'package:foretale_application/models/columns_model.dart';
+
 
 //entry
 void main() async {
@@ -100,6 +102,8 @@ class ForeTaleApp extends StatelessWidget {
           ChangeNotifierProvider(create: (_) => InquiryQuestionModel()),
           ChangeNotifierProvider(create: (_) => InquiryResponseModel()),
           ChangeNotifierProvider(create: (_) => TestsModel()),
+          ChangeNotifierProvider(create: (_) => UploadSummaryModel()),
+          ChangeNotifierProvider(create: (_) => ColumnsModel()),
         ],
         child: Authenticator(
             authenticatorBuilder: _authenticatorBuilder,

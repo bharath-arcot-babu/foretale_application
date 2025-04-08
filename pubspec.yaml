@@ -48,6 +48,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   csv: ^6.0.0
   amplify_storage_s3: ^2.6.0
+  path: ^1.9.0
   
 
 dev_dependencies:

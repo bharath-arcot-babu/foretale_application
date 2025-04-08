@@ -54,6 +54,7 @@ class CRUD {
   Future<List<T>> getRecords<T>(BuildContext context, String storedProcedure, Map<String, dynamic> params, T Function(Map<String, dynamic>) fromJson) async {
     try {
       var jsonResponse = await FlaskApiService().readRecord(storedProcedure, params);
+      
       if (jsonResponse != null && jsonResponse['data'] != null) {
         var data = jsonResponse['data'];
 
@@ -65,6 +66,7 @@ class CRUD {
           try {
             return fromJson(json)!;
           } catch (e) {
+            print(e);
             return null;
           }
 
@@ -83,6 +85,7 @@ class CRUD {
   Future<List<T>> getJsonRecords<T>(BuildContext context, String storedProcedure, Map<String, dynamic> params, T Function(Map<String, dynamic>) fromJson) async {
     try {
       var jsonResponse = await FlaskApiService().readJsonRecord(storedProcedure, params);
+
       if (jsonResponse != null && jsonResponse['data'] != null) {
         var data = jsonResponse['data'];
 
@@ -94,6 +97,8 @@ class CRUD {
           try {
             return fromJson(json)!;
           } catch (e) {
+            print(e);
+            print("Error in JSON mapping: $json");
             return null;
           }
 

@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 //models
 import 'package:foretale_application/models/user_details_model.dart';
 //utils
-import 'package:foretale_application/core/utils/handling_crud.dart';
+import 'package:foretale_application/core/services/handling_crud.dart';
 
 class ProjectDetails {
   String name;

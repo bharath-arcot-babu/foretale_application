@@ -36,12 +36,14 @@ class _InquiryPageState extends State<InquiryPage> {
   @override
   void initState() {
     super.initState();
+    
+    inquiryQuestionModel = Provider.of<InquiryQuestionModel>(context, listen: false);
+    userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
+    inquiryResponseModel = Provider.of<InquiryResponseModel>(context, listen: false);
+    projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      inquiryQuestionModel = Provider.of<InquiryQuestionModel>(context, listen: false);
-      userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
-      inquiryResponseModel = Provider.of<InquiryResponseModel>(context, listen: false);
-      projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+
       _loadPage();
     });
   }
