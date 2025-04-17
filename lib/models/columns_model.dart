@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:foretale_application/core/services/handling_crud.dart';
 import 'package:foretale_application/models/file_upload_model.dart';
 import 'package:foretale_application/models/file_upload_summary_model.dart';
+import 'package:foretale_application/models/user_details_model.dart';
 import 'package:provider/provider.dart';
 
 class TableColumns {
@@ -63,10 +64,21 @@ class ColumnsModel with ChangeNotifier{
   List<FileUpload> get getFileUploadSummaryList => _fileUploadSummary;
 
   List<String> sourceFields = [];
-  List<String> destinationFields = [];
+  Map<String, String> destinationFieldMap = {};
+  Map<String, String> technicalFieldMap = {};
+
+  List<String> sourceFieldSampleValues = [];
+  List<String> get getSourceFieldSampleValues => sourceFieldSampleValues;
+
+  List<Map<String, dynamic>> sourceFieldInfo = [];
+  Map<String, String> sourceFieldMap = {};
+
+  Map<String, String?> columnMappings = {};
+  Map<String, String?> get getColumnMappings => columnMappings;
 
   Future<void> fetchColumnsByTable(BuildContext context) async {
     var uploadSummaryModel = Provider.of<UploadSummaryModel>(context, listen: false);
+
 
     final params = {
       'table_id': uploadSummaryModel.activeTableSelectionId,
@@ -79,7 +91,13 @@ class ColumnsModel with ChangeNotifier{
       (json) => TableColumns.fromJson(json),
     );
 
-    destinationFields = _columnsList.map((column) => column.simpleText).toList();
+    destinationFieldMap = {
+      for (var column in _columnsList) column.simpleText: column.description,
+    };
+
+    technicalFieldMap = {
+      for(var column in _columnsList) column.simpleText: column.columnName,
+    };
 
     notifyListeners();
   }
@@ -89,7 +107,8 @@ class ColumnsModel with ChangeNotifier{
 
     final params = {
       'file_upload_id': uploadSummaryModel.activeFileUploadId,
-      };
+    };
+
 
     _fileUploadSummary = await _crudService.getRecords<FileUpload>(
       context,
@@ -98,17 +117,61 @@ class ColumnsModel with ChangeNotifier{
       (json) => FileUpload.fromJson(json),
     );
 
-    if (_fileUploadSummary.isNotEmpty) {
-      if(_fileUploadSummary.first.csvDetails.isNotEmpty){
+    if (_fileUploadSummary.isNotEmpty &&  _fileUploadSummary.first.csvDetails.isNotEmpty) {
+      final parsed = jsonDecode(_fileUploadSummary.first.csvDetails);
 
-        final parsed = jsonDecode(_fileUploadSummary.first.csvDetails);
-        final columnMetadata = parsed['column_metadata'] as List<dynamic>;
-        
-        sourceFields = columnMetadata.map(
-          (column) => column['name'].toString()
-          ).toList();
-      } 
+      final columnMetadata = parsed['column_metadata'] as List<dynamic>;
+      
+      // Build list of maps with name and metadata
+      sourceFieldInfo = columnMetadata.map<Map<String, dynamic>>((column) {
+        return {
+          'name': column['name'].toString(),
+          'metadata': {
+            'type': column['metadata']['type'],
+            'maxLength': column['metadata']['maxLength'],
+            'sampleValues': (column['metadata']['sampleValues'] as List)
+                .map((e) => e.toString())
+                .toList(),
+          }
+        };
+      }).toList();
+
+      // Optional: extract just names if needed elsewhere
+      sourceFields = sourceFieldInfo.map((e) => e['name'] as String).toList();
+
+      if(_fileUploadSummary.first.columnMappings.isNotEmpty){
+        Map<String, dynamic> parsedJson = jsonDecode(_fileUploadSummary.first.columnMappings);
+
+        columnMappings = parsedJson.map(
+          (key, value) => MapEntry(key, value as String?),
+        );
+
+      } else{
+        columnMappings = {};
+      }
     }
+
+    notifyListeners();
+  }
+
+  Future<void> updateFileUpload(
+      BuildContext context,
+      String columnMappings,
+  ) async {
+    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
+    var uploadSummaryModel = Provider.of<UploadSummaryModel>(context, listen: false);
+
+    final params = {
+      'file_upload_id': uploadSummaryModel.activeFileUploadId,
+      'column_mapping': columnMappings,
+      'last_update_by': userDetailsModel.getUserMachineId
+    };
+
+    await _crudService.updateRecord(
+      context,
+      'dbo.sproc_update_file_upload',
+      params,
+    );
 
     notifyListeners();
   }

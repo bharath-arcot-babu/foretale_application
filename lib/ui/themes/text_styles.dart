@@ -191,4 +191,14 @@ class TextStyles {
       fontSize: _getFontSize(context, 16), // Responsive font size
     );
   }
+
+  static TextStyle textButton(BuildContext context) {
+  return GoogleFonts.poppins(
+    fontWeight: FontWeight.w600, // Slightly lighter than w700 for better touch UX
+    color: TextColors.linkTextColor, // Or use a highlight color like accent or link blue
+    fontSize: _getFontSize(context, 10.0), // Slightly smaller for buttons
+    letterSpacing: 1.0, // Tighter spacing for compact UI
+  );
+}
+
 }

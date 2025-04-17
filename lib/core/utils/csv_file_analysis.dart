@@ -43,14 +43,14 @@ class CsvUtils {
             };
   }
 
-  /// Extracts column names with data types and max length from sample rows
+  /// Extracts column names with data types, max length, and 5 sample values from sample rows
   static List<Map<String, dynamic>> extractColumnInfo(List<List<String>> parsedRows) {
     if (parsedRows.isEmpty) {
       return [];
     }
 
     final headers = parsedRows.first;
-    final dataRows = parsedRows.skip(1);
+    final dataRows = parsedRows.skip(1).toList();
 
     final columnInfo = List.generate(headers.length, (index) {
       final columnName = headers[index];
@@ -59,11 +59,19 @@ class CsvUtils {
       final detectedType = _inferColumnType(columnData);
       final maxLength = columnData.map((val) => val.length).fold<int>(0, (prev, curr) => curr > prev ? curr : prev);
 
+      // Extract up to 5 non-empty, unique sample values
+      final sampleValues = columnData
+          .where((val) => val.isNotEmpty)
+          .toSet()
+          .take(5)
+          .toList();
+
       return {
         'name': columnName,
         'metadata': {
           'type': detectedType,
           'maxLength': maxLength,
+          'sampleValues': sampleValues,
         }
       };
     });

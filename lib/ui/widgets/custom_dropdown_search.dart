@@ -4,101 +4,125 @@ import 'package:foretale_application/core/constants/colors/app_colors.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
 
 class CustomDropdownSearch extends StatelessWidget {
-  final List<String> items; // List of items to display
-  final String labelText; // Label text for the dropdown
-  final String hintText; // Hint text for the dropdown
+  final List<String> items;
+  final String labelText;
+  final String hintText;
   final String? selectedItem;
-  final ValueChanged<String?> onChanged; // Callback when an item is selected
+  final ValueChanged<String?> onChanged;
   final bool isEnabled;
-  bool showSearchBox = false;
+  final bool showSearchBox;
 
-  CustomDropdownSearch(
-      {super.key,
-      required this.items,
-      required this.hintText,
-      required this.onChanged,
-      required this.labelText,
-      this.selectedItem,
-      required this.isEnabled,
-      this.showSearchBox = false
+  const CustomDropdownSearch({
+    super.key,
+    required this.items,
+    required this.hintText,
+    required this.onChanged,
+    required this.labelText,
+    this.selectedItem,
+    required this.isEnabled,
+    this.showSearchBox = false,
   });
+
+  InputDecoration _buildInputDecoration(BuildContext context) {
+    final border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(
+        color: BorderColors.secondaryColor.withOpacity(0.7),
+        width: 1.2,
+      ),
+    );
+
+    return InputDecoration(
+      labelText: labelText,
+      hintText: hintText,
+      floatingLabelBehavior: FloatingLabelBehavior.always,
+      labelStyle: TextStyles.inputMainTextStyle(context).copyWith(
+        color: BorderColors.secondaryColor,
+        fontWeight: FontWeight.w500,
+      ),
+      hintStyle: TextStyles.inputHintTextStyle(context).copyWith(color: Colors.black38),
+      filled: true,
+      fillColor: isEnabled ? Colors.white : Colors.grey[50],
+      border: border,
+      focusedBorder: border.copyWith(
+        borderSide: const BorderSide(color: BorderColors.secondaryColor, width: 1.8),
+      ),
+      enabledBorder: border,
+      disabledBorder: border.copyWith(
+        borderSide: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1.2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      suffixIcon: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (selectedItem != null && isEnabled)
+            IconButton(
+              icon: const Icon(Icons.close, size: 18),
+              onPressed: () => onChanged(null),
+            ),
+          const Icon(Icons.arrow_drop_down_rounded, size: 28, color: BorderColors.secondaryColor),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return DropdownSearch<String>(
       enabled: isEnabled,
-      items: items, // Pass the list of items
+      items: items,
       selectedItem: selectedItem,
+      onChanged: onChanged,
+      validator: (value) => (value == null || value.isEmpty) ? '$labelText is required.' : null,
+      clearButtonProps: ClearButtonProps(
+        isVisible: selectedItem != null,
+        icon: const Icon(Icons.clear, size: 18),
+      ),
+      dropdownDecoratorProps: DropDownDecoratorProps(
+        baseStyle: TextStyles.inputHintTextStyle(context).copyWith(color: Colors.black87),
+        dropdownSearchDecoration: _buildInputDecoration(context),
+      ),
       popupProps: PopupProps.menu(
-        itemBuilder: (context, item, isSelected) {
-          return Container(
-            padding: const EdgeInsets.all(10),
-            decoration: const BoxDecoration(
-              color: Colors.transparent, // Highlight selected item
-              border: Border(
-                bottom: BorderSide(color: BorderColors.secondaryColor),
+        showSelectedItems: true,
+        showSearchBox: showSearchBox,
+        fit: FlexFit.loose,
+        itemBuilder: (context, item, isSelected) => Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? FillColors.tertiaryColor.withOpacity(0.1) : Colors.transparent,
+            border: Border(
+              bottom: BorderSide(
+                color: BorderColors.secondaryColor.withOpacity(0.15),
+                width: 0.8,
               ),
             ),
-            child: Text(
-              item,
-              style: TextStyles.inputMainTextStyle(context),
+          ),
+          child: Text(
+            item,
+            style: TextStyles.inputMainTextStyle(context).copyWith(
+              fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
             ),
-          );
-        },
-        showSearchBox: showSearchBox, // Enable search bar
-        searchFieldProps: const TextFieldProps(
+          ),
+        ),
+        searchFieldProps: TextFieldProps(
           decoration: InputDecoration(
-            hintText: 'Search...', // Search bar hint text
-            border: OutlineInputBorder(),
+            hintText: 'Search...',
+            prefixIcon: const Icon(Icons.search, size: 20),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: BorderColors.secondaryColor.withOpacity(0.3)),
+            ),
+            filled: true,
+            fillColor: Colors.white,
           ),
         ),
         menuProps: MenuProps(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10), // Rounded corners
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: Colors.white,
+          elevation: 8,
         ),
       ),
-      dropdownDecoratorProps: DropDownDecoratorProps(
-        baseStyle: TextStyles.inputHintTextStyle(context),
-        dropdownSearchDecoration: InputDecoration(
-          labelText: labelText,
-          hintText: hintText, // Hint text for the dropdown
-          labelStyle: TextStyles.inputMainTextStyle(context),
-          filled: true,
-          fillColor: Colors.transparent, // Light background for the dropdown
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8), // Rounded corners
-            borderSide: const BorderSide(
-              color: FillColors.tertiaryColor, // Border color
-              width: 1.2, // Border width
-            ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(
-              color: BorderColors.secondaryColor, // Highlight color when focused
-              width: 1.5,
-            ),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(
-              color:BorderColors.secondaryColor, // Border color when not focused
-              width: 1.2,
-            ),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-              vertical: 10, horizontal: 12), // Reduced padding
-          hintStyle: TextStyles.inputHintTextStyle(context),
-        ),
-      ),
-      onChanged: onChanged,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return '$labelText is required.'; // Custom validation error message
-        }
-        return null; // No error
-      },
     );
   }
 }

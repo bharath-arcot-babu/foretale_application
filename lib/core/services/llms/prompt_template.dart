@@ -34,4 +34,30 @@ class PromptTemplate {
       
     return prompt;
   }
+
+  /// Builds the full prompt with examples and input
+  String buildPromptForMatch(List<String> input1, List<String> input2) {
+    final exampleSection = examples.map((e) => 'Example:\n$e').join('\n\n');
+    String prompt = '''
+      $role
+
+      $instructions
+
+      $goal
+
+      $exampleSection
+
+      $outputFormat
+
+      Here is the actual inputs for you to analyze:
+      Source fields list
+      $input1
+
+      Destination fields list
+      $input2
+
+      ''';
+      
+    return prompt;
+  }
 }

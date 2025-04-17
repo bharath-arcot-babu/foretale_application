@@ -18,7 +18,7 @@ class CustomContainer extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         Container(
-          padding: const EdgeInsets.all(15.0),
+          padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
             color: Colors.transparent,
             border: Border.all(color: BorderColors.tertiaryColor, width: 0.8),

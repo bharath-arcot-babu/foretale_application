@@ -9,6 +9,7 @@ class FileUpload {
   int uploadStatus;
   String errorMessage;
   String csvDetails;
+  String columnMappings;
 
   FileUpload({
     this.fileUploadId = 0,
@@ -21,6 +22,7 @@ class FileUpload {
     this.uploadStatus = 0,
     this.errorMessage = '',
     this.csvDetails = '',
+    this.columnMappings = '',
   });
 
   factory FileUpload.fromJson(Map<String, dynamic> map) {
@@ -36,6 +38,7 @@ class FileUpload {
       uploadStatus: map['upload_status'] ?? 0,
       errorMessage: map['error_message'] ?? '',
       csvDetails: map['csv_details'] ?? '',
+      columnMappings: map['column_mapping'] ?? '',
     );
   }
 }

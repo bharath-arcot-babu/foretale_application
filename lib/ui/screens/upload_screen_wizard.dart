@@ -416,6 +416,7 @@ class _UploadScreenWizardState extends State<UploadScreenWizard> with SingleTick
         filePickerResult = null;
       }
     } catch (e, error_stack_trace) {
+
       SnackbarMessage.showErrorMessage(context, 
             e.toString(),
             logError: true,

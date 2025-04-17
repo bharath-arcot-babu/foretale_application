@@ -9,6 +9,7 @@ import 'package:foretale_application/ui/screens/create_project/create_project.da
 import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:foretale_application/ui/widgets/custom_elevated_button.dart';
 import 'package:foretale_application/ui/widgets/custom_enclosure.dart';
+import 'package:foretale_application/ui/widgets/custom_resource_card.dart';
 import 'package:foretale_application/ui/widgets/message_helper.dart';
 import 'package:provider/provider.dart';
 
@@ -80,7 +81,7 @@ class _WelcomePageState extends State<WelcomePage> {
                                     style: TextStyles.topicText(context),
                                   ),
                                   Text(
-                                    "Started on: ${convertToDateString(project.createdDate.toString())}",
+                                    "Started on: ${project.createdDate.toString()}",
                                     style: TextStyles.topicText(context),
                                   ),
                                 ],
@@ -149,6 +150,7 @@ class _WelcomePageState extends State<WelcomePage> {
                 const ResourceCard(
                   title: "Flutter Documentation",
                   url: "https://flutter.dev/docs",
+                   
                 ),
                 const ResourceCard(
                   title: "Flutter YouTube Channel",
@@ -179,40 +181,4 @@ class _WelcomePageState extends State<WelcomePage> {
   }
 }
 
-class ResourceCard extends StatelessWidget {
-  final String title;
-  final String url;
 
-  const ResourceCard({super.key, required this.title, required this.url});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Row(
-              children: [
-                const Icon(Icons.link, color: Colors.blue),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(fontSize: 16),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    // You can use url_launcher package to open the URL here
-                  },
-                  child:
-                      const Text("Open", style: TextStyle(color: Colors.blue)),
-                ),
-              ],
-            ),
-          ),
-        );
-  }
-}

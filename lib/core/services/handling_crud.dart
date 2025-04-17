@@ -53,8 +53,9 @@ class CRUD {
 
   Future<List<T>> getRecords<T>(BuildContext context, String storedProcedure, Map<String, dynamic> params, T Function(Map<String, dynamic>) fromJson) async {
     try {
+
       var jsonResponse = await FlaskApiService().readRecord(storedProcedure, params);
-      
+
       if (jsonResponse != null && jsonResponse['data'] != null) {
         var data = jsonResponse['data'];
 

@@ -1,12 +1,12 @@
 import 'dart:convert';
-import 'package:foretale_application/flask_api_config.dart';
+import 'package:foretale_application/db_api_config.dart';
 import 'package:http/http.dart' as http;
 
 class FlaskApiService {
   late String baseUrl;
 
   FlaskApiService(){
-    baseUrl = FlaskApiConfig.baseApIUrl;
+    baseUrl = DatabaseApiConfig.baseApIUrl;
   }
 
   Future<dynamic> insertRecord(String procedureName, Map<String, dynamic> params) async {
@@ -38,6 +38,7 @@ class FlaskApiService {
       "procedure_name": procedureName,
       ...params.map((key, value) => MapEntry(key, value.toString())),
     });
+
     final response = await http.get(uri);
     return _handleResponse(response);
   }
@@ -48,6 +49,7 @@ class FlaskApiService {
       "procedure_name": procedureName,
       ...params.map((key, value) => MapEntry(key, value.toString())),
     });
+
     final response = await http.get(
       uri,
       headers: {"Accept": "application/json"});

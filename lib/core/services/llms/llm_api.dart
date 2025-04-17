@@ -26,8 +26,11 @@ Future<dynamic> callMistral(String prompt, {int maxTokens = 128, double temperat
     Uri.parse(url), 
     headers: headers, 
     body: body);
+  
+  print(response.body);
 
   final outer = jsonDecode(response.body);
+  print(outer);
   final innerJsonBody = jsonDecode(outer['body']);
   
   return jsonDecode(innerJsonBody['model_response']);
