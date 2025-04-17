@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:foretale_application/core/utils/csv_file_analysis.dart';
-import 'package:foretale_application/ui/screens/column_mapping_screen.dart';
+import 'package:foretale_application/ui/screens/data_upload/column_mapping_screen.dart';
 import 'package:foretale_application/ui/widgets/custom_alert.dart';
 import 'package:foretale_application/ui/widgets/message_helper.dart';
 import 'package:path/path.dart' as path;

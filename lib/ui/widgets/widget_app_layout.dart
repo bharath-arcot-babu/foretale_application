@@ -7,10 +7,10 @@ import 'package:foretale_application/core/services/util_get_cognito_user_details
 
 //screens
 import 'package:foretale_application/ui/screens/welcome.dart';
-import 'package:foretale_application/ui/screens/inquiry.dart';
-import 'package:foretale_application/ui/screens/test_config.dart';
-import 'package:foretale_application/ui/screens/upload_screen.dart';
-import 'package:foretale_application/ui/screens/upload_screen_wizard.dart';
+import 'package:foretale_application/ui/screens/inquiry/inquiry.dart';
+import 'package:foretale_application/ui/screens/test_case/test_config.dart';
+import 'package:foretale_application/ui/screens/data_upload/upload_screen.dart';
+import 'package:foretale_application/ui/screens/data_upload/upload_screen_wizard.dart';
 //themes
 import 'package:foretale_application/ui/themes/scaffold_styles.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';

@@ -268,10 +268,9 @@ class _MappingScreenState extends State<ColumnMappingScreen> {
         return;
       }
       
-      Map<String, String> dbCompatibleMappings = {
-        for (var entry in selectedMappings.entries)
-          if (columnsModel.technicalFieldMap[entry.key] != null && entry.value != null)
-            columnsModel.technicalFieldMap[entry.key]!: entry.value!
+      Map<String, String?> dbCompatibleMappings = {
+        for(var entry in columnsModel.technicalFieldMap.entries)
+            columnsModel.technicalFieldMap[entry.key]!: selectedMappings[entry.key]
       };
 
       String jsonString = jsonEncode(dbCompatibleMappings);
@@ -335,8 +334,16 @@ class _MappingScreenState extends State<ColumnMappingScreen> {
       var columnModel = Provider.of<ColumnsModel>(context, listen: false);
       await columnsModel.fetchColumnsByTable(context);
       await columnsModel.fetchColumnsCsvDetails(context);
+
+      Map<String, String?> uiCompatibleMappings = {
+        for(var entry in columnsModel.technicalFieldMap.entries)
+          if (columnModel.columnMappings[entry.value] != null)
+            entry.key:columnModel.columnMappings[entry.value]!
+      };
+
       if (!mounted) return;
-      selectedMappings = columnModel.columnMappings;
+      selectedMappings = uiCompatibleMappings;
+
     } catch (e, error_stack_trace) {
       SnackbarMessage.showErrorMessage(context, e.toString(),
           logError: true,

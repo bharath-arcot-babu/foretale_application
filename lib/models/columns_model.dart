@@ -14,7 +14,7 @@ class TableColumns {
   final String simpleText;
   final String description;
   final String dataType;
-  final int dataLength;
+  final String dataLength;
   final String primaryCompositeKey;
 
   TableColumns({
@@ -36,7 +36,7 @@ class TableColumns {
       simpleText: json['simple_text'] ?? '',
       description: json['description'] ?? '',
       dataType: json['data_type'] ?? '',
-      dataLength: json['data_length'] ?? 0,
+      dataLength: json['data_length'] ?? '',
       primaryCompositeKey: json['primary_composite_key'] ?? '',
     );
   }
