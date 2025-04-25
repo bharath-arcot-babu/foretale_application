@@ -86,7 +86,6 @@ class _InquiryPageState extends State<InquiryPage> {
         child: Consumer<InquiryResponseModel>(
           builder: (context, inquiryResponseModel, child) {
             List<InquiryResponse> data = inquiryResponseModel.getResponseList;
-            print(data.toString());
             return ListView.builder(
               reverse: true,
               itemCount: data.length,

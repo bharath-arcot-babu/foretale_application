@@ -23,11 +23,17 @@ class CsvUtils {
 
     final topLines = lines.take(rowLimit).toList();
 
+    // Call the LLM to detect the column separator, row separator, and text qualifier
     String promptInput = topLines.join('\n');
     CsvPrompts prompts = CsvPrompts();
     String callingPrompt = prompts.detectSeparators.buildPrompt(promptInput);
+    final modelOuput = await LLMService.callLLM(
+      model: LLMModel.mistral,
+      prompt: callingPrompt,
+      maxTokens: 200
+    );
 
-    final modelOuput = await callMistral(callingPrompt);
+
     final columnSeparator = modelOuput['column_separator'];
     final rowSeparator = modelOuput['row_separator'];
     final textQualifier = modelOuput['text_qualifier'];

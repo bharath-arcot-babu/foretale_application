@@ -120,6 +120,14 @@ class TextStyles {
     );
   }
 
+  static TextStyle footerDisclaimerSmall(BuildContext context) {
+    return GoogleFonts.poppins( // Apply Google Font
+      fontWeight: FontWeight.w500,
+      color: TextColors.primaryTextColor,
+      fontSize: _getFontSize(context, 10.0), // Responsive font size
+    );
+  }
+
   static TextStyle footerLinkTextSmall(BuildContext context) {
     return GoogleFonts.poppins( // Apply Google Font
       fontWeight: FontWeight.w500,

@@ -57,10 +57,10 @@ class BorderColors{
 
 class DatagridColors{
   // Datagrid Text Color
-  static const Color datagridHeaderColor = Color(0xFFA2AEBB);
+  static const Color datagridHeaderColor = Colors.black26;
   static const Color datagridHeaderText = Color(0xFFE1E2EF);
   static const Color datagridHeaderHoverColor = Color(0xFFEE4266);
-   static const Color datagridRowSelectionColor = Color(0xFF1C1C1C);
+   static const Color datagridRowSelectionColor = Color(0xFFE1E2EF);
 }
 
 class ErrorColors {

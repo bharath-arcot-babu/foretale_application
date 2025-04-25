@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:foretale_application/core/constants/colors/app_colors.dart';
 import 'package:foretale_application/core/services/llms/csv_analysis_prompt.dart';
 import 'package:foretale_application/core/services/llms/llm_api.dart';
 import 'package:foretale_application/models/columns_model.dart';
@@ -12,17 +13,23 @@ import 'package:foretale_application/ui/widgets/custom_chip.dart';
 import 'package:foretale_application/ui/widgets/custom_dropdown_list.dart';
 import 'package:foretale_application/ui/widgets/custom_elevated_button.dart';
 import 'package:foretale_application/ui/widgets/custom_enclosure.dart';
+import 'package:foretale_application/ui/widgets/custom_loading_indicator.dart';
 import 'package:foretale_application/ui/widgets/message_helper.dart';
 import 'package:provider/provider.dart';
 
 class ColumnMappingScreen extends StatefulWidget {
-  const ColumnMappingScreen({Key? key}) : super(key: key);
+  final VoidCallback onConfirm;
+
+  const ColumnMappingScreen({Key? key, required this.onConfirm})
+      : super(key: key);
 
   @override
   State<ColumnMappingScreen> createState() => _MappingScreenState();
 }
 
 class _MappingScreenState extends State<ColumnMappingScreen> {
+  bool isPageLoading = false;
+  String loadText = 'Loading...';
   final String _currentFileName = "column_mapping_screen.dart";
   late ColumnsModel columnsModel;
   late UploadSummaryModel uploadSummaryModel;
@@ -33,121 +40,148 @@ class _MappingScreenState extends State<ColumnMappingScreen> {
   void initState() {
     super.initState();
     columnsModel = Provider.of<ColumnsModel>(context, listen: false);
-    uploadSummaryModel = Provider.of<UploadSummaryModel>(context, listen: false);
+    uploadSummaryModel =
+        Provider.of<UploadSummaryModel>(context, listen: false);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadPage();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      setState(() {
+        isPageLoading = true;
+        loadText = "Loading column mappings...";
+      });
+      await _loadPage();
+      setState(() {
+        isPageLoading = false;
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ColumnsModel>(
-      builder: (context, consumeColumnModel, _) {
-        
-        return Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // AI Magic Button
-                  AiMagicIconButton(
-                    onPressed: () {
-                      showConfirmDialog(
-                        context: context,
-                        title: "AI Magic",
-                        cancelText: "NO",
-                        confirmText: "YES",
-                        confirmTextColor: Colors.green,
-                        content:
-                            "AI Magic will attempt to automatically map your columns using AI. This will replace any existing mappings, and results may not be fully accurate. Would you like to continue?",
-                      );
-                      callingLLM(
-                        consumeColumnModel.sourceFields,
-                        consumeColumnModel.destinationFieldMap.entries
-                            .map((e) => e.key)
-                            .toList(),
-                      );
-                    },
-                    tooltip: 'Auto Map Columns',
-                    iconSize: 18.0,
-                  ),
-                  const SizedBox(width: 10),
-                  CustomElevatedButton(
-                    height: 40,
-                    width: 300,
-                    onPressed: () {
-                      handleMappingConfirm();
-                    },
-                    text:
-                        'Save Mappings for ${uploadSummaryModel.getActiveFileUploadSelectionName}',
-                    textSize: 16,
-                    icon: Icons.save,
-                  )
-                ],
-              ),
-              const SizedBox(height: 20),
-              Expanded(
-                child: Row(
+    return isPageLoading
+        ? Center(
+            child: LinearLoadingIndicator(
+            isLoading: isPageLoading,
+            width: 200,
+            height: 6,
+            color: AppColors.primaryColor,
+            loadingText: loadText,
+          ))
+        : Consumer<ColumnsModel>(
+            builder: (context, consumeColumnModel, _) {
+              return Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Column(
                   children: [
-                    // Source Fields
-                    Expanded(
-                      flex: 2,
-                      child: CustomContainer(
-                        title:
-                            "Fields from ${uploadSummaryModel.getActiveFileUploadSelectionName}",
-                        child: SingleChildScrollView(
-                          child: buildSourceFieldsList(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // AI Magic Button
+                        AiMagicIconButton(
+                          onPressed: () {
+                            showConfirmDialog(
+                              context: context,
+                              title: "AI Magic",
+                              cancelText: "NO",
+                              confirmText: "YES",
+                              confirmTextColor: Colors.green,
+                              content:
+                                  "AI Magic will attempt to automatically map your columns using AI. This will replace any existing mappings, and results may not be fully accurate. Would you like to continue?",
+                            );
+                            callingLLM(
+                              consumeColumnModel.sourceFields,
+                              consumeColumnModel.destinationFieldMap.entries
+                                  .map((e) => e.key)
+                                  .toList(),
+                            );
+                          },
+                          tooltip: 'Auto Map Columns',
+                          iconSize: 18.0,
                         ),
+                        const SizedBox(width: 10),
+                        CustomElevatedButton(
+                          height: 40,
+                          width: 300,
+                          onPressed: () {
+                            handleMappingConfirm();
+                          },
+                          text: 'Save Mappings',
+                          textSize: 16,
+                          icon: Icons.save,
+                        ),
+                        const SizedBox(width: 10),
+                        CustomElevatedButton(
+                          height: 40,
+                          width: 300,
+                          onPressed: () {
+                            confirmAndUpload();
+                          },
+                          text: 'Confirm and Upload',
+                          textSize: 16,
+                          icon: Icons.save,
+                        )
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          // Source Fields
+                          Expanded(
+                            flex: 2,
+                            child: CustomContainer(
+                              title:
+                                  "Fields from ${uploadSummaryModel.getActiveFileUploadSelectionName}",
+                              child: SingleChildScrollView(
+                                child: buildSourceFieldsList(),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          // Destination Mappings with Dropdowns
+                          Expanded(
+                            flex: 2,
+                            child: CustomContainer(
+                              title:
+                                  "Field mapping for the target table ${uploadSummaryModel.getActiveTableSelectionName}",
+                              child: SingleChildScrollView(
+                                  child: buildCustomDropdownMappingList(
+                                context,
+                                labels: consumeColumnModel.destinationFieldMap,
+                                options: consumeColumnModel.sourceFields,
+                                selectedValues: selectedMappings,
+                                onChanged: (label, value) {
+                                  setState(() {
+                                    if (value == null) {
+                                      selectedMappings.remove(label);
+                                    } else {
+                                      selectedMappings[label] = value;
+                                    }
+                                  });
+                                },
+                              )),
+                            ),
+                          ),
+                          if (selectedMappings.isNotEmpty &&
+                              selectedMappings.values
+                                  .any((value) => value?.isNotEmpty ?? false))
+                            Expanded(
+                              flex: 1,
+                              child: SizedBox.expand(
+                                child: SingleChildScrollView(
+                                  child: buildMappingSummaryChips(
+                                      selectedMappings),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 20),
-                    // Destination Mappings with Dropdowns
-                    Expanded(
-                      flex: 2,
-                      child: CustomContainer(
-                        title:
-                            "Field mapping for the target table ${uploadSummaryModel.getActiveTableSelectionName}",
-                        child: SingleChildScrollView(
-                            child: buildCustomDropdownMappingList(
-                          context,
-                          labels: consumeColumnModel.destinationFieldMap,
-                          options: consumeColumnModel.sourceFields,
-                          selectedValues: selectedMappings,
-                          onChanged: (label, value) {
-                            setState(() {
-                              if(value == null) {
-                                selectedMappings.remove(label);
-                              } else {
-                                selectedMappings[label] = value;
-                              }
-                            });
-                          },
-                        )),
-                      ),
-                    ),                   
-                    if (selectedMappings.isNotEmpty &&
-                        selectedMappings.values
-                            .any((value) => value?.isNotEmpty ?? false))
-                      Expanded(
-                        flex: 1,
-                        child: SizedBox.expand(
-                          child: SingleChildScrollView(
-                            child: buildMappingSummaryChips(selectedMappings),
-                          ),
-                        ),
-                      ),
                   ],
                 ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+              );
+            },
+          );
   }
 
   Widget buildSourceFieldsList() {
@@ -238,45 +272,80 @@ class _MappingScreenState extends State<ColumnMappingScreen> {
         .toList();
 
     return Padding(
-      padding: const EdgeInsets.only(left: 20),
-      child: (
-      CustomContainer(
-      title: "Mapping Summary",
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            direction: Axis.vertical,
-            children: validMappings.map((entry) {
-              return CustomChip(
-                label: '${entry.value} → ${entry.key}',
-                backgroundColor: Colors.grey.shade100,
-              );
-            }).toList(),
+        padding: const EdgeInsets.only(left: 20),
+        child: (CustomContainer(
+          title: "Mapping Summary",
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                direction: Axis.vertical,
+                children: validMappings.map((entry) {
+                  return CustomChip(
+                    label: '${entry.value} → ${entry.key}',
+                    backgroundColor: Colors.grey.shade100,
+                  );
+                }).toList(),
+              ),
+            ],
           ),
-        ],
-      ),
-    )));
+        )));
   }
 
   void handleMappingConfirm() {
     try {
-      if(selectedMappings.isEmpty) {
-        SnackbarMessage.showErrorMessage(context, "Please select at least one mapping.");
+      if (selectedMappings.isEmpty) {
+        SnackbarMessage.showErrorMessage(
+            context, "Please select at least one mapping.");
         return;
       }
-      
+
+      columnsModel.activeSelectedMappings = selectedMappings;
+
       Map<String, String?> dbCompatibleMappings = {
-        for(var entry in columnsModel.technicalFieldMap.entries)
-            columnsModel.technicalFieldMap[entry.key]!: selectedMappings[entry.key]
+        for (var entry in columnsModel.technicalFieldMap.entries)
+          columnsModel.technicalFieldMap[entry.key]!:
+              selectedMappings[entry.key]
       };
 
       String jsonString = jsonEncode(dbCompatibleMappings);
       columnsModel.updateFileUpload(context, jsonString);
 
-      SnackbarMessage.showSuccessMessage(context,"Mappings are saved successfully");
+      SnackbarMessage.showSuccessMessage(
+          context, "Mappings are saved successfully");
+    } catch (e, error_stack_trace) {
+      SnackbarMessage.showErrorMessage(context, e.toString(),
+          logError: true,
+          errorMessage: e.toString(),
+          errorStackTrace: error_stack_trace.toString(),
+          errorSource: _currentFileName,
+          severityLevel: 'Critical',
+          requestPath: "callMistral");
+    }
+  }
+
+  void confirmAndUpload() {
+    try {
+      if (selectedMappings.isEmpty) {
+        SnackbarMessage.showErrorMessage(
+            context, "Please select at least one mapping.");
+        return;
+      }
+
+      widget.onConfirm();
+
+      columnsModel.activeSelectedMappings = selectedMappings;
+
+      Map<String, String?> dbCompatibleMappings = {
+        for (var entry in columnsModel.technicalFieldMap.entries)
+          columnsModel.technicalFieldMap[entry.key]!:
+              selectedMappings[entry.key]
+      };
+
+      String jsonString = jsonEncode(dbCompatibleMappings);
+      columnsModel.updateFileUpload(context, jsonString);
     } catch (e, error_stack_trace) {
       SnackbarMessage.showErrorMessage(context, e.toString(),
           logError: true,
@@ -291,8 +360,10 @@ class _MappingScreenState extends State<ColumnMappingScreen> {
   Future<void> callingLLM(List<String> source, List<String> destination) async {
     try {
       CsvPrompts prompts = CsvPrompts();
-      String callingPrompt = prompts.matchSourceDestinationColumns.buildPromptForMatch(source, destination);
-      final modelOuput = await callMistral(callingPrompt, maxTokens: 2000);
+      String callingPrompt = prompts.matchSourceDestinationColumns
+          .buildPromptForMatch(source, destination);
+      final modelOuput = await LLMService.callLLM(
+          model: LLMModel.mistral, prompt: callingPrompt, maxTokens: 2000);
 
       final rawMappings = modelOuput["mappings"];
       if (rawMappings is Map) {
@@ -306,18 +377,15 @@ class _MappingScreenState extends State<ColumnMappingScreen> {
                 ));
 
         if (!mounted) return;
-        if(cleanMappings.isNotEmpty){
+        if (cleanMappings.isNotEmpty) {
           setState(() {
             selectedMappings = Map<String, String>.fromEntries(cleanMappings);
           });
-          
-        } else{
+        } else {
           SnackbarMessage.showErrorMessage(context, "No match found!");
-        }      
+        }
       }
-
     } catch (e, error_stack_trace) {
-      print(e.toString());
       SnackbarMessage.showErrorMessage(context, e.toString(),
           logError: true,
           errorMessage: e.toString(),
@@ -336,14 +404,13 @@ class _MappingScreenState extends State<ColumnMappingScreen> {
       await columnsModel.fetchColumnsCsvDetails(context);
 
       Map<String, String?> uiCompatibleMappings = {
-        for(var entry in columnsModel.technicalFieldMap.entries)
+        for (var entry in columnsModel.technicalFieldMap.entries)
           if (columnModel.columnMappings[entry.value] != null)
-            entry.key:columnModel.columnMappings[entry.value]!
+            entry.key: columnModel.columnMappings[entry.value]!
       };
 
       if (!mounted) return;
       selectedMappings = uiCompatibleMappings;
-
     } catch (e, error_stack_trace) {
       SnackbarMessage.showErrorMessage(context, e.toString(),
           logError: true,

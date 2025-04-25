@@ -76,6 +76,9 @@ class ColumnsModel with ChangeNotifier{
   Map<String, String?> columnMappings = {};
   Map<String, String?> get getColumnMappings => columnMappings;
 
+  Map<String, String?> activeSelectedMappings = {};
+  Map<String, String?> get getActiveSelectedMappings => activeSelectedMappings; 
+
   Future<void> fetchColumnsByTable(BuildContext context) async {
     var uploadSummaryModel = Provider.of<UploadSummaryModel>(context, listen: false);
 

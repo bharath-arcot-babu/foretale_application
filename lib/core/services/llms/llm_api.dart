@@ -1,112 +1,112 @@
-//core
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-//config
 import 'package:foretale_application/llm_api_config';
+import 'package:http/http.dart' as http;
 
-
-Future<dynamic> callMistral(String prompt, {int maxTokens = 128, double temperature = 0.5, double topP = 0.9, int topK = 50}) async {
-  const String url = "https://pw4lylhb3g.execute-api.us-east-1.amazonaws.com/dev/bedrock_invoker_resource";
-
-  final headers = {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-  };
-
-  final body = jsonEncode({
-    "prompt": prompt,
-    "max_tokens": maxTokens,
-    "temperature": temperature,
-    "top_p": topP,
-    "top_k": topK,
-    "system_instruction": ""
-  });
-
-  final response = await http.post(
-    Uri.parse(url), 
-    headers: headers, 
-    body: body);
-  
-  print(response.body);
-
-  final outer = jsonDecode(response.body);
-  print(outer);
-  final innerJsonBody = jsonDecode(outer['body']);
-  
-  return jsonDecode(innerJsonBody['model_response']);
+enum LLMModel {
+  mistral,
+  llama3,
+  claude3,
 }
 
-
-Future<void> callLlama3(String prompt, {int maxGenLen = 512, double temperature = 0.5, double topP = 0.9}) async {
-  const String url = LLMApiConfig.baseLlama70BUrl;
-
-  final headers = {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-  };
-
-  final body = jsonEncode({
-    "prompt": prompt,
-    "max_gen_len": maxGenLen,
-    "temperature": temperature,
-    "top_p": topP
-  });
-
-  try {
-    final response = await http.post(Uri.parse(url), headers: headers, body: body);
-
-    if (response.statusCode == 200) {
-      print("Response: ${response.body}");
-    } else {
-      print("Error: ${response.statusCode}, ${response.body}");
+class LLMService {
+  static Future<dynamic> callLLM({
+    required LLMModel model,
+    required String prompt,
+    int maxTokens = 512,
+    double temperature = 0.5,
+    double topP = 0.9,
+    int topK = 50,
+  }) async {
+    switch (model) {
+      case LLMModel.mistral:
+        return _callMistral(prompt, maxTokens, temperature, topP, topK);
+      case LLMModel.llama3:
+        return _callLlama3(prompt, maxTokens, temperature, topP);
+      case LLMModel.claude3:
+        return _callClaude3(prompt, maxTokens, temperature, topP, topK);
     }
-  } catch (e) {
-    print("Network Error: $e");
   }
-}
 
-Future<void> callClaude3(String userMessage, {int maxTokens = 200, double temperature = 1.0, double topP = 0.999, int topK = 250}) async {
-  const String url = LLMApiConfig.baseClaude35Url;
+  static Future<dynamic> _callMistral(String prompt, int maxTokens,
+      double temperature, double topP, int topK) async {
+    const String url = LLMApiConfig.baseMistralUrl;
 
-  final headers = {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-  };
-
-  final body = jsonEncode({
-    "modelId": "anthropic.claude-3-5-sonnet-20241022-v2:0",
-    "contentType": "application/json",
-    "accept": "application/json",
-    "body": {
-      "anthropic_version": "bedrock-2023-05-31",
+    final body = jsonEncode({
+      "prompt": prompt,
       "max_tokens": maxTokens,
-      "top_k": topK,
-      "stop_sequences": [],
       "temperature": temperature,
       "top_p": topP,
-      "messages": [
-        {
-          "role": "user",
-          "content": [
-            {
-              "type": "text",
-              "text": userMessage
-            }
-          ]
-        }
-      ]
-    }
-  });
+      "top_k": topK,
+      "system_instruction": ""
+    });
 
-  try {
-    final response = await http.post(Uri.parse(url), headers: headers, body: body);
+    final response =
+        await http.post(Uri.parse(url), headers: _headers(), body: body);
+    final outer = jsonDecode(response.body);
+    final innerJsonBody = jsonDecode(outer['body']);
 
-    if (response.statusCode == 200) {
-      print("Response: ${response.body}");
-    } else {
-      print("Error: ${response.statusCode}, ${response.body}");
-    }
-  } catch (e) {
-    print("Network Error: $e");
+    return jsonDecode(innerJsonBody['model_response']);
   }
+
+  static Future<dynamic> _callLlama3(
+      String prompt, int maxGenLen, double temperature, double topP) async {
+    const String url = LLMApiConfig.baseLlama70BUrl;
+
+    final body = jsonEncode({
+      "prompt": prompt,
+      "max_gen_len": maxGenLen,
+      "temperature": temperature,
+      "top_p": topP
+    });
+
+    final response =
+        await http.post(Uri.parse(url), headers: _headers(), body: body);
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception(
+          "LLaMA 3 Error: ${response.statusCode}, ${response.body}");
+    }
+  }
+
+  static Future<dynamic> _callClaude3(String userMessage, int maxTokens,
+      double temperature, double topP, int topK) async {
+    const String url = LLMApiConfig.baseClaude35Url;
+
+    final body = jsonEncode({
+      "modelId": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+      "contentType": "application/json",
+      "accept": "application/json",
+      "body": {
+        "anthropic_version": "bedrock-2023-05-31",
+        "max_tokens": maxTokens,
+        "top_k": topK,
+        "stop_sequences": [],
+        "temperature": temperature,
+        "top_p": topP,
+        "messages": [
+          {
+            "role": "user",
+            "content": [
+              {"type": "text", "text": userMessage}
+            ]
+          }
+        ]
+      }
+    });
+
+    final response =
+        await http.post(Uri.parse(url), headers: _headers(), body: body);
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception(
+          "Claude 3 Error: ${response.statusCode}, ${response.body}");
+    }
+  }
+
+  static Map<String, String> _headers() => {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      };
 }

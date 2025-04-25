@@ -10,19 +10,13 @@ class SFDataGridTheme {
     selectionColor: DatagridColors.datagridRowSelectionColor,
     //gridLineColor: BorderColors.secondaryColor, // Light grey grid lines for a softer look
     //gridLineStrokeWidth: 0.5, // Slightly thicker grid lines for better visibility
-    rowHoverColor: Colors.transparent, // Light row hover color for a clean effect
+    rowHoverColor: AppColors.primaryColor, // Light row hover color for a clean effect
     sortIcon: const Icon(
       Icons.sort,
-      size: 8,
+      size: 14,
       color: Colors.black, // Neutral, elegant blue-grey sort icon color
     ),
     filterPopupTextStyle: TextStyles.gridFilterText(),
     filterPopupDisabledTextStyle: TextStyles.gridFilterText(),
-  );
-
-  
-}
-
-class DatagridTheme {
-  
+  );  
 }

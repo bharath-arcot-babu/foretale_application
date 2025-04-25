@@ -1,5 +1,6 @@
 //core
 import 'package:flutter/material.dart';
+import 'package:foretale_application/models/data_assessment_model.dart';
 import 'package:provider/provider.dart';
 import 'package:foretale_application/amplifyconfiguration.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
@@ -104,6 +105,7 @@ class ForeTaleApp extends StatelessWidget {
           ChangeNotifierProvider(create: (_) => TestsModel()),
           ChangeNotifierProvider(create: (_) => UploadSummaryModel()),
           ChangeNotifierProvider(create: (_) => ColumnsModel()),
+          ChangeNotifierProvider(create: (_) => DataQualityProfileModel()),
         ],
         child: Authenticator(
             authenticatorBuilder: _authenticatorBuilder,
