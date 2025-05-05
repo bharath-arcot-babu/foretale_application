@@ -84,6 +84,7 @@ class QuestionsDataGrid extends StatelessWidget {
                   showColumnName: false, 
                   canShowSortingOptions: false),
                 columnWidthMode: ColumnWidthMode.fitByCellValue,
+                visible: true,
                 columnName: 'topic',
                 label: Container(
                   padding: const EdgeInsets.all(2.0),
@@ -183,7 +184,7 @@ class QuestionsDataSource extends DataGridSource {
         DataGridCell<String>(columnName: 'industry', value: row.industry),
         DataGridCell<String>(columnName: 'projectType', value: row.projectType),
         DataGridCell<String>(columnName: 'topic', value: row.topic),
-        DataGridCell<String>(columnName: 'createdDate', value: convertToDateString(row.createdDate)),
+        DataGridCell<String>(columnName: 'createdDate', value: row.createdDate),
         DataGridCell<String>(columnName: 'createdBy', value: row.createdBy),
         DataGridCell<int>(columnName: 'questionId', value: row.questionId),
       ]);

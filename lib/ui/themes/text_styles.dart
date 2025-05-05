@@ -163,7 +163,7 @@ class TextStyles {
   static TextStyle responseText(BuildContext context) {
     return GoogleFonts.poppins( // Apply Google Font
       fontWeight: FontWeight.w500,
-      color: TextColors.primaryTextColor,
+      color: TextColors.secondaryTextColor,
       fontSize: _getFontSize(context, 10.0), // Responsive font size
     );
   }
@@ -179,7 +179,7 @@ class TextStyles {
   static TextStyle responseTextFileInfo(BuildContext context) {
     return GoogleFonts.poppins( // Apply Google Font
       fontWeight: FontWeight.w400,
-      color: TextColors.primaryTextColor,
+      color: TextColors.secondaryTextColor,
       fontSize: _getFontSize(context, 9.0), // Responsive font size
     );
   }

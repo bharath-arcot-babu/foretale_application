@@ -1,5 +1,6 @@
 //core
 import 'package:flutter/material.dart';
+import 'package:foretale_application/models/tests_model.dart';
 import 'package:provider/provider.dart';
 //models
 import 'package:foretale_application/models/inquiry_question_model.dart';
@@ -105,7 +106,7 @@ class InquiryResponseModel with ChangeNotifier {
 
     int insertedId = await _crudService.addRecord(
       context,
-      'dbo.sproc_insert_response_by_question',
+      'dbo.sproc_insert_response_by_question_or_test',
       params,
     );
 
@@ -115,6 +116,33 @@ class InquiryResponseModel with ChangeNotifier {
     }
     return insertedId;
   }
+
+  Future<int> insertResponseByTest(BuildContext context, String? responseText) async {
+    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
+    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+    var testsModel = Provider.of<TestsModel>(context, listen: false);
+
+    var params = {
+      'project_id': projectDetailsModel.getActiveProjectId,
+      'test_id': testsModel.getSelectedTestId,
+      'response_text': responseText??'',
+      'last_updated_by': userDetailsModel.getUserMachineId,
+    };
+
+    int insertedId = await _crudService.addRecord(
+      context,
+      'dbo.sproc_insert_response_by_question_or_test',
+      params,
+    );
+
+    if(insertedId>0){
+      await fetchResponsesByQuestion(context);
+      notifyListeners();
+    }
+    return insertedId;
+  }
+
+  
 
   Future<int> insertAttachmentByResponse(
       BuildContext context,

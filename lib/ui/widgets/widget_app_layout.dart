@@ -9,7 +9,6 @@ import 'package:foretale_application/core/services/cognito_activities.dart';
 import 'package:foretale_application/ui/screens/welcome.dart';
 import 'package:foretale_application/ui/screens/inquiry/inquiry.dart';
 import 'package:foretale_application/ui/screens/test_case/test_config.dart';
-import 'package:foretale_application/ui/screens/data_upload/upload_screen.dart';
 import 'package:foretale_application/ui/screens/data_upload/upload_screen_wizard.dart';
 //themes
 import 'package:foretale_application/ui/themes/scaffold_styles.dart';
@@ -112,7 +111,7 @@ class _AppLayoutState extends State<AppLayout> {
     } else if (_selectedScreen == _display2) {
       return const InquiryPage();
     } else if (_selectedScreen == _display3) {
-      return UploadScreenWizard();
+      return const UploadScreenWizard();
     } else if (_selectedScreen == _display4) {
       return const TestConfigPage();
     } else if (_selectedScreen == _display5) {

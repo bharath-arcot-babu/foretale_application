@@ -1,7 +1,6 @@
 //core
 import 'package:flutter/material.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
-import 'package:foretale_application/core/utils/util_date.dart';
 //model
 import 'package:foretale_application/models/project_details_model.dart';
 //screen

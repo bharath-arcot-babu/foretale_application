@@ -1,47 +1,63 @@
 import 'package:flutter/material.dart';
-// Constants
-// Themes
 import 'package:foretale_application/ui/themes/button_styles.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
 
-// Custom Elevated Button with icon
 class CustomElevatedButton extends StatelessWidget {
-  // Button customization properties
-  final double width;
-  final double height;
+  final double? width;
+  final double? height;
   final String text;
   final double textSize;
   final VoidCallback onPressed;
-  final IconData? icon; // Optional icon parameter
+  final IconData? icon;
 
-  // Constructor
   const CustomElevatedButton({
     super.key,
-    required this.width,
-    required this.height,
+    this.width,
+    this.height,
     required this.text,
     required this.textSize,
     required this.onPressed,
-    this.icon, // Optional icon parameter
+    this.icon,
   });
 
-  // Widget
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ButtonStyles.elevatedButtonStyle(),
-      child: SizedBox(
-        width: width,
-        height: height,
-        child: FittedBox(
-           fit: BoxFit.scaleDown,
-            child: Text(
-          text,
-          style: TextStyles.elevatedButtonTextStyle(context)
-              .copyWith(fontSize: textSize),
-        )),
+    final hasText = text.trim().isNotEmpty;
+    final hasIcon = icon != null;
+
+    return SizedBox(
+      width: width,
+      height: height,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ButtonStyles.elevatedButtonStyle(),
+        child: _buildContent(context, hasText, hasIcon),
       ),
     );
+  }
+
+  Widget _buildContent(BuildContext context, bool hasText, bool hasIcon) {
+    final textWidget = Text(
+      text,
+      style: TextStyles.elevatedButtonTextStyle(context).copyWith(
+        fontSize: textSize,
+      ),
+    );
+
+    if (hasIcon && hasText) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: textSize + 2),
+          const SizedBox(width: 8),
+          textWidget,
+        ],
+      );
+    } else if (hasIcon) {
+      return Icon(icon, size: textSize + 2);
+    } else {
+      return textWidget;
+    }
   }
 }

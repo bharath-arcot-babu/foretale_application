@@ -122,6 +122,8 @@ class TestsModel with ChangeNotifier {
       (json) => Test.fromJson(json),
     );  
 
+    filteredTestsList = testsList;
+    
     notifyListeners();
   }
 

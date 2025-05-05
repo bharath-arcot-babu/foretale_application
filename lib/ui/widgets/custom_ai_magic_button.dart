@@ -8,12 +8,12 @@ class AiMagicIconButton extends StatelessWidget {
   final double iconSize;
 
   const AiMagicIconButton({
-    Key? key,
+    super.key,
     required this.onPressed,
     this.tooltip = 'AI Magic',
     this.iconColor,
     this.iconSize = 18.0,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

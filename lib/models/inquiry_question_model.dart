@@ -117,6 +117,10 @@ class InquiryQuestionModel with ChangeNotifier {
       (json) => InquiryQuestion.fromJson(json),
     );  
 
+    if (filteredQuestionsList.isEmpty) {
+      filteredQuestionsList = questionsList;
+    }
+
     notifyListeners();
   }
 

@@ -23,6 +23,8 @@ import 'package:foretale_application/ui/widgets/custom_icon_button.dart';
 import 'package:provider/provider.dart';
 
 class UploadScreenWizard extends StatefulWidget {
+  const UploadScreenWizard({super.key});
+
   @override
   State<UploadScreenWizard> createState() => _UploadScreenWizardState();
 }

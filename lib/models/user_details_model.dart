@@ -1,8 +1,6 @@
 //core 
 import 'package:flutter/material.dart';
 
-import 'package:foretale_application/core/services/database_connect.dart';
-import 'package:foretale_application/ui/widgets/message_helper.dart';
 //utils
 import 'package:foretale_application/core/services/handling_crud.dart';
 

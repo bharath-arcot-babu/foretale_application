@@ -38,7 +38,6 @@ class FlaskApiService {
       "procedure_name": procedureName,
       ...params.map((key, value) => MapEntry(key, value.toString())),
     });
-
     final response = await http.get(uri);
     return _handleResponse(response);
   }

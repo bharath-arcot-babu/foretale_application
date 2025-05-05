@@ -20,8 +20,7 @@ import 'package:provider/provider.dart';
 class ColumnMappingScreen extends StatefulWidget {
   final VoidCallback onConfirm;
 
-  const ColumnMappingScreen({Key? key, required this.onConfirm})
-      : super(key: key);
+  const ColumnMappingScreen({super.key, required this.onConfirm});
 
   @override
   State<ColumnMappingScreen> createState() => _MappingScreenState();

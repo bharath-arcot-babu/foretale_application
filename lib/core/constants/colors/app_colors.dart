@@ -2,10 +2,11 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color primaryColor = Color(0xFFEE4266);
-  static const Color secondaryColor = Color(0xFF1E212B);
-  static const Color backgroundColor = Color(0xFFFFFFFF);
-  static const Color accentColor = Color(0xFF03DAC6);
+static const Color primaryColor = Color(0xFFEE4266);      // Dark blue-black as primary
+static const Color secondaryColor = Color(0xFF353845);    // Lighter version of primary
+static const Color backgroundColor = Color(0xFFF5F5F7);   // Light gray background
+static const Color accentColor =  Color(0xFF1E212B);       // Your vibrant pink-red as accent
+static const Color surfaceColor = Color(0xFFFFFFFF);      // White for cards/surfaces
 }
 
 class AppBarColors {
@@ -31,7 +32,7 @@ class TextColors {
   static const Color titleColor = Color(0xFFEE4266);
   static const Color logoColor = Color(0xFFEE4266);
   static const Color primaryTextColor = Color(0xFF1E212B);
-  static const Color secondaryTextColor = Color(0xFF6B818C);
+  static const Color secondaryTextColor = Colors.white;
   static const Color tertiaryTextColor = Color(0xFF6B818C);
   static const Color hintTextColor = Color(0xFF6B818C);
   static const Color linkTextColor = Color(0xFFEE4266);

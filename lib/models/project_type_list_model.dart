@@ -1,10 +1,8 @@
 //core
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 //utils
 import 'package:foretale_application/core/services/handling_crud.dart';
 //models
-import 'package:foretale_application/models/project_details_model.dart';
 
 
 
