@@ -43,7 +43,6 @@ class ProjectSettings {
   }
 }
 
-
 class ProjectSettingsModel with ChangeNotifier {
   final CRUD _crudService = CRUD();
   ProjectSettings projectSettings = ProjectSettings();
@@ -60,13 +59,15 @@ class ProjectSettingsModel with ChangeNotifier {
 
   // Function to handle form submission
   Future<int> saveProjectSettings(BuildContext context) async {
-    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
-    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+    var userDetailsModel =
+        Provider.of<UserDetailsModel>(context, listen: false);
+    var projectDetailsModel =
+        Provider.of<ProjectDetailsModel>(context, listen: false);
 
     Map<String, dynamic> params = {
       "project_id": projectDetailsModel.getActiveProjectId,
       "host_name": getSqlHost,
-      "port": getSqlPort,
+      "port_name": getSqlPort,
       "database_name": getSqlDatabase,
       "username": getSqlUsername,
       "password_hash": getSqlPassword,
@@ -83,16 +84,18 @@ class ProjectSettingsModel with ChangeNotifier {
       params,
     );
 
-    return insertedId; 
+    return insertedId;
   }
 
   Future<void> fetchProjectSettingsByUserMachineId(BuildContext context) async {
-    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
-    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+    var userDetailsModel =
+        Provider.of<UserDetailsModel>(context, listen: false);
+    var projectDetailsModel =
+        Provider.of<ProjectDetailsModel>(context, listen: false);
 
     var params = {
-        'project_id' : projectDetailsModel.getActiveProjectId,
-        'user_machine_id' : userDetailsModel.getUserMachineId
+      'project_id': projectDetailsModel.getActiveProjectId,
+      'user_machine_id': userDetailsModel.getUserMachineId
     };
 
     projectSettingsList = await _crudService.getRecords<ProjectSettings>(
@@ -102,7 +105,7 @@ class ProjectSettingsModel with ChangeNotifier {
       (json) => ProjectSettings.fromJson(json),
     );
 
-    projectSettings = projectSettingsList.firstOrNull??ProjectSettings();
+    projectSettings = projectSettingsList.firstOrNull ?? ProjectSettings();
     notifyListeners();
   }
 }

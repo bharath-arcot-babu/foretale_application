@@ -19,10 +19,12 @@ class QuestionsScreen extends StatefulWidget {
   State<QuestionsScreen> createState() => _QuestionsScreenState();
 }
 
-class _QuestionsScreenState extends State<QuestionsScreen> with SingleTickerProviderStateMixin {
+class _QuestionsScreenState extends State<QuestionsScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _industryTextController = TextEditingController();
-  final TextEditingController _projectTypeTextController = TextEditingController();
+  final TextEditingController _projectTypeTextController =
+      TextEditingController();
   final TextEditingController _questionTextController = TextEditingController();
   String? _selectedTopic;
   late AnimationController _animationController;
@@ -32,21 +34,22 @@ class _QuestionsScreenState extends State<QuestionsScreen> with SingleTickerProv
   @override
   void initState() {
     super.initState();
-    
+
     // Setup animations
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    
+
     _fadeAnimation = CurvedAnimation(
       parent: _animationController,
       curve: Curves.easeInOut,
     );
-    
+
     _animationController.forward();
-    
-    WidgetsBinding.instance.addPostFrameCallback((_) async => await _loadPage());
+
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) async => await _loadPage());
   }
 
   @override
@@ -61,7 +64,8 @@ class _QuestionsScreenState extends State<QuestionsScreen> with SingleTickerProv
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+    final projectDetailsModel =
+        Provider.of<ProjectDetailsModel>(context, listen: false);
 
     _industryTextController.text = projectDetailsModel.getIndustry;
     _projectTypeTextController.text = projectDetailsModel.getProjectType;
@@ -72,24 +76,24 @@ class _QuestionsScreenState extends State<QuestionsScreen> with SingleTickerProv
         key: _formKey,
         child: Padding(
           padding: const EdgeInsets.all(24.0),
-          child: _isLoading 
-            ? const Center(child: CircularProgressIndicator())
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Project Info Card
-                  _buildProjectInfoCard(theme),
-                  const SizedBox(height: 24),
-                  // New Question Card
-                  _buildNewQuestionCard(theme),
-                  const SizedBox(height: 32),
-                  // Questions Grid Header
-                  _buildSectionHeader(theme, "Project Questions"),
-                  const SizedBox(height: 16),
-                  // Questions Grid
-                  const QuestionsDataGrid(),
-                ],
-              ),
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Project Info Card
+                    _buildProjectInfoCard(theme),
+                    const SizedBox(height: 24),
+                    // New Question Card
+                    _buildNewQuestionCard(theme),
+                    const SizedBox(height: 32),
+                    // Questions Grid Header
+                    _buildSectionHeader(theme, "Project Questions"),
+                    const SizedBox(height: 16),
+                    // Questions Grid
+                    const QuestionsDataGrid(),
+                  ],
+                ),
         ),
       ),
     );
@@ -100,7 +104,8 @@ class _QuestionsScreenState extends State<QuestionsScreen> with SingleTickerProv
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: theme.colorScheme.surfaceVariant, width: 1),
+        side: BorderSide(
+            color: theme.colorScheme.surfaceContainerHighest, width: 1),
       ),
       color: theme.colorScheme.surface,
       child: Padding(
@@ -286,7 +291,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> with SingleTickerProv
       try {
         // Show loading indicator
         setState(() => _isLoading = true);
-        
+
         int resultId = await questionModel.addNewQuestionByProjectId(
           context,
           _questionTextController.text.trim(),
@@ -309,7 +314,8 @@ class _QuestionsScreenState extends State<QuestionsScreen> with SingleTickerProv
         SnackbarMessage.showErrorMessage(context, e.toString());
       }
     } else {
-      SnackbarMessage.showErrorMessage(context, 'Please fill in all required fields correctly.');
+      SnackbarMessage.showErrorMessage(
+          context, 'Please fill in all required fields correctly.');
     }
   }
 
@@ -319,12 +325,13 @@ class _QuestionsScreenState extends State<QuestionsScreen> with SingleTickerProv
       return lkpList.map((obj) => obj.name).toList();
     } catch (e) {
       SnackbarMessage.showErrorMessage(context, 'Failed to load topics: $e');
-      return [];  // Return empty list to handle no topics available scenario.
+      return []; // Return empty list to handle no topics available scenario.
     }
   }
 
   Future<void> _fetchQuestions(BuildContext context) async {
-    await Provider.of<QuestionsModel>(context, listen: false).fetchQuestionsByProject(context);
+    await Provider.of<QuestionsModel>(context, listen: false)
+        .fetchQuestionsByProject(context);
   }
 
   Future<void> _loadPage() async {

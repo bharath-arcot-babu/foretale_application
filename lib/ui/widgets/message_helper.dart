@@ -6,11 +6,11 @@ import 'package:foretale_application/core/services/database_connect.dart';
 //models
 import 'package:foretale_application/models/user_details_model.dart';
 
-
 class SnackbarMessage {
   /// Displays a success message in a SnackBar with bottom-middle positioning and animation.
   static void showSuccessMessage(BuildContext context, String message) {
-    _showSnackBar(context, message, const Color.fromARGB(255, 30, 144, 33), SnackBarBehavior.floating);
+    _showSnackBar(context, message, const Color.fromARGB(255, 30, 144, 33),
+        SnackBarBehavior.floating);
   }
 
   /// Displays an error message in a SnackBar with bottom-middle positioning and animation.
@@ -23,18 +23,19 @@ class SnackbarMessage {
       String severityLevel = "",
       String requestPath = ""}) async {
     try {
+      print("message: $message");
       String errMessage = SnackbarMessage.extractErrorMessage(message);
 
       if (errMessage != 'NOT_FOUND') {
-
-        _showSnackBar(context, errMessage, const Color.fromARGB(255, 167, 34, 25), SnackBarBehavior.floating);
-
+        _showSnackBar(context, errMessage,
+            const Color.fromARGB(255, 167, 34, 25), SnackBarBehavior.floating);
       } else {
-
-        _showSnackBar(context, 'Something went wrong!', const Color.fromARGB(255, 167, 34, 25), SnackBarBehavior.floating);
+        _showSnackBar(context, 'Something went wrong!',
+            const Color.fromARGB(255, 167, 34, 25), SnackBarBehavior.floating);
 
         if (logError) {
-          var userDetailsModel =  Provider.of<UserDetailsModel>(context, listen: false);
+          var userDetailsModel =
+              Provider.of<UserDetailsModel>(context, listen: false);
 
           Map<String, dynamic> params = {
             "error_message": errorMessage,
@@ -56,14 +57,15 @@ class SnackbarMessage {
 
   // Function to extract the message between <ERR_START> and <ERR_END>
   static String extractErrorMessage(String errorMessage) {
-
+    print("errorMessage: $errorMessage");
     int startIndex = errorMessage.indexOf('<ERR_START>');
     int endIndex = errorMessage.indexOf('<ERR_END>');
 
+    print("startIndex: $startIndex");
+    print("endIndex: $endIndex");
+
     if (startIndex != -1 && endIndex != -1) {
-
       return errorMessage.substring(startIndex + 11, endIndex).trim();
-
     }
     return 'NOT_FOUND';
   }

@@ -10,59 +10,59 @@ class CustomTextField extends StatelessWidget {
   final String? Function(String?)? validator; // Add validator function
   final bool isEnabled;
   final Function(String)? onChanged;
-  
 
-  const CustomTextField({
-    super.key,
-    required this.controller,
-    required this.label,
-    this.obscureText = false,
-    this.maxLines = 1,
-    this.validator, // Add the validator parameter
-    required this.isEnabled,
-    this.onChanged
-  });
+  const CustomTextField(
+      {super.key,
+      required this.controller,
+      required this.label,
+      this.obscureText = false,
+      this.maxLines = 1,
+      this.validator, // Add the validator parameter
+      required this.isEnabled,
+      this.onChanged});
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      enabled: isEnabled,
-      controller: controller,
-      obscureText: obscureText,
-      maxLines: maxLines,
-      style: TextStyles.inputMainTextStyle(context),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyles.inputMainTextStyle(context),
-        filled: true,
-        fillColor: Colors.transparent, // Light background for the text field
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8), // Rounded corners
-          borderSide: const BorderSide(
-            color: FillColors.tertiaryColor, // Border color
-            width: 1.2, // Border width
+        enabled: isEnabled,
+        controller: controller,
+        obscureText: obscureText,
+        maxLines: maxLines,
+        style: TextStyles.inputMainTextStyle(context),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: TextStyles.inputMainTextStyle(context),
+          filled: true,
+          fillColor: Colors.transparent, // Light background for the text field
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8), // Rounded corners
+            borderSide: const BorderSide(
+              color: FillColors.tertiaryColor, // Border color
+              width: 1.2, // Border width
+            ),
           ),
-        ),
-        focusedBorder: OutlineInputBorder(
+          focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
             borderSide: const BorderSide(
-              color: BorderColors.secondaryColor, // Highlight color when focused
+              color:
+                  BorderColors.secondaryColor, // Highlight color when focused
               width: 1.5,
             ),
           ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(
-            color: BorderColors.secondaryColor, // Border color when not focused
-            width: 1.2,
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(
+              color:
+                  BorderColors.secondaryColor, // Border color when not focused
+              width: 0.8,
+            ),
           ),
+          contentPadding: const EdgeInsets.symmetric(
+              vertical: 10, horizontal: 12), // Reduced padding
+          hintText: '', // Dynamic hint text
+          hintStyle: TextStyles.inputHintTextStyle(context),
         ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12), // Reduced padding
-        hintText: '', // Dynamic hint text
-        hintStyle: TextStyles.inputHintTextStyle(context),
-      ),
-      validator: validator, // Assign the validator function
-      onChanged: onChanged 
-    );
+        validator: validator, // Assign the validator function
+        onChanged: onChanged);
   }
 }

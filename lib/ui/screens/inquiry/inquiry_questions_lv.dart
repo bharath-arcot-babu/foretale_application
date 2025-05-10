@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:foretale_application/core/constants/colors/app_colors.dart';
 import 'package:foretale_application/ui/screens/create_project/project_questions.dart';
 import 'package:foretale_application/ui/widgets/animation/custom_animator.dart';
+import 'package:foretale_application/ui/widgets/animation/animated_switcher.dart';
+import 'package:foretale_application/ui/widgets/custom_container.dart';
 import 'package:foretale_application/ui/widgets/custom_icon_button.dart';
 import 'package:foretale_application/ui/widgets/custom_text_field.dart';
 import 'package:provider/provider.dart';
@@ -27,7 +30,9 @@ class _QuestionsInquiryLvState extends State<QuestionsInquiryLv> {
 
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
-  final String _searchQuery = '';
+  String _searchQuery = '';
+  // Track loading state for each button using a map
+  final Map<String, bool> _loadingStates = {};
 
   @override
   void initState() {
@@ -44,193 +49,27 @@ class _QuestionsInquiryLvState extends State<QuestionsInquiryLv> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Consumer<InquiryQuestionModel>(
       builder: (context, model, child) {
-        final allQuestions = model.getFilteredQuestionsList;
-        final questions = allQuestions
-            .where((q) => q.questionText.toLowerCase().contains(_searchQuery))
-            .toList();
-
-        if (questions.isEmpty) return _buildEmptyState();
-
-        final openCount = allQuestions
-            .where((q) => q.questionStatus.toLowerCase() == 'open')
-            .length;
-        final closeCount = allQuestions
-            .where((q) => q.questionStatus.toLowerCase() == 'close')
-            .length;
-        final deferCount = allQuestions
-            .where((q) => q.questionStatus.toLowerCase() == 'defer')
-            .length;
+        final questions = model.getFilteredQuestionsList;
 
         return Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildStatusMetric(context, "Open", openCount, Colors.green),
-                  _buildStatusMetric(context, "Close", closeCount, Colors.red),
-                  _buildStatusMetric(
-                      context, "Defer", deferCount, Colors.orange),
-                ],
-              ),
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: CustomTextField(
-                      controller: _searchController,
-                      label: "Search...",
-                      isEnabled: true,
-                      onChanged: (value) {
-                        model.filterData(value.trim());
-                      },
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: CustomIconButton(
-                    icon: Icons.add,
-                    iconSize: 15,
-                    onPressed: () async {
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          content: Container(
-                                  width: MediaQuery.of(context).size.width * 0.6,
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: QuestionsScreen(isNew: true),),
-                          actionsAlignment: MainAxisAlignment.end,
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: Text(
-                                "Close",
-                                style: TextStyles.footerLinkTextSmall(context),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
+            _buildStatusMetrics(model),
+            _buildSearchAndAddBar(model),
             Expanded(
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.all(16),
-                itemCount: questions.length,
-                itemBuilder: (context, index) {
-                  final question = questions[index];
-                  final isSelected =
-                      question.questionId == model.getSelectedInquiryQuestionId;
-
-                  return FadeAnimator(
-                    child: Material(
-                      color:
-                          isSelected ? Colors.blue.shade50 : Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        onTap: () {
-                          model.updateQuestionIdSelection(question
-                              .questionId); // Only select, don't load responses
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 14),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      question.questionText,
-                                      style: TextStyles.titleText(context),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  _iconText(Icons.work_outline_rounded,
-                                      question.topic,
-                                      maxLines: 2),
-                                  const Spacer(),
-                                  _iconText(Icons.calendar_today_outlined,
-                                      question.createdDate,
-                                      iconSize: 12),
-                                ],
-                              ),
-                              if (isSelected) ...[
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 10),
-                                  child: Divider(height: 1, thickness: 1),
-                                ),
-                                Row(
-                                  children: [
-                                    _buildStatusIconButton(
-                                      context,
-                                      icon: Icons.lock_open_rounded,
-                                      tooltip: "Mark as Open",
-                                      color: Colors.green,
-                                      statusValue: 'Open',
-                                      question: question,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    _buildStatusIconButton(
-                                      context,
-                                      icon: Icons.check_circle_outline_rounded,
-                                      tooltip: "Mark as Close",
-                                      color: Colors.red,
-                                      statusValue: 'Close',
-                                      question: question,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    _buildStatusIconButton(
-                                      context,
-                                      icon: Icons.access_time_rounded,
-                                      tooltip: "Mark as Defer",
-                                      color: Colors.orange,
-                                      statusValue: 'Defer',
-                                      question: question,
-                                    ),
-                                    const Spacer(),
-                                    _buildIconButton(
-                                      Icons.question_answer_outlined,
-                                      theme.colorScheme.primary,
-                                      "View conversation",
-                                      model,
-                                      question.questionId,
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
+              child: questions.isEmpty
+                  ? _buildEmptyState()
+                  : CustomAnimatedSwitcher(
+                      child: ListView.builder(
+                        key: ValueKey<String>(_searchQuery),
+                        controller: _scrollController,
+                        padding: const EdgeInsets.all(16),
+                        itemCount: questions.length,
+                        itemBuilder: (context, index) => _buildQuestionCard(
+                            context, model, questions[index]),
                       ),
                     ),
-                  );
-                },
-              ),
             ),
           ],
         );
@@ -238,22 +77,197 @@ class _QuestionsInquiryLvState extends State<QuestionsInquiryLv> {
     );
   }
 
-  Widget _iconText(IconData icon, String text,
-      {double iconSize = 14, int? maxLines}) {
+  Widget _buildStatusMetrics(InquiryQuestionModel model) {
+    final allQuestions = model.getFilteredQuestionsList;
+    final openCount = allQuestions
+        .where((q) => q.questionStatus.toLowerCase() == 'open')
+        .length;
+    final closeCount = allQuestions
+        .where((q) => q.questionStatus.toLowerCase() == 'close')
+        .length;
+    final deferCount = allQuestions
+        .where((q) => q.questionStatus.toLowerCase() == 'defer')
+        .length;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildStatusMetric(context, "Open", openCount, Colors.green),
+          _buildStatusMetric(context, "Closed", closeCount, Colors.red),
+          _buildStatusMetric(context, "Deferred", deferCount, Colors.orange),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: CustomIconButton(
+              icon: Icons.add,
+              tooltip: "Create a new question",
+              iconSize: 15,
+              onPressed: () => _showAddQuestionDialog(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchAndAddBar(InquiryQuestionModel model) {
+    return Row(
+      children: [
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: CustomTextField(
+              controller: _searchController,
+              label: "Search...",
+              isEnabled: true,
+              onChanged: (value) {
+                setState(() => _searchQuery = value.trim());
+                model.filterData(_searchQuery);
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuestionCard(
+      BuildContext context, InquiryQuestionModel model, dynamic question) {
+    final isSelected =
+        question.questionId == model.getSelectedInquiryQuestionId;
+
+    return Hero(
+      tag: 'question-${question.questionId}',
+      child: Material(
+        type: MaterialType.transparency,
+        child: FadeAnimator(
+          child: ModernContainer(
+            margin: const EdgeInsets.only(bottom: 12),
+            backgroundColor: isSelected ? Colors.blue.shade50 : Colors.white,
+            borderRadius: 12,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () async {
+                model.updateQuestionIdSelection(question.questionId);
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            question.questionText,
+                            style: TextStyles.titleText(context),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        _buildInfoChip(
+                            Icons.work_outline_rounded, question.topic),
+                        const Spacer(),
+                        _buildInfoChip(
+                            Icons.calendar_today_outlined, question.createdDate,
+                            iconSize: 12),
+                      ],
+                    ),
+                    if (isSelected) ...[
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        child: Divider(height: 1, thickness: 1),
+                      ),
+                      _buildActionButtons(context, model, question),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(
+      BuildContext context, InquiryQuestionModel model, dynamic question) {
+    return Row(
+      children: [
+        _buildStatusIconButton(
+          context,
+          icon: Icons.lock_open_rounded,
+          tooltip: "Mark as Open",
+          color: Colors.green,
+          statusValue: 'Open',
+          question: question,
+        ),
+        const SizedBox(width: 8),
+        _buildStatusIconButton(
+          context,
+          icon: Icons.check_circle_outline_rounded,
+          tooltip: "Mark as Close",
+          color: Colors.red,
+          statusValue: 'Close',
+          question: question,
+        ),
+        const SizedBox(width: 8),
+        _buildStatusIconButton(
+          context,
+          icon: Icons.access_time_rounded,
+          tooltip: "Mark as Defer",
+          color: Colors.orange,
+          statusValue: 'Defer',
+          question: question,
+        ),
+        const Spacer(),
+        _buildIconButton(
+          Icons.question_answer_outlined,
+          Theme.of(context).colorScheme.primary,
+          "View conversation",
+          model,
+          question.questionId,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoChip(IconData icon, String text, {double iconSize = 14}) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, size: iconSize, color: Colors.grey),
         const SizedBox(width: 4),
-        Flexible(
-          child: Text(
-            text,
-            style: TextStyles.smallSupplementalInfo(context),
-            overflow: TextOverflow.ellipsis,
-            maxLines: maxLines,
-          ),
+        Text(
+          text,
+          style: TextStyles.gridText(context).copyWith(color: Colors.grey[600]),
         ),
       ],
+    );
+  }
+
+  Widget _buildStatusMetric(
+      BuildContext context, String label, int count, Color color) {
+    return ModernContainer(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.circle, size: 12, color: color),
+          const SizedBox(width: 8),
+          Text(
+            "$label: $count",
+            style: TextStyles.gridText(context).copyWith(color: color),
+          ),
+        ],
+      ),
     );
   }
 
@@ -288,9 +302,7 @@ class _QuestionsInquiryLvState extends State<QuestionsInquiryLv> {
             const SizedBox(height: 20),
             Text(
               "No Questions Yet",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+              style: TextStyles.subjectText(context).copyWith(
                 color: Colors.grey.shade800,
                 letterSpacing: -0.3,
               ),
@@ -315,8 +327,9 @@ class _QuestionsInquiryLvState extends State<QuestionsInquiryLv> {
           icon: icon,
           iconSize: 15,
           onPressed: () async {
-            await inquiryResponseModel
-                .fetchResponsesByQuestion(context); // only here
+            await inquiryResponseModel.setIsPageLoading(true);
+            await inquiryResponseModel.fetchResponsesByQuestion(context);
+            await inquiryResponseModel.setIsPageLoading(false);
           },
         ),
       ),
@@ -333,20 +346,37 @@ class _QuestionsInquiryLvState extends State<QuestionsInquiryLv> {
   }) {
     final isSelected =
         question.questionStatus.toLowerCase() == statusValue.toLowerCase();
+    // Create a unique key for this button's loading state
+    final loadingKey = '${question.questionId}_$statusValue';
+    final isLoading = _loadingStates[loadingKey] ?? false;
 
     return Tooltip(
       message: tooltip,
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
-        onTap: () async {
-          try {
-            int resultId = await inquiryQuestionModel.updateQuestionStatus(
-                context, question, statusValue);
-            if (resultId > 0) setState(() {});
-          } catch (e) {
-            SnackbarMessage.showErrorMessage(context, e.toString());
-          }
-        },
+        onTap: isLoading
+            ? null
+            : () async {
+                try {
+                  setState(() {
+                    _loadingStates[loadingKey] = true;
+                  });
+
+                  int resultId = await inquiryQuestionModel
+                      .updateQuestionStatus(context, question, statusValue);
+
+                  if (resultId > 0) {
+                    setState(() {
+                      _loadingStates[loadingKey] = false;
+                    });
+                  }
+                } catch (e) {
+                  setState(() {
+                    _loadingStates[loadingKey] = false;
+                  });
+                  SnackbarMessage.showErrorMessage(context, e.toString());
+                }
+              },
         child: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
@@ -354,34 +384,41 @@ class _QuestionsInquiryLvState extends State<QuestionsInquiryLv> {
             border: isSelected ? Border.all(color: color, width: 2) : null,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, size: 20, color: color),
+          child: isLoading
+              ? SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(color),
+                  ),
+                )
+              : Icon(icon, size: 20, color: color),
         ),
       ),
     );
   }
 
-  Widget _buildStatusMetric(
-      BuildContext context, String label, int count, Color color) {
-    return Column(
-      children: [
-        Text(
-          "$count",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
+  void _showAddQuestionDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: Container(
+          width: MediaQuery.of(context).size.width * 0.6,
+          padding: const EdgeInsets.all(16.0),
+          child: const QuestionsScreen(isNew: true),
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey.shade700,
-            fontWeight: FontWeight.w500,
+        actionsAlignment: MainAxisAlignment.end,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              "Close",
+              style: TextStyles.footerLinkTextSmall(context),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

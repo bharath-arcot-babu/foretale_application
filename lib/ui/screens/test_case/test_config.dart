@@ -2,7 +2,8 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
-import 'package:foretale_application/ui/screens/inquiry/inquiry_chat_screen.dart';
+import 'package:foretale_application/models/inquiry_response_model.dart';
+import 'package:foretale_application/ui/widgets/chat/chat_screen.dart';
 import 'package:foretale_application/ui/widgets/custom_loading_indicator.dart';
 import 'package:provider/provider.dart';
 //model
@@ -26,20 +27,26 @@ class TestConfigPage extends StatefulWidget {
 
 class _TestConfigPageState extends State<TestConfigPage> {
   final String _currentFileName = "test_config.dart";
+  bool isPageLoading = false;
+  String loadText = 'Loading...';
+
   final TextEditingController _searchController = TextEditingController();
   FilePickerResult? filePickerResult;
+
   late TestsModel testsModel;
   late UserDetailsModel userDetailsModel;
   late ProjectDetailsModel projectDetailsModel;
-  bool isPageLoading = false;
-  String loadText = 'Loading...';
+  late InquiryResponseModel inquiryResponseModel;
 
   @override
   void initState() {
     super.initState();
     testsModel = Provider.of<TestsModel>(context, listen: false);
     userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
-    projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+    projectDetailsModel =
+        Provider.of<ProjectDetailsModel>(context, listen: false);
+    inquiryResponseModel =
+        Provider.of<InquiryResponseModel>(context, listen: false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       setState(() {
@@ -98,21 +105,30 @@ class _TestConfigPageState extends State<TestConfigPage> {
                   flex: 4,
                   child: CustomContainer(
                     title: "Details / Configuration",
-                    child: InquiryChatScreen(callingFrom: 'test_config'),
-                )),
+                    child: Selector<TestsModel, int>(
+                      selector: (context, model) => model.getSelectedTestId,
+                      builder: (context, selectedTestId, __) {
+                        return ChatScreen(
+                          drivingModel: testsModel,
+                          isChatEnabled: selectedTestId > 0,
+                        );
+                      },
+                    ),
+                  ),
+                ),
               ],
             ),
           );
-  }
-
-  Future<void> addResponse() async{
-
   }
 
   Future<void> _loadPage() async {
     try {
       //callMistral("what is your context length?");
       await testsModel.fetchTestsByProject(context);
+
+      if (testsModel.getSelectedTestId > 0) {
+        await _loadResponses();
+      }
     } catch (e, error_stack_trace) {
       SnackbarMessage.showErrorMessage(context, e.toString(),
           logError: true,
@@ -122,5 +138,9 @@ class _TestConfigPageState extends State<TestConfigPage> {
           severityLevel: 'Critical',
           requestPath: "_loadPage");
     }
+  }
+
+  Future<void> _loadResponses() async {
+    await inquiryResponseModel.fetchResponsesByQuestion(context);
   }
 }

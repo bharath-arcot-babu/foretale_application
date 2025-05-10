@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:foretale_application/core/utils/util_date.dart';
 import 'package:foretale_application/models/question_model.dart';
 import 'package:foretale_application/ui/themes/datagrid_theme.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
@@ -10,7 +9,7 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class QuestionsDataGrid extends StatelessWidget {
   const QuestionsDataGrid({super.key});
- 
+
   @override
   Widget build(BuildContext context) {
     return SfDataGridTheme(
@@ -22,7 +21,8 @@ class QuestionsDataGrid extends StatelessWidget {
             allowSorting: true,
             allowFiltering: true,
             isScrollbarAlwaysShown: true,
-            columnWidthMode: ColumnWidthMode.fill, // Expands columns to fill the grid width
+            columnWidthMode:
+                ColumnWidthMode.fill, // Expands columns to fill the grid width
             selectionMode: SelectionMode.single,
             source: QuestionsDataSource(context, model, model.getQuestionsList),
             columns: <GridColumn>[
@@ -34,62 +34,77 @@ class QuestionsDataGrid extends StatelessWidget {
                 label: Container(
                   padding: const EdgeInsets.all(4.0),
                   alignment: Alignment.center,
-                  child: Text('', style: TextStyles.gridHeaderText(context),),
+                  child: Text(
+                    '',
+                    style: TextStyles.gridHeaderText(context),
                   ),
+                ),
               ),
               GridColumn(
                 filterPopupMenuOptions: const FilterPopupMenuOptions(
-                  filterMode: FilterMode.checkboxFilter,
-                  showColumnName: false, 
-                  canShowSortingOptions: false),
+                    filterMode: FilterMode.checkboxFilter,
+                    showColumnName: false,
+                    canShowSortingOptions: false),
                 width: MediaQuery.of(context).size.width * 0.25,
                 columnName: 'questionText',
                 label: Container(
                   padding: const EdgeInsets.all(2.0),
                   alignment: Alignment.center,
-                  child: Text('Question', style: TextStyles.gridHeaderText(context),),
+                  child: Text(
+                    'Question',
+                    style: TextStyles.gridHeaderText(context),
+                  ),
                 ),
               ),
               GridColumn(
                 filterPopupMenuOptions: const FilterPopupMenuOptions(
-                  filterMode: FilterMode.checkboxFilter,
-                  showColumnName: false, 
-                  canShowSortingOptions: false),
+                    filterMode: FilterMode.checkboxFilter,
+                    showColumnName: false,
+                    canShowSortingOptions: false),
                 columnWidthMode: ColumnWidthMode.auto,
                 visible: false,
                 columnName: 'industry',
                 label: Container(
                   padding: const EdgeInsets.all(2.0),
                   alignment: Alignment.center,
-                  child: Text('Industry', style: TextStyles.gridHeaderText(context),),
+                  child: Text(
+                    'Industry',
+                    style: TextStyles.gridHeaderText(context),
+                  ),
                 ),
               ),
               GridColumn(
                 filterPopupMenuOptions: const FilterPopupMenuOptions(
-                  filterMode: FilterMode.checkboxFilter,
-                  showColumnName: false, 
-                  canShowSortingOptions: false),
+                    filterMode: FilterMode.checkboxFilter,
+                    showColumnName: false,
+                    canShowSortingOptions: false),
                 columnWidthMode: ColumnWidthMode.auto,
                 visible: false,
                 columnName: 'projectType',
                 label: Container(
                   padding: const EdgeInsets.all(2.0),
                   alignment: Alignment.center,
-                  child: Text('Project Type', style: TextStyles.gridHeaderText(context),),
+                  child: Text(
+                    'Project Type',
+                    style: TextStyles.gridHeaderText(context),
+                  ),
                 ),
               ),
               GridColumn(
                 filterPopupMenuOptions: const FilterPopupMenuOptions(
-                  filterMode: FilterMode.checkboxFilter,
-                  showColumnName: false, 
-                  canShowSortingOptions: false),
+                    filterMode: FilterMode.checkboxFilter,
+                    showColumnName: false,
+                    canShowSortingOptions: false),
                 columnWidthMode: ColumnWidthMode.fitByCellValue,
                 visible: true,
                 columnName: 'topic',
                 label: Container(
                   padding: const EdgeInsets.all(2.0),
                   alignment: Alignment.center,
-                  child: Text('Topic', style: TextStyles.gridHeaderText(context),),
+                  child: Text(
+                    'Topic',
+                    style: TextStyles.gridHeaderText(context),
+                  ),
                 ),
               ),
               GridColumn(
@@ -98,32 +113,41 @@ class QuestionsDataGrid extends StatelessWidget {
                 label: Container(
                   padding: const EdgeInsets.all(2.0),
                   alignment: Alignment.center,
-                  child: Text('Created Date', style: TextStyles.gridHeaderText(context),),
+                  child: Text(
+                    'Created Date',
+                    style: TextStyles.gridHeaderText(context),
+                  ),
                 ),
               ),
               GridColumn(
                 filterPopupMenuOptions: const FilterPopupMenuOptions(
-                  filterMode: FilterMode.checkboxFilter,
-                  showColumnName: false, 
-                  canShowSortingOptions: false),
+                    filterMode: FilterMode.checkboxFilter,
+                    showColumnName: false,
+                    canShowSortingOptions: false),
                 columnName: 'createdBy',
                 label: Container(
                   padding: const EdgeInsets.all(2.0),
                   alignment: Alignment.center,
-                  child: Text('Created By', style: TextStyles.gridHeaderText(context),),
+                  child: Text(
+                    'Created By',
+                    style: TextStyles.gridHeaderText(context),
+                  ),
                 ),
               ),
               GridColumn(
                 filterPopupMenuOptions: const FilterPopupMenuOptions(
-                  filterMode: FilterMode.checkboxFilter,
-                  showColumnName: false, 
-                  canShowSortingOptions: false),
+                    filterMode: FilterMode.checkboxFilter,
+                    showColumnName: false,
+                    canShowSortingOptions: false),
                 visible: false,
                 columnName: 'questionId',
                 label: Container(
                   padding: const EdgeInsets.all(4.0),
                   alignment: Alignment.center,
-                  child: Text('question_id', style: TextStyles.gridHeaderText(context),),
+                  child: Text(
+                    'question_id',
+                    style: TextStyles.gridHeaderText(context),
+                  ),
                 ),
               ),
             ],
@@ -140,10 +164,7 @@ class QuestionsDataSource extends DataGridSource {
   List<Question> questionsList;
   QuestionsModel questionsModel;
 
-  QuestionsDataSource(
-    this.context,
-    this.questionsModel, 
-    this.questionsList) {
+  QuestionsDataSource(this.context, this.questionsModel, this.questionsList) {
     buildDataGridRows();
   }
 
@@ -151,36 +172,43 @@ class QuestionsDataSource extends DataGridSource {
   void buildDataGridRows() {
     dataGridRows = questionsList.map<DataGridRow>((row) {
       return DataGridRow(cells: [
-        
-        if(row.isSelected)
-        DataGridCell<Widget>(columnName: 'isSelected', value: IconButton(
-          icon: const Icon(Icons.check_box, color: Colors.red),
-          onPressed: () async {
-            try{
-              int resultId = await questionsModel.removeQuestion(context, row);
-              if(resultId>0){
-                buildDataGridRows();
-                notifyListeners();
-              }
-            }catch(e){
-              SnackbarMessage.showErrorMessage(context, e.toString());
-            }
-          })),
-        if(!row.isSelected)
-        DataGridCell<Widget>(columnName: 'isSelected', value: IconButton(
-        icon: const Icon(Icons.check_box_outline_blank, color: Colors.red),
-        onPressed: () async {
-          try{
-              int resultId = await questionsModel.selectQuestion(context, row);
-              if(resultId>0){
-                buildDataGridRows();
-                notifyListeners();
-              }
-            }catch(e){
-              SnackbarMessage.showErrorMessage(context, e.toString());
-            }
-        })),
-        DataGridCell<String>(columnName: 'questionText', value: row.questionText),
+        if (row.isSelected)
+          DataGridCell<Widget>(
+              columnName: 'isSelected',
+              value: IconButton(
+                  icon: const Icon(Icons.check_box, color: Colors.red),
+                  onPressed: () async {
+                    try {
+                      int resultId =
+                          await questionsModel.removeQuestion(context, row);
+                      if (resultId > 0) {
+                        buildDataGridRows();
+                        notifyListeners();
+                      }
+                    } catch (e) {
+                      SnackbarMessage.showErrorMessage(context, e.toString());
+                    }
+                  })),
+        if (!row.isSelected)
+          DataGridCell<Widget>(
+              columnName: 'isSelected',
+              value: IconButton(
+                  icon: const Icon(Icons.check_box_outline_blank,
+                      color: Colors.red),
+                  onPressed: () async {
+                    try {
+                      int resultId =
+                          await questionsModel.selectQuestion(context, row);
+                      if (resultId > 0) {
+                        buildDataGridRows();
+                        notifyListeners();
+                      }
+                    } catch (e) {
+                      SnackbarMessage.showErrorMessage(context, e.toString());
+                    }
+                  })),
+        DataGridCell<String>(
+            columnName: 'questionText', value: row.questionText),
         DataGridCell<String>(columnName: 'industry', value: row.industry),
         DataGridCell<String>(columnName: 'projectType', value: row.projectType),
         DataGridCell<String>(columnName: 'topic', value: row.topic),
@@ -194,7 +222,7 @@ class QuestionsDataSource extends DataGridSource {
   @override
   List<DataGridRow> get rows => dataGridRows;
 
- @override
+  @override
   DataGridRowAdapter buildRow(DataGridRow row) {
     return DataGridRowAdapter(
       cells: row.getCells().map<Widget>((dataGridCell) {
@@ -221,7 +249,8 @@ class QuestionsDataSource extends DataGridSource {
               child: Text(
                 dataGridCell.value.toString(),
                 maxLines: 3, // Limit the text to 3 lines
-                overflow: TextOverflow.ellipsis, // Show ellipsis if text overflows
+                overflow:
+                    TextOverflow.ellipsis, // Show ellipsis if text overflows
                 style: TextStyles.gridText(context),
               ),
             ),
@@ -240,6 +269,4 @@ class QuestionsDataSource extends DataGridSource {
       }).toList(),
     );
   }
-
 }
-

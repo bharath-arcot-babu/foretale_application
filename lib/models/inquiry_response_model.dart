@@ -14,6 +14,7 @@ class InquiryResponse {
   int responseId;
   int projectId;
   int questionId;
+  int testId;
   String responseText;
   String responseBy;
   String responseDate;
@@ -24,6 +25,7 @@ class InquiryResponse {
     this.responseId = 0,
     this.projectId = 0,
     this.questionId = 0,
+    this.testId = 0,
     this.responseText = '',
     this.responseBy = '',
     this.responseDate = '',
@@ -36,13 +38,14 @@ class InquiryResponse {
       responseId: map['response_id'] ?? 0,
       projectId: map['project_id'] ?? 0,
       questionId: map['question_id'] ?? 0,
+      testId: map['test_id'] ?? 0,
       responseText: map['response_text'] ?? '',
       responseBy: map['response_by'] ?? '',
       responseDate: map['response_date'] ?? '',
       responseByMachineId: map['response_by_machine_id'] ?? '',
-      attachments: map.containsKey('attachments') 
-          ? List<InquiryAttachment>.from(
-              (map['attachments'] as List).map((x) => InquiryAttachment.fromJson(x)))
+      attachments: map.containsKey('attachments')
+          ? List<InquiryAttachment>.from((map['attachments'] as List)
+              .map((x) => InquiryAttachment.fromJson(x)))
           : [],
     );
   }
@@ -50,13 +53,14 @@ class InquiryResponse {
   @override
   String toString() {
     return 'InquiryResponse(responseId: $responseId, '
-           'projectId: $projectId, '
-           'questionId: $questionId, '
-           'responseText: "$responseText", '
-           'responseBy: "$responseBy", '
-           'responseDate: "$responseDate", '
-           'responseByMachineId: "$responseByMachineId", '
-           'attachments: ${attachments.map((a) => a.toString()).toList()})';
+        'projectId: $projectId, '
+        'questionId: $questionId, '
+        'testId: $testId, '
+        'responseText: "$responseText", '
+        'responseBy: "$responseBy", '
+        'responseDate: "$responseDate", '
+        'responseByMachineId: "$responseByMachineId", '
+        'attachments: ${attachments.map((a) => a.toString()).toList()})';
   }
 }
 
@@ -68,19 +72,30 @@ class InquiryResponseModel with ChangeNotifier {
   int _selectedInquiryResponseId = 0;
   int get getSelectedInquiryResponseId => _selectedInquiryResponseId;
 
-  void updateResponseIdSelection(int responseId ){
+  bool _isPageLoading = false;
+  bool get getIsPageLoading => _isPageLoading;
+
+  Future<void> setIsPageLoading(bool value) async {
+    _isPageLoading = value;
+    notifyListeners();
+  }
+
+  void updateResponseIdSelection(int responseId) {
     _selectedInquiryResponseId = responseId;
     notifyListeners();
   }
 
   Future<void> fetchResponsesByQuestion(BuildContext context) async {
-    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
-    var questionModel = Provider.of<InquiryQuestionModel>(context, listen: false);
+    var projectDetailsModel =
+        Provider.of<ProjectDetailsModel>(context, listen: false);
+    var questionModel =
+        Provider.of<InquiryQuestionModel>(context, listen: false);
 
     final params = {
       'project_id': projectDetailsModel.getActiveProjectId,
-      'question_id': questionModel.getSelectedInquiryQuestionId
-      };
+      'question_id': questionModel.getSelectedInquiryQuestionId,
+      'test_id': 0,
+    };
 
     responseList = await _crudService.getJsonRecords<InquiryResponse>(
       context,
@@ -92,15 +107,20 @@ class InquiryResponseModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<int> insertResponseByQuestion(BuildContext context, String? responseText) async {
-    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
-    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
-    var questionModel = Provider.of<InquiryQuestionModel>(context, listen: false);
+  Future<int> insertResponseByQuestion(
+      BuildContext context, String? responseText) async {
+    var userDetailsModel =
+        Provider.of<UserDetailsModel>(context, listen: false);
+    var projectDetailsModel =
+        Provider.of<ProjectDetailsModel>(context, listen: false);
+    var questionModel =
+        Provider.of<InquiryQuestionModel>(context, listen: false);
 
     var params = {
       'project_id': projectDetailsModel.getActiveProjectId,
       'question_id': questionModel.getSelectedInquiryQuestionId,
-      'response_text': responseText??'',
+      'test_id': 0,
+      'response_text': responseText ?? '',
       'last_updated_by': userDetailsModel.getUserMachineId,
     };
 
@@ -110,22 +130,47 @@ class InquiryResponseModel with ChangeNotifier {
       params,
     );
 
-    if(insertedId>0){
+    if (insertedId > 0) {
       await fetchResponsesByQuestion(context);
       notifyListeners();
     }
     return insertedId;
   }
 
-  Future<int> insertResponseByTest(BuildContext context, String? responseText) async {
-    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
-    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+  Future<void> fetchResponsesByTest(BuildContext context) async {
+    var projectDetailsModel =
+        Provider.of<ProjectDetailsModel>(context, listen: false);
+    var testModel = Provider.of<TestsModel>(context, listen: false);
+
+    final params = {
+      'project_id': projectDetailsModel.getActiveProjectId,
+      'question_id': 0,
+      'test_id': testModel.getSelectedTestId
+    };
+
+    responseList = await _crudService.getJsonRecords<InquiryResponse>(
+      context,
+      'dbo.sproc_get_responses_with_attachments',
+      params,
+      (json) => InquiryResponse.fromJson(json),
+    );
+
+    notifyListeners();
+  }
+
+  Future<int> insertResponseByTest(
+      BuildContext context, String? responseText) async {
+    var userDetailsModel =
+        Provider.of<UserDetailsModel>(context, listen: false);
+    var projectDetailsModel =
+        Provider.of<ProjectDetailsModel>(context, listen: false);
     var testsModel = Provider.of<TestsModel>(context, listen: false);
 
     var params = {
       'project_id': projectDetailsModel.getActiveProjectId,
+      'question_id': 0,
       'test_id': testsModel.getSelectedTestId,
-      'response_text': responseText??'',
+      'response_text': responseText ?? '',
       'last_updated_by': userDetailsModel.getUserMachineId,
     };
 
@@ -135,29 +180,26 @@ class InquiryResponseModel with ChangeNotifier {
       params,
     );
 
-    if(insertedId>0){
-      await fetchResponsesByQuestion(context);
+    if (insertedId > 0) {
+      await fetchResponsesByTest(context);
       notifyListeners();
     }
     return insertedId;
   }
-
-  
 
   Future<int> insertAttachmentByResponse(
       BuildContext context,
       String? s3FilePath,
       String fileName,
       String fileType,
-      int fileSize
-      ) async {
-    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
-    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
-    var questionModel = Provider.of<InquiryQuestionModel>(context, listen: false);
+      int fileSize) async {
+    var userDetailsModel =
+        Provider.of<UserDetailsModel>(context, listen: false);
+    var projectDetailsModel =
+        Provider.of<ProjectDetailsModel>(context, listen: false);
 
     var params = {
       'project_id': projectDetailsModel.getActiveProjectId,
-      'question_id': questionModel.getSelectedInquiryQuestionId,
       'response_id': _selectedInquiryResponseId,
       'file_path': s3FilePath,
       'file_name': fileName,

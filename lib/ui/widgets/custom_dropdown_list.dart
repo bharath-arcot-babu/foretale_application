@@ -71,7 +71,7 @@ Widget buildCustomDropdownMappingList(
             Expanded(
               child: CustomDropdownSearch(
                 items: options,
-                labelText: 'Map to',
+                title: 'Map to',
                 hintText: 'Select field',
                 selectedItem: selectedValues[label],
                 isEnabled: isEnabled,

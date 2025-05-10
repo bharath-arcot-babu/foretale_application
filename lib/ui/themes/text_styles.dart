@@ -6,7 +6,7 @@ class TextStyles {
   static double _getFontSize(BuildContext context, double factor) {
     // Get the screen width
     double screenWidth = MediaQuery.of(context).size.width;
-    
+
     // Define the base screen width (for scaling), minimum and maximum font size
     double baseWidth = 360.0;
     double minFontSize = 9.0;
@@ -16,23 +16,25 @@ class TextStyles {
     double scalingFactor = (screenWidth - baseWidth) / (1920 - baseWidth);
 
     // Linearly interpolate between minFontSize and maxFontSize based on screen width
-    double fontSize = minFontSize + (scalingFactor * (maxFontSize - minFontSize));
+    double fontSize =
+        minFontSize + (scalingFactor * (maxFontSize - minFontSize));
 
     // Optionally, clamp the value within the min and max range to ensure it doesn't go out of bounds
-    return fontSize.clamp(minFontSize, maxFontSize);   
+    return fontSize.clamp(minFontSize, maxFontSize);
   }
 
   static TextStyle subjectText(BuildContext context) {
-    return GoogleFonts.poppins( // Apply Google Font
-      fontWeight: FontWeight.w700,
-      color: TextColors.primaryTextColor,
-      fontSize: _getFontSize(context, 16.0),
-      letterSpacing: 1.2
-    );
+    return GoogleFonts.poppins(
+        // Apply Google Font
+        fontWeight: FontWeight.w700,
+        color: TextColors.primaryTextColor,
+        fontSize: _getFontSize(context, 16.0),
+        letterSpacing: 1.2);
   }
 
   static TextStyle titleText(BuildContext context) {
-    return GoogleFonts.poppins( // Apply Google Font
+    return GoogleFonts.poppins(
+      // Apply Google Font
       fontWeight: FontWeight.w700,
       color: TextColors.primaryTextColor,
       fontSize: _getFontSize(context, 16.0), // Responsive font size
@@ -40,14 +42,17 @@ class TextStyles {
   }
 
   static TextStyle subtitleText(BuildContext context) {
-    return GoogleFonts.poppins( // Apply Google Font
+    return GoogleFonts.poppins(
+      // Apply Google Font
       fontWeight: FontWeight.w600,
       color: TextColors.secondaryTextColor,
       fontSize: _getFontSize(context, 12.0), // Responsive font size
     );
   }
+
   static TextStyle topicText(BuildContext context) {
-    return GoogleFonts.poppins( // Apply Google Font
+    return GoogleFonts.poppins(
+      // Apply Google Font
       fontWeight: FontWeight.w400,
       color: TextColors.tertiaryTextColor,
       fontSize: _getFontSize(context, 10.0), // Responsive font size
@@ -55,7 +60,8 @@ class TextStyles {
   }
 
   static TextStyle enclosureText(BuildContext context) {
-    return GoogleFonts.poppins( // Apply Google Font
+    return GoogleFonts.poppins(
+      // Apply Google Font
       fontWeight: FontWeight.w600,
       color: TextColors.primaryTextColor,
       fontSize: _getFontSize(context, 10.0), // Responsive font size
@@ -64,7 +70,8 @@ class TextStyles {
 
   // Global AppBar Title Text Style
   static TextStyle appBarLogo(BuildContext context) {
-    return GoogleFonts.poppins( // Apply Google Font
+    return GoogleFonts.poppins(
+      // Apply Google Font
       fontWeight: FontWeight.w900,
       color: TextColors.logoColor,
       letterSpacing: 3,
@@ -74,7 +81,8 @@ class TextStyles {
 
   // Global AppBar Title Text Style
   static TextStyle appBarTitleStyle(BuildContext context) {
-    return GoogleFonts.poppins( // Apply Google Font
+    return GoogleFonts.poppins(
+      // Apply Google Font
       fontWeight: FontWeight.w700,
       color: TextColors.titleColor,
       fontSize: _getFontSize(context, 16.0), // Responsive font size
@@ -82,38 +90,41 @@ class TextStyles {
   }
 
   static TextStyle leftPanelControlsText(BuildContext context) {
-    return GoogleFonts.poppins( // Apply Google Font
+    return GoogleFonts.poppins(
+      // Apply Google Font
       fontWeight: FontWeight.w500,
       color: LeftPaneControlColors.leftPanelIconTextColor,
       fontSize: _getFontSize(context, 9.0), // Responsive font size
     );
   }
 
-  static TextStyle elevatedButtonTextStyle (BuildContext context){
-    return GoogleFonts.poppins( // Apply Google Font
+  static TextStyle elevatedButtonTextStyle(BuildContext context) {
+    return GoogleFonts.poppins(
+      // Apply Google Font
       fontWeight: FontWeight.w500,
       color: ButtonColors.buttonTextColor,
     );
   }
 
-  static TextStyle inputMainTextStyle (BuildContext context){
-    return GoogleFonts.poppins( // Apply Google Font
-      fontWeight: FontWeight.w500,
-      color: FillColors.primaryColor,
-      fontSize: 12.0
-    );
+  static TextStyle inputMainTextStyle(BuildContext context) {
+    return GoogleFonts.poppins(
+        // Apply Google Font
+        fontWeight: FontWeight.w500,
+        color: FillColors.primaryColor,
+        fontSize: 12.0);
   }
 
-  static TextStyle inputHintTextStyle (BuildContext context){
-    return GoogleFonts.poppins( // Apply Google Font
-      fontWeight: FontWeight.normal,
-      color: FillColors.primaryColor,
-      fontSize: 12.0
-    );
+  static TextStyle inputHintTextStyle(BuildContext context) {
+    return GoogleFonts.poppins(
+        // Apply Google Font
+        fontWeight: FontWeight.normal,
+        color: FillColors.primaryColor,
+        fontSize: 12.0);
   }
 
   static TextStyle footerTextSmall(BuildContext context) {
-    return GoogleFonts.poppins( // Apply Google Font
+    return GoogleFonts.poppins(
+      // Apply Google Font
       fontWeight: FontWeight.w500,
       color: TextColors.primaryTextColor,
       fontSize: _getFontSize(context, 16.0), // Responsive font size
@@ -121,7 +132,8 @@ class TextStyles {
   }
 
   static TextStyle footerDisclaimerSmall(BuildContext context) {
-    return GoogleFonts.poppins( // Apply Google Font
+    return GoogleFonts.poppins(
+      // Apply Google Font
       fontWeight: FontWeight.w500,
       color: TextColors.primaryTextColor,
       fontSize: _getFontSize(context, 10.0), // Responsive font size
@@ -129,7 +141,8 @@ class TextStyles {
   }
 
   static TextStyle footerLinkTextSmall(BuildContext context) {
-    return GoogleFonts.poppins( // Apply Google Font
+    return GoogleFonts.poppins(
+      // Apply Google Font
       fontWeight: FontWeight.w500,
       color: TextColors.linkTextColor,
       fontSize: _getFontSize(context, 16.0), // Responsive font size
@@ -137,7 +150,8 @@ class TextStyles {
   }
 
   static TextStyle gridHeaderText(BuildContext context) {
-    return GoogleFonts.poppins( // Apply Google Font
+    return GoogleFonts.poppins(
+      // Apply Google Font
       fontWeight: FontWeight.w600,
       color: TextColors.primaryTextColor,
       fontSize: _getFontSize(context, 12.0), // Responsive font size
@@ -145,7 +159,8 @@ class TextStyles {
   }
 
   static TextStyle gridText(BuildContext context) {
-    return GoogleFonts.poppins( // Apply Google Font
+    return GoogleFonts.poppins(
+      // Apply Google Font
       fontWeight: FontWeight.w500,
       color: TextColors.primaryTextColor,
       fontSize: _getFontSize(context, 11.0), // Responsive font size
@@ -153,7 +168,8 @@ class TextStyles {
   }
 
   static TextStyle gridFilterText() {
-    return GoogleFonts.poppins( // Apply Google Font
+    return GoogleFonts.poppins(
+      // Apply Google Font
       fontWeight: FontWeight.w500,
       color: TextColors.primaryTextColor,
       fontSize: 10.0, // Responsive font size
@@ -161,7 +177,8 @@ class TextStyles {
   }
 
   static TextStyle responseText(BuildContext context) {
-    return GoogleFonts.poppins( // Apply Google Font
+    return GoogleFonts.poppins(
+      // Apply Google Font
       fontWeight: FontWeight.w500,
       color: TextColors.secondaryTextColor,
       fontSize: _getFontSize(context, 10.0), // Responsive font size
@@ -169,7 +186,8 @@ class TextStyles {
   }
 
   static TextStyle smallSupplementalInfo(BuildContext context) {
-    return GoogleFonts.poppins( // Apply Google Font
+    return GoogleFonts.poppins(
+      // Apply Google Font
       fontWeight: FontWeight.w400,
       color: TextColors.primaryTextColor,
       fontSize: _getFontSize(context, 9.0), // Responsive font size
@@ -177,15 +195,26 @@ class TextStyles {
   }
 
   static TextStyle responseTextFileInfo(BuildContext context) {
-    return GoogleFonts.poppins( // Apply Google Font
+    return GoogleFonts.poppins(
+      // Apply Google Font
       fontWeight: FontWeight.w400,
-      color: TextColors.secondaryTextColor,
+      color: TextColors.hyperlinkTextColor,
       fontSize: _getFontSize(context, 9.0), // Responsive font size
     );
   }
 
+  static TextStyle tinySupplementalInfo(BuildContext context) {
+    return GoogleFonts.poppins(
+      // Apply Google Font
+      fontWeight: FontWeight.w400,
+      color: TextColors.primaryTextColor,
+      fontSize: _getFontSize(context, 8.0), // Responsive font size
+    );
+  }
+
   static TextStyle tabSelectedLabelText(BuildContext context) {
-    return GoogleFonts.poppins( // Apply Google Font
+    return GoogleFonts.poppins(
+      // Apply Google Font
       fontWeight: FontWeight.w600,
       color: TextColors.primaryTextColor,
       fontSize: _getFontSize(context, 16), // Responsive font size
@@ -193,7 +222,8 @@ class TextStyles {
   }
 
   static TextStyle tabUnselectedLabelText(BuildContext context) {
-    return GoogleFonts.poppins( // Apply Google Font
+    return GoogleFonts.poppins(
+      // Apply Google Font
       fontWeight: FontWeight.normal,
       color: TextColors.primaryTextColor,
       fontSize: _getFontSize(context, 16), // Responsive font size
@@ -201,12 +231,13 @@ class TextStyles {
   }
 
   static TextStyle textButton(BuildContext context) {
-  return GoogleFonts.poppins(
-    fontWeight: FontWeight.w600, // Slightly lighter than w700 for better touch UX
-    color: TextColors.linkTextColor, // Or use a highlight color like accent or link blue
-    fontSize: _getFontSize(context, 10.0), // Slightly smaller for buttons
-    letterSpacing: 1.0, // Tighter spacing for compact UI
-  );
-}
-
+    return GoogleFonts.poppins(
+      fontWeight:
+          FontWeight.w600, // Slightly lighter than w700 for better touch UX
+      color: TextColors
+          .linkTextColor, // Or use a highlight color like accent or link blue
+      fontSize: _getFontSize(context, 10.0), // Slightly smaller for buttons
+      letterSpacing: 1.0, // Tighter spacing for compact UI
+    );
+  }
 }

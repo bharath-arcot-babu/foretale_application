@@ -1,22 +1,24 @@
 //core
 import 'package:flutter/material.dart';
+import 'package:foretale_application/models/inquiry_response_model.dart';
+import 'package:foretale_application/s3_config.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 //models
 import 'package:foretale_application/models/project_details_model.dart';
 import 'package:foretale_application/models/user_details_model.dart';
+import 'package:foretale_application/models/abstracts/chat_driving_model.dart';
 //utils
 import 'package:foretale_application/core/services/handling_crud.dart';
 
-
 class Test {
-  int testId;  
+  int testId;
   String testName;
   String testDescription;
   String topicName;
   String subtopicName;
-  String testCriticality;        
-  String testRunType; 
+  String testCriticality;
+  String testRunType;
   String testCategory;
   String config;
   bool isSelected;
@@ -38,22 +40,22 @@ class Test {
 
   factory Test.fromJson(Map<String, dynamic> map) {
     return Test(
-      testId: map['test_id']??0,
-      testName: map['test_name']??'',     
-      testDescription: map['test_description']??'',
-      topicName: map['topic_name']??'',
-      subtopicName: map['sub_topic_name']??'',
-      testCriticality: map['test_criticality']??'',
-      testRunType: map['test_run_type']??'',
-      testCategory: map['test_category']??'',
-      config: map['config']??'',
-      isSelected: bool.tryParse(map['is_selected'])??false,
-      defaultConfig: map['default_config']??'',
+      testId: map['test_id'] ?? 0,
+      testName: map['test_name'] ?? '',
+      testDescription: map['test_description'] ?? '',
+      topicName: map['topic_name'] ?? '',
+      subtopicName: map['sub_topic_name'] ?? '',
+      testCriticality: map['test_criticality'] ?? '',
+      testRunType: map['test_run_type'] ?? '',
+      testCategory: map['test_category'] ?? '',
+      config: map['config'] ?? '',
+      isSelected: bool.tryParse(map['is_selected']) ?? false,
+      defaultConfig: map['default_config'] ?? '',
     );
   }
 }
 
-class TestsModel with ChangeNotifier {
+class TestsModel with ChangeNotifier implements ChatDrivingModel {
   final CRUD _crudService = CRUD();
   List<Test> testsList = [];
   List<Test> get getTestsList => testsList;
@@ -67,19 +69,19 @@ class TestsModel with ChangeNotifier {
   String _currentSortColumn = 'testName';
   String get getCurrentSortColumn => _currentSortColumn;
   DataGridSortDirection currentSortDirection = DataGridSortDirection.descending;
-  DataGridSortDirection get getCurrentSortDirection => currentSortDirection; 
+  DataGridSortDirection get getCurrentSortDirection => currentSortDirection;
 
-  void updateTestIdSelection(int testId ){
+  Future<void> updateTestIdSelection(int testId) async {
     _selectedTestId = testId;
     notifyListeners();
   }
 
-  void updateSortColumn(String sortColumnName){
-
+  void updateSortColumn(String sortColumnName) {
     if (_currentSortColumn == sortColumnName) {
-      currentSortDirection = (currentSortDirection == DataGridSortDirection.descending)
-          ? DataGridSortDirection.ascending
-          : DataGridSortDirection.descending;
+      currentSortDirection =
+          (currentSortDirection == DataGridSortDirection.descending)
+              ? DataGridSortDirection.ascending
+              : DataGridSortDirection.descending;
     } else {
       _currentSortColumn = sortColumnName;
       currentSortDirection = DataGridSortDirection.descending;
@@ -90,16 +92,15 @@ class TestsModel with ChangeNotifier {
 
   void filterData(String query) {
     String lowerCaseQuery = query.trim().toLowerCase();
-    
+
     if (query.isEmpty) {
       filteredTestsList = List.from(testsList);
     } else {
       filteredTestsList = filteredTestsList.where((test) {
         return test.testName.toLowerCase().contains(lowerCaseQuery) ||
-               test.testDescription.toLowerCase().contains(lowerCaseQuery) ||
-               test.testRunType.toLowerCase().contains(lowerCaseQuery) ||
-               test.testCriticality.toLowerCase().contains(lowerCaseQuery);
-
+            test.testDescription.toLowerCase().contains(lowerCaseQuery) ||
+            test.testRunType.toLowerCase().contains(lowerCaseQuery) ||
+            test.testCriticality.toLowerCase().contains(lowerCaseQuery);
       }).toList();
     }
 
@@ -107,35 +108,38 @@ class TestsModel with ChangeNotifier {
   }
 
   Future<void> fetchTestsByProject(BuildContext context) async {
-    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+    var projectDetailsModel =
+        Provider.of<ProjectDetailsModel>(context, listen: false);
 
     final params = {
       'project_id': projectDetailsModel.getActiveProjectId,
       'project_type_id': projectDetailsModel.getProjectTypeId,
       'industry_id': projectDetailsModel.getIndustryId,
-      };
+    };
 
     testsList = await _crudService.getRecords<Test>(
       context,
       'dbo.sproc_get_tests_by_project',
       params,
       (json) => Test.fromJson(json),
-    );  
+    );
 
     filteredTestsList = testsList;
-    
+
     notifyListeners();
   }
 
   Future<int> selectTest(BuildContext context, Test test) async {
-    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
-    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+    var userDetailsModel =
+        Provider.of<UserDetailsModel>(context, listen: false);
+    var projectDetailsModel =
+        Provider.of<ProjectDetailsModel>(context, listen: false);
 
     var params = {
       'project_id': projectDetailsModel.getActiveProjectId,
       'test_id': test.testId,
       'config': test.config,
-      'created_by': userDetailsModel.getUserMachineId, 
+      'created_by': userDetailsModel.getUserMachineId,
     };
 
     int insertedId = await _crudService.addRecord(
@@ -144,58 +148,62 @@ class TestsModel with ChangeNotifier {
       params,
     );
 
-    if(insertedId>0){
+    if (insertedId > 0) {
       _updateTestList(test.testId, true);
     }
 
     return insertedId;
   }
 
-  Future<int> removeTest(BuildContext context, Test test) async{
-    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
-    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+  Future<int> removeTest(BuildContext context, Test test) async {
+    var userDetailsModel =
+        Provider.of<UserDetailsModel>(context, listen: false);
+    var projectDetailsModel =
+        Provider.of<ProjectDetailsModel>(context, listen: false);
 
-      final params = {
-        'project_id': projectDetailsModel.getActiveProjectId,
-        'test_id': test.testId,
-        'last_updated_by': userDetailsModel.getUserMachineId
-      };
+    final params = {
+      'project_id': projectDetailsModel.getActiveProjectId,
+      'test_id': test.testId,
+      'last_updated_by': userDetailsModel.getUserMachineId
+    };
 
-      int deletedId = await _crudService.deleteRecord(
-        context,
-        'dbo.sproc_delete_assigned_test',
-        params,
-      );
+    int deletedId = await _crudService.deleteRecord(
+      context,
+      'dbo.sproc_delete_assigned_test',
+      params,
+    );
 
-      if(deletedId>0){
-        _updateTestList(test.testId, false);
-      }
+    if (deletedId > 0) {
+      _updateTestList(test.testId, false);
+    }
 
-      return deletedId;
+    return deletedId;
   }
 
-  Future<int> updateProjectTestConfig(BuildContext context, Test test) async{
-    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
-    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+  Future<int> updateProjectTestConfig(BuildContext context, Test test) async {
+    var userDetailsModel =
+        Provider.of<UserDetailsModel>(context, listen: false);
+    var projectDetailsModel =
+        Provider.of<ProjectDetailsModel>(context, listen: false);
 
-      final params = {
-        'project_id': projectDetailsModel.getActiveProjectId,
-        'test_id': test.testId,
-        'config': test.config,
-        'last_updated_by': userDetailsModel.getUserMachineId
-      };
+    final params = {
+      'project_id': projectDetailsModel.getActiveProjectId,
+      'test_id': test.testId,
+      'config': test.config,
+      'last_updated_by': userDetailsModel.getUserMachineId
+    };
 
-      int deletedId = await _crudService.updateRecord(
-        context,
-        'dbo.sproc_update_project_test_config',
-        params,
-      );
+    int deletedId = await _crudService.updateRecord(
+      context,
+      'dbo.sproc_update_project_test_config',
+      params,
+    );
 
-      if(deletedId>0){
-        _updateTestList(test.testId, false);
-      }
+    if (deletedId > 0) {
+      _updateTestList(test.testId, false);
+    }
 
-      return deletedId;
+    return deletedId;
   }
 
   void _updateTestList(int testId, bool isSelected) {
@@ -206,4 +214,40 @@ class TestsModel with ChangeNotifier {
 
     notifyListeners();
   }
+
+  @override
+  int get selectedId => getSelectedTestId;
+
+  @override
+  Future<void> fetchResponses(BuildContext context) {
+    return Provider.of<InquiryResponseModel>(context, listen: false)
+        .fetchResponsesByTest(context);
+  }
+
+  @override
+  Future<int> insertResponse(BuildContext context, String responseText) {
+    return Provider.of<InquiryResponseModel>(context, listen: false)
+        .insertResponseByTest(context, responseText);
+  }
+
+  @override
+  String buildStoragePath({
+    required String projectId,
+    required String responseId,
+  }) {
+    return '${S3Config.baseResponseTestAttachmentPath}$projectId/$selectedId/$responseId';
+  }
+
+  @override
+  String getStoragePath(BuildContext context, int responseId) {
+    final projectDetailsModel =
+        Provider.of<ProjectDetailsModel>(context, listen: false);
+    return buildStoragePath(
+      projectId: projectDetailsModel.getActiveProjectId.toString(),
+      responseId: responseId.toString(),
+    );
+  }
+
+  @override
+  int getSelectedId(BuildContext context) => selectedId;
 }

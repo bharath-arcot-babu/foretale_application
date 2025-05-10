@@ -8,7 +8,6 @@ class CustomIconButton extends StatelessWidget {
   final Color? backgroundColor;
   final Color? iconColor;
 
-
   const CustomIconButton({
     super.key,
     required this.icon,
@@ -21,27 +20,36 @@ class CustomIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = backgroundColor ?? Theme.of(context).colorScheme.secondaryContainer;
+    final bg =
+        backgroundColor ?? Theme.of(context).colorScheme.secondaryContainer;
     final fg = iconColor ?? Theme.of(context).colorScheme.secondary;
 
-    final iconWidget = Container(
-      width: iconSize + (iconSize * 0.4),
-      height: iconSize + (iconSize * 0.4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(18),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: bg.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Icon(
+            icon,
+            size: iconSize,
+            color: fg,
+          ),
+        ),
       ),
-      child: Icon(icon, size: iconSize, color: fg),
     );
-
-    final button = IconButton(
-      icon: iconWidget,
-      onPressed: onPressed,
-      tooltip: tooltip,
-      padding: EdgeInsets.zero,
-      splashRadius: (iconSize + (iconSize * 0.1)) / 2,
-    );
-
-    return tooltip != null ? Tooltip(message: tooltip!, child: button) : button;
   }
 }

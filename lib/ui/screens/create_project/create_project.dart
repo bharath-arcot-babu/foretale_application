@@ -11,22 +11,20 @@ import 'package:foretale_application/ui/themes/text_styles.dart';
 class CreateProject extends StatefulWidget {
   final bool isNew;
 
-  const CreateProject({
-    super.key,
-    required this.isNew
-    });
+  const CreateProject({super.key, required this.isNew});
 
   @override
   State<CreateProject> createState() => _CreateProjectState();
 }
 
-class _CreateProjectState extends State<CreateProject> with SingleTickerProviderStateMixin {
+class _CreateProjectState extends State<CreateProject>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -39,7 +37,7 @@ class _CreateProjectState extends State<CreateProject> with SingleTickerProvider
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              widget.isNew?'CREATE PROJECT':'PROJECT MANAGEMENT',
+              widget.isNew ? 'CREATE PROJECT' : 'PROJECT MANAGEMENT',
               style: TextStyles.subjectText(context),
             ),
             const SizedBox(height: 20),
@@ -54,7 +52,7 @@ class _CreateProjectState extends State<CreateProject> with SingleTickerProvider
                 buildTab(icon: Icons.settings, label: 'Settings'),
                 buildTab(icon: Icons.people_outline, label: 'Client'),
                 buildTab(icon: Icons.group, label: 'Team'),
-                buildTab(icon: Icons.group, label: 'Inquiry'),
+                //buildTab(icon: Icons.group, label: 'Inquiry'),
               ],
             ),
             const SizedBox(height: 20),
@@ -62,11 +60,15 @@ class _CreateProjectState extends State<CreateProject> with SingleTickerProvider
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  ProjectDetailsScreen(isNew: widget.isNew,),
-                  ProjectSettingsScreen(isNew: widget.isNew,),
+                  ProjectDetailsScreen(
+                    isNew: widget.isNew,
+                  ),
+                  ProjectSettingsScreen(
+                    isNew: widget.isNew,
+                  ),
                   const ClientContactsPage(),
                   const TeamContactsPage(),
-                  QuestionsScreen(isNew: true)
+                  const QuestionsScreen(isNew: true)
                 ],
               ),
             ),

@@ -2,11 +2,16 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-static const Color primaryColor = Color(0xFFEE4266);      // Dark blue-black as primary
-static const Color secondaryColor = Color(0xFF353845);    // Lighter version of primary
-static const Color backgroundColor = Color(0xFFF5F5F7);   // Light gray background
-static const Color accentColor =  Color(0xFF1E212B);       // Your vibrant pink-red as accent
-static const Color surfaceColor = Color(0xFFFFFFFF);      // White for cards/surfaces
+  static const Color primaryColor =
+      Color(0xFFEE4266); // Dark blue-black as primary
+  static const Color secondaryColor =
+      Color(0xFF353845); // Lighter version of primary
+  static const Color backgroundColor =
+      Color(0xFFF5F5F7); // Light gray background
+  static const Color accentColor =
+      Color(0xFF1E212B); // Your vibrant pink-red as accent
+  static const Color surfaceColor =
+      Color(0xFFFFFFFF); // White for cards/surfaces
 }
 
 class AppBarColors {
@@ -32,10 +37,11 @@ class TextColors {
   static const Color titleColor = Color(0xFFEE4266);
   static const Color logoColor = Color(0xFFEE4266);
   static const Color primaryTextColor = Color(0xFF1E212B);
-  static const Color secondaryTextColor = Colors.white;
-  static const Color tertiaryTextColor = Color(0xFF6B818C);
+  static const Color secondaryTextColor = Colors.black;
+  static const Color tertiaryTextColor = Colors.white;
   static const Color hintTextColor = Color(0xFF6B818C);
   static const Color linkTextColor = Color(0xFFEE4266);
+  static Color hyperlinkTextColor = const Color(0xFF0000FF).withOpacity(0.8);
 }
 
 class ButtonColors {
@@ -50,18 +56,18 @@ class FillColors {
   static const Color tertiaryColor = Color(0xFFF3E1DD);
 }
 
-class BorderColors{
+class BorderColors {
   static const Color primaryColor = Color(0xFF1C1C1C);
   static const Color secondaryColor = Color(0xFF595F72);
   static const Color tertiaryColor = Color(0xFFE1E2EF);
 }
 
-class DatagridColors{
+class DatagridColors {
   // Datagrid Text Color
   static const Color datagridHeaderColor = Colors.black26;
   static const Color datagridHeaderText = Color(0xFFE1E2EF);
   static const Color datagridHeaderHoverColor = Color(0xFFEE4266);
-   static const Color datagridRowSelectionColor = Color(0xFFE1E2EF);
+  static const Color datagridRowSelectionColor = Color(0xFFE1E2EF);
 }
 
 class ErrorColors {

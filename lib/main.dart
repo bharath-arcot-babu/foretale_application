@@ -4,6 +4,7 @@ import 'package:foretale_application/models/data_assessment_model.dart';
 import 'package:provider/provider.dart';
 import 'package:foretale_application/amplifyconfiguration.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 //auth amplify
 import 'package:amplify_authenticator/amplify_authenticator.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
@@ -23,12 +24,17 @@ import 'package:foretale_application/models/question_model.dart';
 import 'package:foretale_application/models/team_contacts_model.dart';
 import 'package:foretale_application/models/tests_model.dart';
 import 'package:foretale_application/models/columns_model.dart';
-
+//themes
+import 'package:foretale_application/ui/themes/text_styles.dart';
+import 'package:foretale_application/ui/themes/button_styles.dart';
+import 'package:foretale_application/core/constants/colors/app_colors.dart';
 
 //entry
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _configureAmplify();
+  // Initialize SharedPreferences
+  await SharedPreferences.getInstance();
   runApp(const ForeTaleApp());
 }
 
@@ -47,7 +53,7 @@ SignUpForm customSignUpForm() {
         validator: ((value) {
           if (value == null || value.trim().isEmpty) {
             return 'Name must not be blank.';
-          }     
+          }
           return null;
         }),
         title: 'Name',
@@ -78,11 +84,8 @@ Widget _displayBody(AuthenticatorState state) {
 }
 
 //authenticator builder
-Widget _authenticatorBuilder(BuildContext context, AuthenticatorState state){
-  return CustomLoginScaffold(
-      state: state, 
-      body: _displayBody(state)
-    );
+Widget _authenticatorBuilder(BuildContext context, AuthenticatorState state) {
+  return CustomLoginScaffold(state: state, body: _displayBody(state));
 }
 
 //application
@@ -119,6 +122,3 @@ class ForeTaleApp extends StatelessWidget {
                 })));
   }
 }
-
-
-

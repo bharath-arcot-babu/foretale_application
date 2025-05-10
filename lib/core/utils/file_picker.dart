@@ -1,4 +1,5 @@
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 Future<FilePickerResult?> pickFileForChat() async {
   try {
@@ -6,6 +7,7 @@ Future<FilePickerResult?> pickFileForChat() async {
       type: FileType.custom,
       allowedExtensions: [
         'jpg',
+        'jpeg',
         'png',
         'svg',
         'pdf',
@@ -19,14 +21,13 @@ Future<FilePickerResult?> pickFileForChat() async {
         'pptx',
       ],
       allowMultiple: true,
-      withReadStream: true,
-      withData: false,
+      withReadStream: !kIsWeb,
+      withData: kIsWeb,
     );
 
     return filePickerResult; // could be null if user cancels
   } catch (e) {
     // Log or handle the error as needed
-    print("Error picking file: $e");
     return null;
   }
 }

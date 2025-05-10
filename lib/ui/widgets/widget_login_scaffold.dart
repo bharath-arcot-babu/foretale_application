@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 //auth amplify
 import 'package:amplify_authenticator/amplify_authenticator.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
+import 'package:foretale_application/core/constants/colors/app_colors.dart';
+import 'package:foretale_application/ui/themes/button_styles.dart';
 
 /// A widget that displays a logo, a body, and an optional footer.
 class CustomLoginScaffold extends StatelessWidget {
@@ -18,26 +20,92 @@ class CustomLoginScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // App logo
-              const Padding(
-                padding: EdgeInsets.only(top: 32),
-                child: Center(child: FlutterLogo(size: 100)),
-              ),
-              Container(
-                constraints: const BoxConstraints(maxWidth: 600),
-                child: body,
-              ),
-            ],
+    return Theme(
+      data: Theme.of(context).copyWith(
+        inputDecorationTheme: InputDecorationTheme(
+          labelStyle: TextStyles.inputMainTextStyle(context),
+          filled: true,
+          fillColor: Colors.transparent,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(
+              color: BorderColors.secondaryColor,
+              width: 1.2,
+            ),
           ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(
+              color: BorderColors.secondaryColor,
+              width: 1.5,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(
+              color: BorderColors.secondaryColor,
+              width: 1.2,
+            ),
+          ),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ButtonStyles.elevatedButtonStyle(),
         ),
       ),
-      persistentFooterButtons: [_displayFooter(context)],
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundColor,
+        body: Center(
+          child: SingleChildScrollView(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 400),
+              margin: const EdgeInsets.all(24),
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // App logo and title
+                      Column(
+                        children: [
+                          const Icon(
+                            Icons.analytics_outlined,
+                            size: 64,
+                            color: AppColors.primaryColor,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            "foreTale",
+                            style: TextStyles.appBarLogo(context),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Data Quality Assessment Platform",
+                            style: TextStyles.subtitleText(context),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
+                      // Form body
+                      Container(
+                        constraints: const BoxConstraints(maxWidth: 400),
+                        child: body,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        persistentFooterButtons: [_displayFooter(context)],
+      ),
     );
   }
 
@@ -70,7 +138,7 @@ class CustomLoginScaffold extends StatelessWidget {
                 AuthenticatorStep.signIn,
               ),
               child: Text("Sign In",
-                style: TextStyles.footerLinkTextSmall(context)),
+                  style: TextStyles.footerLinkTextSmall(context)),
             ),
           ],
         );
@@ -78,12 +146,14 @@ class CustomLoginScaffold extends StatelessWidget {
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text("Already have an account? "),
+            Text("Already have an account? ",
+                style: TextStyles.footerTextSmall(context)),
             TextButton(
               onPressed: () => state.changeStep(
                 AuthenticatorStep.signIn,
               ),
-              child: const Text("Sign In"),
+              child: Text("Sign In",
+                  style: TextStyles.footerLinkTextSmall(context)),
             ),
           ],
         );
