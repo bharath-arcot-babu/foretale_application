@@ -6,8 +6,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 class S3Service {
   Future<void> uploadFile(PlatformFile file, String storagePath) async {
     try {
-      print("1. Starting upload for file: ${file.name} to $storagePath");
-
       // Validate file
       if (file.size == 0) {
         throw Exception("File ${file.name} is empty");
@@ -30,22 +28,19 @@ class S3Service {
                 file.readStream!,
                 size: file.size,
               );
-        print("2. Created AWS file object for: ${file.name}");
       } catch (e) {
-        print("Error creating AWS file object: $e");
+        print("Error in create AWS file object: $e");
         throw Exception("Failed to create AWS file object: $e");
       }
 
       // Upload file
       try {
-        print("3. Starting S3 upload for: ${file.name}");
         await Amplify.Storage.uploadFile(
           localFile: awsFile,
           path: StoragePath.fromString('$storagePath/${file.name}'),
         ).result;
-        print("4. Successfully uploaded file: ${file.name}");
       } catch (e) {
-        print("Error during S3 upload: $e");
+        print("Error in uploadFile: $e");
         throw Exception("Failed to upload file to S3: $e");
       }
     } catch (e) {

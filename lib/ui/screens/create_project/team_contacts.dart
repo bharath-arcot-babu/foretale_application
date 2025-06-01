@@ -3,7 +3,7 @@ import 'package:foretale_application/models/team_contacts_model.dart';
 import 'package:foretale_application/ui/screens/datagrids/sfdg_team_contacts.dart';
 import 'package:foretale_application/ui/widgets/custom_elevated_button.dart';
 import 'package:foretale_application/ui/widgets/custom_text_field.dart';
-import 'package:foretale_application/ui/widgets/message_helper.dart';
+import 'package:foretale_application/core/utils/message_helper.dart';
 import 'package:provider/provider.dart';
 
 class TeamContactsPage extends StatefulWidget {
@@ -31,7 +31,6 @@ class _TeamContactsState extends State<TeamContactsPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadPage();
     });
-
   }
 
   @override
@@ -119,7 +118,6 @@ class _TeamContactsState extends State<TeamContactsPage> {
     // Validate form before proceeding
     if (_formKey.currentState?.validate() ?? false) {
       try {
-
         int resultId = await _teamContacts.addUpdateContact(
             context,
             TeamContact(
@@ -131,27 +129,22 @@ class _TeamContactsState extends State<TeamContactsPage> {
                 isClient: 'No'));
 
         if (resultId > 0) {
-          SnackbarMessage.showSuccessMessage(context,'"${_nameController.text.trim()}" has been added to the project.');
+          SnackbarMessage.showSuccessMessage(context,
+              '"${_nameController.text.trim()}" has been added to the project.');
         }
-
       } catch (e, error_stack_trace) {
-
-        SnackbarMessage.showErrorMessage(context, 
-            e.toString(),
+        SnackbarMessage.showErrorMessage(context, e.toString(),
             logError: true,
             errorMessage: e.toString(),
             errorStackTrace: error_stack_trace.toString(),
             errorSource: _currentFileName,
             severityLevel: 'Critical',
             requestPath: "_saveTeamContact");
-
       } finally {
-
         _nameController.clear();
         _jobTitleController.clear();
         _departmentController.clear();
         _emailController.clear();
-
       }
     }
   }
@@ -164,14 +157,13 @@ class _TeamContactsState extends State<TeamContactsPage> {
     try {
       await _fetchTeamContacts(context);
     } catch (e, error_stack_trace) {
-        SnackbarMessage.showErrorMessage(context, 'Something went wrong!',
-            logError: true,
-            errorMessage: e.toString(),
-            errorStackTrace: error_stack_trace.toString(),
-            errorSource: _currentFileName,
-            severityLevel: 'Critical',
-            requestPath: "_loadPage");
-
-      } 
+      SnackbarMessage.showErrorMessage(context, 'Something went wrong!',
+          logError: true,
+          errorMessage: e.toString(),
+          errorStackTrace: error_stack_trace.toString(),
+          errorSource: _currentFileName,
+          severityLevel: 'Critical',
+          requestPath: "_loadPage");
+    }
   }
 }

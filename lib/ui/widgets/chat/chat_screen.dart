@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:foretale_application/config_ecs.dart';
+import 'package:foretale_application/config_lambda_api.dart';
+import 'package:foretale_application/core/services/embeddings/process_files_by_response.dart';
+import 'package:foretale_application/core/services/lambda_activities.dart';
 import 'package:foretale_application/core/utils/file_picker.dart';
+import 'package:foretale_application/core/utils/polling.dart';
+import 'package:foretale_application/ui/widgets/custom_alert.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 
@@ -13,7 +19,7 @@ import 'package:foretale_application/ui/widgets/chat/input_area.dart';
 import 'package:foretale_application/ui/widgets/chat/msg_bubble.dart';
 import 'package:foretale_application/ui/widgets/custom_container.dart';
 import 'package:foretale_application/ui/widgets/custom_loading_indicator.dart';
-import 'package:foretale_application/ui/widgets/message_helper.dart';
+import 'package:foretale_application/core/utils/message_helper.dart';
 
 class ChatScreen extends StatefulWidget {
   final TextEditingController responseController = TextEditingController();
@@ -31,14 +37,17 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  final String _currentFileName = 'ChatScreen.dart';
   final ScrollController _scrollController = ScrollController();
   FilePickerResult? filePickerResult;
   late TextEditingController _responseController;
+  late UserDetailsModel userModel;
 
   @override
   void initState() {
     super.initState();
     _responseController = widget.responseController;
+    userModel = Provider.of<UserDetailsModel>(context, listen: false);
   }
 
   @override
@@ -49,8 +58,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final userMachineId =
-        Provider.of<UserDetailsModel>(context).getUserMachineId;
+    final userMachineId = Provider.of<UserDetailsModel>(context).getUserMachineId;
     final inquiryResponseModel = Provider.of<InquiryResponseModel>(context);
 
     return inquiryResponseModel.getIsPageLoading
@@ -96,6 +104,11 @@ class _ChatScreenState extends State<ChatScreen> {
                                     responseText: item.responseText,
                                     responseDate: item.responseDate,
                                     attachments: item.attachments,
+                                    responseId: item.responseId,
+                                    isAiMagicResponse: item.isAiMagicResponse,
+                                    drivingModel: widget.drivingModel,
+                                    embeddingStatus: item.isEmbeddingCompleted,
+                                    userId: userModel.getUserMachineId?? "",
                                   ),
                                 ),
                               ],
@@ -112,7 +125,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 isChatEnabled: widget.isChatEnabled,
                 onFilePick: _pickFile,
                 onSendMessage: _addResponse,
-                hintText: "Type a message...",
+                hintText: "Add business intent, rules, or filters for the AI model to follow...",
                 filePickerResult: filePickerResult,
                 onRemoveFile: (file) {
                   setState(() {
@@ -142,35 +155,31 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _addResponse() async {
-    final inquiryResponseModel =
-        Provider.of<InquiryResponseModel>(context, listen: false);
+    final inquiryResponseModel =  Provider.of<InquiryResponseModel>(context, listen: false);
     int insertedId = 0;
     int insertedAttachmentId = 0;
 
     try {
-      final responseText = _responseController.text;
-      if (responseText.isEmpty &&
-          (filePickerResult == null || filePickerResult!.files.isEmpty)) {
+      final responseText = _responseController.text.trim();
+
+      if (responseText.isEmpty && (filePickerResult == null || filePickerResult!.files.isEmpty)) {
         SnackbarMessage.showErrorMessage(
-            context, "Please enter a message or attach a file.");
+            context, "Enter a message or attach a file.",
+            showUserMessage: true);
         return;
       }
 
-      insertedId =
-          await widget.drivingModel.insertResponse(context, responseText);
+      insertedId = await widget.drivingModel.insertResponse(context, responseText);
 
       if (insertedId > 0) {
+        //Update the response id selection
         inquiryResponseModel.updateResponseIdSelection(insertedId);
 
         if (filePickerResult != null && filePickerResult!.files.isNotEmpty) {
-          final storagePath =
-              widget.drivingModel.getStoragePath(context, insertedId);
-
+          final storagePath = widget.drivingModel.getStoragePath(context, insertedId);
           for (final file in filePickerResult!.files) {
             await S3Service().uploadFile(file, storagePath);
-
-            insertedAttachmentId =
-                await inquiryResponseModel.insertAttachmentByResponse(
+            insertedAttachmentId = await inquiryResponseModel.insertAttachmentByResponse(
               context,
               storagePath,
               file.name,
@@ -178,6 +187,10 @@ class _ChatScreenState extends State<ChatScreen> {
               (file.size / (1024 * 1024)).round(),
             );
           }
+
+          //invoke the lambda function to run the embedding task
+          await _runEmbeddingsForAllResponses(insertedId, userModel.getUserMachineId?? "");
+          print("Embeddings run for response $insertedId");
         }
 
         setState(() {
@@ -187,13 +200,35 @@ class _ChatScreenState extends State<ChatScreen> {
 
         await widget.drivingModel.fetchResponses(context);
       }
-    } catch (e) {
+    } catch (e, error_stack_trace) {
       if (insertedId == 0) {
-        SnackbarMessage.showErrorMessage(
-            context, "Unable to save the response.");
+        SnackbarMessage.showErrorMessage(context, e.toString(),
+            logError: true,
+            errorMessage: "Error adding response: $e",
+            errorStackTrace: error_stack_trace.toString(),
+            errorSource: _currentFileName,
+            severityLevel: 'Critical',
+            requestPath: "_addResponse");
       } else if (insertedAttachmentId == 0) {
-        SnackbarMessage.showErrorMessage(context, "Error adding attachments.");
+        SnackbarMessage.showErrorMessage(context, e.toString(),
+            logError: true,
+            errorMessage: "Error adding attachments: $e",
+            errorStackTrace: error_stack_trace.toString(),
+            errorSource: _currentFileName,
+            severityLevel: 'Critical',
+            requestPath: "_addResponse");
       }
+    }
+  }
+
+  Future<void> _runEmbeddingsForAllResponses(int responseId, String userId) async {
+    try{
+      //Invoke the lambda function to run the embedding task
+      await EmbeddingService().runEmbeddingsForResponse(
+        responseId, 
+        userId);
+    } catch (e, error_stack_trace) {
+      rethrow;
     }
   }
 
@@ -203,3 +238,4 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() {});
   }
 }
+

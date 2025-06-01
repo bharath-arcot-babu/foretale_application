@@ -14,7 +14,7 @@ import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:foretale_application/models/inquiry_question_model.dart';
 import 'package:foretale_application/models/inquiry_response_model.dart';
 // Widgets
-import 'package:foretale_application/ui/widgets/message_helper.dart';
+import 'package:foretale_application/core/utils/message_helper.dart';
 
 class QuestionsInquiryLv extends StatefulWidget {
   const QuestionsInquiryLv({super.key});

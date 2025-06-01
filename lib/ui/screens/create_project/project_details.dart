@@ -14,7 +14,7 @@ import 'package:foretale_application/models/user_details_model.dart';
 //widgets
 import 'package:foretale_application/ui/widgets/custom_elevated_button.dart';
 import 'package:foretale_application/ui/widgets/custom_text_field.dart';
-import 'package:foretale_application/ui/widgets/message_helper.dart';
+import 'package:foretale_application/core/utils/message_helper.dart';
 import 'package:foretale_application/ui/widgets/custom_grid_menu.dart';
 import 'package:foretale_application/ui/widgets/custom_loading_indicator.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';

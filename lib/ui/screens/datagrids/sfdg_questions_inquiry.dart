@@ -15,7 +15,7 @@ import 'package:foretale_application/models/inquiry_question_model.dart';
 import 'package:foretale_application/models/inquiry_response_model.dart';
 //widgets
 import 'package:foretale_application/ui/widgets/custom_dropdown_search.dart';
-import 'package:foretale_application/ui/widgets/message_helper.dart';
+import 'package:foretale_application/core/utils/message_helper.dart';
 
 class QuestionsInquiryGrid extends StatefulWidget {
   const QuestionsInquiryGrid({super.key});

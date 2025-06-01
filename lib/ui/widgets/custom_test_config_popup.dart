@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:foretale_application/models/tests_model.dart';
-import 'package:foretale_application/ui/widgets/message_helper.dart';
+import 'package:foretale_application/core/utils/message_helper.dart';
 
-void showConfigPopup(BuildContext context, dynamic test, TestsModel testsModel){
+void showConfigPopup(
+    BuildContext context, dynamic test, TestsModel testsModel) {
   if (test.config == null || test.config.isEmpty) {
     SnackbarMessage.showErrorMessage(context, "Invalid test configuration");
     return;
@@ -18,7 +19,8 @@ void showConfigPopup(BuildContext context, dynamic test, TestsModel testsModel){
     return;
   }
 
-  if (config["input_parameters"] == null || config["input_parameters"] is! Map) {
+  if (config["input_parameters"] == null ||
+      config["input_parameters"] is! Map) {
     SnackbarMessage.showErrorMessage(context, "Missing input parameters");
     return;
   }
@@ -44,14 +46,18 @@ void showConfigPopup(BuildContext context, dynamic test, TestsModel testsModel){
               String key = entry.key;
               Map<String, dynamic> param = entry.value;
 
-              if (!param.containsKey("text") || !param.containsKey("type") || !param.containsKey("value")) {
+              if (!param.containsKey("text") ||
+                  !param.containsKey("type") ||
+                  !param.containsKey("value")) {
                 return const SizedBox.shrink();
               }
 
               String label = param["text"];
               String type = param["type"];
-              String description = param["description"] ?? "No description available";
-              TextEditingController controller = controllers[key] ?? TextEditingController();
+              String description =
+                  param["description"] ?? "No description available";
+              TextEditingController controller =
+                  controllers[key] ?? TextEditingController();
 
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
@@ -62,8 +68,10 @@ void showConfigPopup(BuildContext context, dynamic test, TestsModel testsModel){
                           ? DropdownButtonFormField<bool>(
                               value: param["value"] == true,
                               items: const [
-                                DropdownMenuItem(value: true, child: Text("True")),
-                                DropdownMenuItem(value: false, child: Text("False")),
+                                DropdownMenuItem(
+                                    value: true, child: Text("True")),
+                                DropdownMenuItem(
+                                    value: false, child: Text("False")),
                               ],
                               onChanged: (newValue) {
                                 controllers[key]!.text = newValue.toString();
@@ -107,7 +115,8 @@ void showConfigPopup(BuildContext context, dynamic test, TestsModel testsModel){
                     entry.key: {
                       "text": entry.value["text"],
                       "type": entry.value["type"],
-                      "value": _parseValue(controllers[entry.key]?.text ?? "", entry.value["type"]),
+                      "value": _parseValue(controllers[entry.key]?.text ?? "",
+                          entry.value["type"]),
                       "description": entry.value["description"] ?? "",
                     }
                 }
@@ -116,7 +125,7 @@ void showConfigPopup(BuildContext context, dynamic test, TestsModel testsModel){
               //update the new config for the test
               test.config = jsonEncode(updatedConfig);
               await testsModel.updateProjectTestConfig(context, test);
-              
+
               Navigator.pop(context);
             },
             child: const Text("Save"),

@@ -10,7 +10,7 @@ import 'package:foretale_application/models/tests_model.dart';
 import 'package:foretale_application/ui/themes/datagrid_theme.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
 //widgets
-import 'package:foretale_application/ui/widgets/message_helper.dart';
+import 'package:foretale_application/core/utils/message_helper.dart';
 
 class TestsDataGrid extends StatefulWidget {
   const TestsDataGrid({super.key});
@@ -20,7 +20,6 @@ class TestsDataGrid extends StatefulWidget {
 }
 
 class _TestsDataGridState extends State<TestsDataGrid> {
-
   late final TestsModel testssModel;
 
   @override
@@ -40,16 +39,19 @@ class _TestsDataGridState extends State<TestsDataGrid> {
             allowSorting: false,
             allowFiltering: false,
             isScrollbarAlwaysShown: true,
-            columnWidthMode: ColumnWidthMode.fill, // Expands columns to fill the grid width
+            columnWidthMode:
+                ColumnWidthMode.fill, // Expands columns to fill the grid width
             selectionMode: SelectionMode.single,
             onCellTap: ((details) {
-                          if (details.rowColumnIndex.rowIndex == 0) {
-                            model.updateSortColumn(details.column.columnName);
-                          }
-                        }),
-            onSelectionChanged: (List<DataGridRow> addedRows, List<DataGridRow> removedRows) async {       
+              if (details.rowColumnIndex.rowIndex == 0) {
+                model.updateSortColumn(details.column.columnName);
+              }
+            }),
+            onSelectionChanged: (List<DataGridRow> addedRows,
+                List<DataGridRow> removedRows) async {
               if (addedRows.isNotEmpty) {
-                model.updateTestIdSelection(addedRows.first.getCells()[5].value);
+                model
+                    .updateTestIdSelection(addedRows.first.getCells()[5].value);
                 //await inquiryResponseModel.fetchResponsesByQuestion(context);
               }
             },
@@ -63,8 +65,11 @@ class _TestsDataGridState extends State<TestsDataGrid> {
                 label: Container(
                   padding: const EdgeInsets.all(4.0),
                   alignment: Alignment.center,
-                  child: Text('', style: TextStyles.gridHeaderText(context),),
+                  child: Text(
+                    '',
+                    style: TextStyles.gridHeaderText(context),
                   ),
+                ),
               ),
               GridColumn(
                 columnName: 'testCategory',
@@ -79,12 +84,14 @@ class _TestsDataGridState extends State<TestsDataGrid> {
               GridColumn(
                 columnName: 'testDescription',
                 columnWidthMode: ColumnWidthMode.fill,
-                label: buildHeader(context, model, "testDescription", "Description"),
+                label: buildHeader(
+                    context, model, "testDescription", "Description"),
               ),
               GridColumn(
                 columnName: 'testCriticality',
                 columnWidthMode: ColumnWidthMode.auto,
-                label: buildHeader(context, model, "testCriticality", "Criticality"),
+                label: buildHeader(
+                    context, model, "testCriticality", "Criticality"),
               ),
               GridColumn(
                 columnName: 'testRunType',
@@ -93,15 +100,18 @@ class _TestsDataGridState extends State<TestsDataGrid> {
               ),
               GridColumn(
                 filterPopupMenuOptions: const FilterPopupMenuOptions(
-                  filterMode: FilterMode.checkboxFilter,
-                  showColumnName: false, 
-                  canShowSortingOptions: false),
+                    filterMode: FilterMode.checkboxFilter,
+                    showColumnName: false,
+                    canShowSortingOptions: false),
                 visible: false,
                 columnName: 'testId',
                 label: Container(
                   padding: const EdgeInsets.all(4.0),
                   alignment: Alignment.center,
-                  child: Text('test_id', style: TextStyles.gridHeaderText(context),),
+                  child: Text(
+                    'test_id',
+                    style: TextStyles.gridHeaderText(context),
+                  ),
                 ),
               ),
             ],
@@ -118,50 +128,53 @@ class TestsDataSource extends DataGridSource {
   List<Test> testsList;
   TestsModel testsModel;
 
-  TestsDataSource(
-    this.context,
-    this.testsModel, 
-    this.testsList) {
+  TestsDataSource(this.context, this.testsModel, this.testsList) {
     buildDataGridRows();
   }
 
   void buildDataGridRows() {
     dataGridRows = testsList.map<DataGridRow>((row) {
       return DataGridRow(cells: [
-        
-        if(row.isSelected)
-        DataGridCell<Widget>(columnName: 'isSelected', value: IconButton(
-          icon: const Icon(Icons.check_box, color: Colors.red),
-          onPressed: () async {
-            try{
-              int resultId = await testsModel.removeTest(context, row);
-              if(resultId>0){
-                buildDataGridRows();
-                notifyListeners();
-              }
-            }catch(e){
-              SnackbarMessage.showErrorMessage(context, e.toString());
-            }
-          })),
-
-        if(!row.isSelected)
-        DataGridCell<Widget>(columnName: 'isSelected', value: IconButton(
-        icon: const Icon(Icons.check_box_outline_blank, color: Colors.red),
-        onPressed: () async {
-          try{
-              int resultId = await testsModel.selectTest(context, row);
-              if(resultId>0){
-                buildDataGridRows();
-                notifyListeners();
-              }
-            }catch(e){
-              SnackbarMessage.showErrorMessage(context, e.toString());
-            }
-        })),
-        DataGridCell<String>(columnName: 'testCategory', value: row.testCategory),
+        if (row.isSelected)
+          DataGridCell<Widget>(
+              columnName: 'isSelected',
+              value: IconButton(
+                  icon: const Icon(Icons.check_box, color: Colors.red),
+                  onPressed: () async {
+                    try {
+                      int resultId = await testsModel.removeTest(context, row);
+                      if (resultId > 0) {
+                        buildDataGridRows();
+                        notifyListeners();
+                      }
+                    } catch (e) {
+                      SnackbarMessage.showErrorMessage(context, e.toString());
+                    }
+                  })),
+        if (!row.isSelected)
+          DataGridCell<Widget>(
+              columnName: 'isSelected',
+              value: IconButton(
+                  icon: const Icon(Icons.check_box_outline_blank,
+                      color: Colors.red),
+                  onPressed: () async {
+                    try {
+                      int resultId = await testsModel.selectTest(context, row);
+                      if (resultId > 0) {
+                        buildDataGridRows();
+                        notifyListeners();
+                      }
+                    } catch (e) {
+                      SnackbarMessage.showErrorMessage(context, e.toString());
+                    }
+                  })),
+        DataGridCell<String>(
+            columnName: 'testCategory', value: row.testCategory),
         DataGridCell<String>(columnName: 'testName', value: row.testName),
-        DataGridCell<String>(columnName: 'testDescription', value: row.testDescription),
-        DataGridCell<String>(columnName: 'testCriticality', value: row.testCriticality),
+        DataGridCell<String>(
+            columnName: 'testDescription', value: row.testDescription),
+        DataGridCell<String>(
+            columnName: 'testCriticality', value: row.testCriticality),
         DataGridCell<String>(columnName: 'testRunType', value: row.testRunType),
         DataGridCell<int>(columnName: 'testId', value: row.testId),
       ]);
@@ -198,7 +211,8 @@ class TestsDataSource extends DataGridSource {
               child: Text(
                 dataGridCell.value.toString(),
                 maxLines: 3, // Limit the text to 3 lines
-                overflow: TextOverflow.ellipsis, // Show ellipsis if text overflows
+                overflow:
+                    TextOverflow.ellipsis, // Show ellipsis if text overflows
                 style: TextStyles.gridText(context),
               ),
             ),
@@ -217,6 +231,4 @@ class TestsDataSource extends DataGridSource {
       }).toList(),
     );
   }
-
 }
-

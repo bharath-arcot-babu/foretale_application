@@ -15,7 +15,7 @@ import 'package:foretale_application/ui/screens/test_case/test_config_lv.dart';
 //widgets
 import 'package:foretale_application/ui/widgets/custom_enclosure.dart';
 import 'package:foretale_application/ui/widgets/custom_text_field.dart';
-import 'package:foretale_application/ui/widgets/message_helper.dart';
+import 'package:foretale_application/core/utils/message_helper.dart';
 //llms
 
 class TestConfigPage extends StatefulWidget {
@@ -97,10 +97,7 @@ class _TestConfigPageState extends State<TestConfigPage> {
                     ),
                   ),
                 ),
-
                 const SizedBox(width: 16),
-
-                // Middle section: Placeholder
                 Expanded(
                   flex: 4,
                   child: CustomContainer(
@@ -141,6 +138,6 @@ class _TestConfigPageState extends State<TestConfigPage> {
   }
 
   Future<void> _loadResponses() async {
-    await inquiryResponseModel.fetchResponsesByQuestion(context);
+    await inquiryResponseModel.fetchResponsesByTest(context);
   }
 }

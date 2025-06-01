@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
 import 'package:foretale_application/core/services/lambda_activities.dart';
-import 'package:foretale_application/lambda_api_config.dart';
+import 'package:foretale_application/config_lambda_api.dart';
 import 'package:foretale_application/models/columns_model.dart';
 import 'package:foretale_application/models/file_upload_summary_model.dart';
 import 'package:foretale_application/models/user_details_model.dart';
@@ -10,7 +10,7 @@ import 'package:foretale_application/ui/widgets/custom_elevated_button.dart';
 import 'package:foretale_application/ui/widgets/custom_info_card.dart';
 import 'package:foretale_application/ui/widgets/custom_loading_indicator.dart';
 import 'package:foretale_application/ui/widgets/custom_static_list_view.dart';
-import 'package:foretale_application/ui/widgets/message_helper.dart';
+import 'package:foretale_application/core/utils/message_helper.dart';
 import 'package:provider/provider.dart';
 
 class UploadConfirmationPage extends StatefulWidget {

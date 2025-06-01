@@ -9,7 +9,7 @@ import 'package:foretale_application/ui/screens/data_upload/data_quality_assessm
 import 'package:foretale_application/ui/screens/data_upload/upload_confirmation.dart';
 import 'package:foretale_application/ui/widgets/custom_alert.dart';
 import 'package:foretale_application/ui/widgets/custom_loading_indicator.dart';
-import 'package:foretale_application/ui/widgets/message_helper.dart';
+import 'package:foretale_application/core/utils/message_helper.dart';
 import 'package:path/path.dart' as path;
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
 import 'package:foretale_application/core/services/s3_activites.dart';
@@ -21,6 +21,7 @@ import 'package:foretale_application/ui/widgets/custom_enclosure.dart';
 import 'package:foretale_application/ui/widgets/custom_icon.dart';
 import 'package:foretale_application/ui/widgets/custom_icon_button.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 
 class UploadScreenWizard extends StatefulWidget {
   const UploadScreenWizard({super.key});
@@ -50,7 +51,7 @@ class _UploadScreenWizardState extends State<UploadScreenWizard>
     uploadSummaryModel =
         Provider.of<UploadSummaryModel>(context, listen: false);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async{
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       setState(() {
         isPageLoading = true;
         loadText = "Loading...";
@@ -438,8 +439,9 @@ class _UploadScreenWizardState extends State<UploadScreenWizard>
   }
 
   Future<void> pickFile(int tableId) async {
+    String uuid = Uuid().v4();
     String storagePath =
-        'public/data/${projectDetailsModel.getActiveProjectId}/${projectDetailsModel.getProjectTypeId}/$tableId';
+        'public/data/${projectDetailsModel.getActiveProjectId}/${projectDetailsModel.getProjectTypeId}/$tableId/$uuid/';
 
     try {
       filePickerResult = await FilePicker.platform.pickFiles(

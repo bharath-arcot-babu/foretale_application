@@ -13,13 +13,36 @@ Future<bool> showConfirmDialog({
   final result = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
-      title: Text(
-        title,
-        style: TextStyles.subjectText(context),
+      contentPadding: const EdgeInsets.all(24),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
       ),
-      content: Text(
-        content,
-        style: TextStyles.topicText(context),
+      content: Container(
+        constraints: const BoxConstraints(
+          minWidth: 300,
+          maxWidth: 400,
+          minHeight: 150,
+          maxHeight: 250,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyles.subjectText(context),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              content,
+              style: TextStyles.topicText(context),
+              textAlign: TextAlign.left,
+              softWrap: true,
+              maxLines: 10,
+              textWidthBasis: TextWidthBasis.parent
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(

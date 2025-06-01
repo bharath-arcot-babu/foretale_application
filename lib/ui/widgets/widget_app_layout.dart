@@ -87,12 +87,7 @@ class _AppLayoutState extends State<AppLayout> {
                   } else {
                     return Row(children: [
                       Expanded(
-                        child: Container(
-                          margin: const EdgeInsets.fromLTRB(0, 10, 10, 10),
-                          padding: const EdgeInsets.all(16.0),
-                          decoration: ScaffoldStyles.layoutBodyPanelBoxDecoration(),
-                           child: _getContent(),
-                        ),
+                        child: _getContent(),
                       )
                     ]);
                   }

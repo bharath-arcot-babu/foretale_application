@@ -7,7 +7,7 @@ class AppColors {
   static const Color secondaryColor =
       Color(0xFF353845); // Lighter version of primary
   static const Color backgroundColor =
-      Color(0xFFF5F5F7); // Light gray background
+      Color(0xFFFAFAFA); // Light gray background
   static const Color accentColor =
       Color(0xFF1E212B); // Your vibrant pink-red as accent
   static const Color surfaceColor =

@@ -1,5 +1,6 @@
 class InquiryAttachment {
   int attachmentId;
+  int responseId;
   String filePath;
   String fileName;
   int fileSize;
@@ -9,6 +10,7 @@ class InquiryAttachment {
 
   InquiryAttachment({
     this.attachmentId = 0,
+    this.responseId = 0,
     this.filePath = '',
     this.fileName = '',
     this.fileSize = 0,
@@ -20,6 +22,7 @@ class InquiryAttachment {
   factory InquiryAttachment.fromJson(Map<String, dynamic> map) {
     return InquiryAttachment(
       attachmentId: map['attachment_id'] ?? 0,
+      responseId: map['response_id'] ?? 0,
       filePath: map['file_path'] ?? '',
       fileName: map['file_name'] ?? '',
       fileSize: map['file_size'] ?? 0,

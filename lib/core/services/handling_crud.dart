@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:foretale_application/core/services/database_connect.dart';
-import 'package:foretale_application/ui/widgets/message_helper.dart';
+import 'package:foretale_application/core/utils/message_helper.dart';
 
 class CRUD {
   Future<int> addRecord(BuildContext context, String storedProcedure,
       Map<String, dynamic> params) async {
     try {
-      var jsonResponse =
-          await FlaskApiService().insertRecord(storedProcedure, params);
-      int insertedId =
-          int.parse(jsonResponse['data'][0]['inserted_id'].toString());
+      var jsonResponse = await DatabaseApiService().insertRecord(storedProcedure, params);
+      int insertedId = int.parse(jsonResponse['data'][0]['inserted_id'].toString());
 
       if (insertedId > 0) {
         return insertedId;
@@ -17,8 +15,7 @@ class CRUD {
         throw Exception('Failed to add record');
       }
     } catch (e, error_stack_trace) {
-      _handleError(
-          context, e, error_stack_trace, storedProcedure, 'insertRecord');
+      _handleError(context, e, error_stack_trace, storedProcedure, 'insertRecord');
       return 0;
     }
   }
@@ -27,7 +24,7 @@ class CRUD {
       Map<String, dynamic> params) async {
     try {
       var jsonResponse =
-          await FlaskApiService().updateRecord(storedProcedure, params);
+          await DatabaseApiService().updateRecord(storedProcedure, params);
       int updatedId =
           int.parse(jsonResponse['data'][0]['updated_id'].toString());
 
@@ -47,7 +44,7 @@ class CRUD {
       Map<String, dynamic> params) async {
     try {
       var jsonResponse =
-          await FlaskApiService().deleteRecord(storedProcedure, params);
+          await DatabaseApiService().deleteRecord(storedProcedure, params);
       int deletedId =
           int.parse(jsonResponse['data'][0]['deleted_id'].toString());
 
@@ -70,7 +67,7 @@ class CRUD {
       T Function(Map<String, dynamic>) fromJson) async {
     try {
       var jsonResponse =
-          await FlaskApiService().readRecord(storedProcedure, params);
+          await DatabaseApiService().readRecord(storedProcedure, params);
 
       if (jsonResponse != null && jsonResponse['data'] != null) {
         var data = jsonResponse['data'];
@@ -84,7 +81,6 @@ class CRUD {
               try {
                 return fromJson(json)!;
               } catch (e) {
-                print(e);
                 return null;
               }
             })
@@ -94,7 +90,6 @@ class CRUD {
         return [];
       }
     } catch (e, error_stack_trace) {
-      print(e.toString());
       _handleError(
           context, e, error_stack_trace, storedProcedure, 'readRecord');
       return [];
@@ -108,7 +103,7 @@ class CRUD {
       T Function(Map<String, dynamic>) fromJson) async {
     try {
       var jsonResponse =
-          await FlaskApiService().readJsonRecord(storedProcedure, params);
+          await DatabaseApiService().readJsonRecord(storedProcedure, params);
 
       if (jsonResponse != null && jsonResponse['data'] != null) {
         var data = jsonResponse['data'];
@@ -122,8 +117,6 @@ class CRUD {
               try {
                 return fromJson(json)!;
               } catch (e) {
-                print(e);
-                print("Error in JSON mapping: $json");
                 return null;
               }
             })
@@ -133,7 +126,6 @@ class CRUD {
         return [];
       }
     } catch (e, error_stack_trace) {
-      print(e.toString());
       _handleError(
           context, e, error_stack_trace, storedProcedure, 'readJsonRecord');
       return [];
@@ -143,6 +135,7 @@ class CRUD {
   // Handle errors and show messages to users
   void _handleError(BuildContext context, dynamic error, StackTrace stackTrace,
       String storedProcedure, String action) {
+    print("Error in _handleError: $error");
     SnackbarMessage.showErrorMessage(
       context,
       'Unable to complete the action. Please contact support for assistance.',

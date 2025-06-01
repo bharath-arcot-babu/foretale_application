@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
-class CustomIconButton extends StatelessWidget {
+class CustomIconButton extends StatefulWidget {
   final IconData icon;
   final VoidCallback onPressed;
   final String? tooltip;
   final double iconSize;
   final Color? backgroundColor;
   final Color? iconColor;
+  final double? padding;
+  final bool isProcessing;
 
   const CustomIconButton({
     super.key,
@@ -16,37 +18,92 @@ class CustomIconButton extends StatelessWidget {
     this.iconSize = 20,
     this.backgroundColor,
     this.iconColor,
+    this.padding,
+    this.isProcessing = false,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final bg =
-        backgroundColor ?? Theme.of(context).colorScheme.secondaryContainer;
-    final fg = iconColor ?? Theme.of(context).colorScheme.secondary;
+  State<CustomIconButton> createState() => _CustomIconButtonState();
+}
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(12),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: bg,
+class _CustomIconButtonState extends State<CustomIconButton> with SingleTickerProviderStateMixin {
+  bool _isHovered = false;
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = widget.backgroundColor ?? Theme.of(context).colorScheme.secondaryContainer;
+    final fg = widget.iconColor ?? Theme.of(context).colorScheme.secondary;
+
+    return MouseRegion(
+      onEnter: (_) {
+        setState(() => _isHovered = true);
+        _controller.forward();
+      },
+      onExit: (_) {
+        setState(() => _isHovered = false);
+        _controller.reverse();
+      },
+      child: Tooltip(
+        message: widget.tooltip ?? '',
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: widget.isProcessing ? null : widget.onPressed,
             borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: bg.withOpacity(0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+            splashColor: fg.withOpacity(0.1),
+            highlightColor: fg.withOpacity(0.2),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: EdgeInsets.all(widget.padding ?? 8),
+              decoration: BoxDecoration(
+                color: bg,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: bg.withOpacity(_isHovered ? 0.4 : 0.3),
+                    blurRadius: _isHovered ? 12 : 8,
+                    offset: Offset(0, _isHovered ? 3 : 2),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Icon(
-            icon,
-            size: iconSize,
-            color: fg,
+              child: ScaleTransition(
+                scale: _scaleAnimation,
+                child: widget.isProcessing
+                    ? SizedBox(
+                        width: widget.iconSize,
+                        height: widget.iconSize,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(fg),
+                        ),
+                      )
+                    : Icon(
+                        widget.icon,
+                        size: widget.iconSize,
+                        color: fg,
+                      ),
+              ),
+            ),
           ),
         ),
       ),

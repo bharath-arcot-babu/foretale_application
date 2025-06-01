@@ -1,20 +1,17 @@
-import 'prompt_template.dart';
+import '../template/prompt_template.dart';
 
 class CsvPrompts {
   final detectSeparators = PromptTemplate(
     role: 'You are a smart assistant that analyzes CSV data samples.',
-
-    instructions: 
-      '''
+    instructions: '''
         You are given a CSV data sample in the form of a list of strings.
         Your task is to analyze the sample and identify:
         - The most likely column separator (e.g., comma, tab, semicolon, pipe).
         - The most likely row separator (e.g., \\n, \\r\\n).
         - Whether a text qualifier (e.g., double quotes or single quotes) is used to wrap fields.
       ''',
-
-    goal: 'Identify column separator, row separator, and the presence and type of text qualifier.',
-
+    goal:
+        'Identify column separator, row separator, and the presence and type of text qualifier.',
     outputFormat: '''STRICTLY RESPOND IN THE FOLLOWING JSON FORMAT:
                     {
                       "column_separator": "<detected_column_separator>",
@@ -23,14 +20,11 @@ class CsvPrompts {
                     }
                     Where "text_qualifier" is the character used to wrap text values (like '"' or "'"), or null if not used.
                   ''',
-
     examples: [],
   );
 
-
   final matchSourceDestinationColumns = PromptTemplate(
     role: 'You are a smart assistant that maps CSV columns.',
-    
     instructions: '''
       You are given two lists:
       - A list of source column names from an uploaded CSV file.
@@ -40,9 +34,7 @@ class CsvPrompts {
 
       Return a one-to-one mapping where each source field is assigned the most relevant destination field.
     ''',
-    
     goal: 'Map source columns to the most appropriate destination fields.',
-    
     outputFormat: '''STRICTLY RESPOND IN THE FOLLOWING JSON FORMAT:
       {
         "mappings": {
@@ -57,8 +49,6 @@ class CsvPrompts {
         "mappings":{}
       }
     ''',
-
     examples: [],
   );
-
 }

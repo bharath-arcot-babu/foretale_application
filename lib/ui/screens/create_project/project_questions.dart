@@ -7,7 +7,7 @@ import 'package:foretale_application/ui/widgets/custom_elevated_button.dart';
 import 'package:foretale_application/ui/widgets/custom_enclosure.dart';
 import 'package:foretale_application/ui/widgets/custom_future_dropdown.dart';
 import 'package:foretale_application/ui/widgets/custom_text_field.dart';
-import 'package:foretale_application/ui/widgets/message_helper.dart';
+import 'package:foretale_application/core/utils/message_helper.dart';
 import 'package:provider/provider.dart';
 
 class QuestionsScreen extends StatefulWidget {

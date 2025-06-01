@@ -9,7 +9,7 @@ import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:foretale_application/ui/widgets/custom_elevated_button.dart';
 import 'package:foretale_application/ui/widgets/custom_enclosure.dart';
 import 'package:foretale_application/ui/widgets/custom_resource_card.dart';
-import 'package:foretale_application/ui/widgets/message_helper.dart';
+import 'package:foretale_application/core/utils/message_helper.dart';
 import 'package:foretale_application/ui/widgets/animation/custom_animator.dart';
 import 'package:foretale_application/ui/widgets/animation/animated_switcher.dart';
 import 'package:foretale_application/ui/widgets/custom_text_field.dart';

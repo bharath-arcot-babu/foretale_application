@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:foretale_application/models/abstracts/chat_driving_model.dart';
 import 'package:foretale_application/models/inquiry_response_model.dart';
-import 'package:foretale_application/s3_config.dart';
+import 'package:foretale_application/config_s3.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 //model

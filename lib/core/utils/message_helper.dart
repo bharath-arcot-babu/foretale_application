@@ -1,5 +1,6 @@
 //core
 import 'package:flutter/material.dart';
+import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:provider/provider.dart';
 //services
 import 'package:foretale_application/core/services/database_connect.dart';
@@ -9,13 +10,14 @@ import 'package:foretale_application/models/user_details_model.dart';
 class SnackbarMessage {
   /// Displays a success message in a SnackBar with bottom-middle positioning and animation.
   static void showSuccessMessage(BuildContext context, String message) {
-    _showSnackBar(context, message, const Color.fromARGB(255, 30, 144, 33),
-        SnackBarBehavior.floating);
+    _showSnackBar(
+        context, message, const Color(0xFF3AB077), SnackBarBehavior.floating);
   }
 
   /// Displays an error message in a SnackBar with bottom-middle positioning and animation.
   static void showErrorMessage(BuildContext context, String message,
-      {bool logError = false,
+      {bool showUserMessage = true,
+      bool logError = false,
       String errorMessage = "",
       String errorType = "",
       String errorStackTrace = "",
@@ -23,10 +25,12 @@ class SnackbarMessage {
       String severityLevel = "",
       String requestPath = ""}) async {
     try {
-      print("message: $message");
       String errMessage = SnackbarMessage.extractErrorMessage(message);
 
-      if (errMessage != 'NOT_FOUND') {
+      if (showUserMessage) {
+        _showSnackBar(context, message, const Color.fromARGB(255, 167, 34, 25),
+            SnackBarBehavior.floating);
+      } else if (errMessage != 'NOT_FOUND') {
         _showSnackBar(context, errMessage,
             const Color.fromARGB(255, 167, 34, 25), SnackBarBehavior.floating);
       } else {
@@ -46,7 +50,7 @@ class SnackbarMessage {
             "request_path": requestPath,
           };
 
-          await FlaskApiService().insertRecord("dbo.SPROC_LOG_ERROR", params);
+          await DatabaseApiService().insertRecord("dbo.SPROC_LOG_ERROR", params);
         }
       }
     } catch (e) {
@@ -57,12 +61,8 @@ class SnackbarMessage {
 
   // Function to extract the message between <ERR_START> and <ERR_END>
   static String extractErrorMessage(String errorMessage) {
-    print("errorMessage: $errorMessage");
     int startIndex = errorMessage.indexOf('<ERR_START>');
     int endIndex = errorMessage.indexOf('<ERR_END>');
-
-    print("startIndex: $startIndex");
-    print("endIndex: $endIndex");
 
     if (startIndex != -1 && endIndex != -1) {
       return errorMessage.substring(startIndex + 11, endIndex).trim();
@@ -99,7 +99,7 @@ class SnackbarMessage {
             ),
             child: Text(
               message,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyles.titleText(context),
             ),
           ),
         ),

@@ -3,38 +3,32 @@ import 'package:http/http.dart' as http;
 
 class LambdaHelper {
   final String apiGatewayUrl;
-  final Map<String, String> defaultHeaders;
 
-  LambdaHelper({
-    required this.apiGatewayUrl,
-    this.defaultHeaders = const {},
-  });
+  LambdaHelper({required this.apiGatewayUrl});
 
-  /// Calls the Lambda function via API Gateway with a JSON payload.
-  Future<Map<String, dynamic>> invokeLambda({required Map<String, dynamic> payload, Map<String, String>? headers,}) async {
+  Future<Map<String, dynamic>> invokeLambda({required Map<String, dynamic> payload}) async {
 
     final uri = Uri.parse(apiGatewayUrl);
 
-    final mergedHeaders = {
+    final headers = {
       'Content-Type': 'application/json',
-      ...defaultHeaders,
-      if (headers != null) ...headers,
+      'Accept': 'application/json',
     };
 
     try {
       final response = await http.post(
         uri,
-        headers: mergedHeaders,
+        headers: headers,
         body: jsonEncode(payload),
       );
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
-        throw Exception('Lambda call failed: ${response.statusCode} - ${response.body}');
+        throw Exception('Lambda failed: ${response.statusCode} ${response.body}');
       }
     } catch (e) {
-      throw Exception('Error invoking Lambda: $e');
+      throw Exception('Error calling Lambda: $e');
     }
   }
 }

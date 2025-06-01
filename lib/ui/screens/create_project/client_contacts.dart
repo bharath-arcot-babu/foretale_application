@@ -3,7 +3,7 @@ import 'package:foretale_application/models/client_contacts_model.dart';
 import 'package:foretale_application/ui/screens/datagrids/sfdg_client_contacts.dart';
 import 'package:foretale_application/ui/widgets/custom_elevated_button.dart';
 import 'package:foretale_application/ui/widgets/custom_text_field.dart';
-import 'package:foretale_application/ui/widgets/message_helper.dart';
+import 'package:foretale_application/core/utils/message_helper.dart';
 import 'package:provider/provider.dart';
 
 class ClientContactsPage extends StatefulWidget {
@@ -21,7 +21,8 @@ class _ClientContactsState extends State<ClientContactsPage> {
   final TextEditingController _jobTitleController = TextEditingController();
   final TextEditingController _departmentController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  late ClientContactsModel _clientContacts = Provider.of<ClientContactsModel>(context, listen: false);
+  late ClientContactsModel _clientContacts =
+      Provider.of<ClientContactsModel>(context, listen: false);
 
   @override
   void initState() {
@@ -128,26 +129,22 @@ class _ClientContactsState extends State<ClientContactsPage> {
                 isClient: 'Yes'));
 
         if (resultId > 0) {
-          SnackbarMessage.showSuccessMessage(context,'"${_nameController.text.trim()}" has been added to the project.');
+          SnackbarMessage.showSuccessMessage(context,
+              '"${_nameController.text.trim()}" has been added to the project.');
         }
-
       } catch (e, error_stack_trace) {
-        SnackbarMessage.showErrorMessage(context, 
-            e.toString(),
+        SnackbarMessage.showErrorMessage(context, e.toString(),
             logError: true,
             errorMessage: e.toString(),
             errorStackTrace: error_stack_trace.toString(),
             errorSource: _currentFileName,
             severityLevel: 'Critical',
             requestPath: "_saveClientContact");
-
       } finally {
-
         _nameController.clear();
         _jobTitleController.clear();
         _departmentController.clear();
         _emailController.clear();
-
       }
     }
   }
@@ -160,13 +157,13 @@ class _ClientContactsState extends State<ClientContactsPage> {
     try {
       await _fetchClientContacts(context);
     } catch (e, error_stack_trace) {
-        SnackbarMessage.showErrorMessage(context, 'Something went wrong!',
-            logError: true,
-            errorMessage: e.toString(),
-            errorStackTrace: error_stack_trace.toString(),
-            errorSource: _currentFileName,
-            severityLevel: 'Critical',
-            requestPath: "_loadPage");
-      } 
+      SnackbarMessage.showErrorMessage(context, 'Something went wrong!',
+          logError: true,
+          errorMessage: e.toString(),
+          errorStackTrace: error_stack_trace.toString(),
+          errorSource: _currentFileName,
+          severityLevel: 'Critical',
+          requestPath: "_loadPage");
+    }
   }
 }

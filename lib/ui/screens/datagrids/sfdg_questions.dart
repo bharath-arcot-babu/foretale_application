@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:foretale_application/models/question_model.dart';
 import 'package:foretale_application/ui/themes/datagrid_theme.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
-import 'package:foretale_application/ui/widgets/message_helper.dart';
+import 'package:foretale_application/core/utils/message_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';

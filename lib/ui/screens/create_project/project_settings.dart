@@ -3,15 +3,12 @@ import 'package:foretale_application/models/project_settings_model.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:foretale_application/ui/widgets/custom_elevated_button.dart';
 import 'package:foretale_application/ui/widgets/custom_text_field.dart';
-import 'package:foretale_application/ui/widgets/message_helper.dart';
+import 'package:foretale_application/core/utils/message_helper.dart';
 import 'package:provider/provider.dart';
 
 class ProjectSettingsScreen extends StatefulWidget {
   final bool isNew;
-  const ProjectSettingsScreen({
-    super.key, 
-    required this.isNew
-    });
+  const ProjectSettingsScreen({super.key, required this.isNew});
 
   @override
   State<ProjectSettingsScreen> createState() => _ProjectSettingsScreenState();
@@ -32,9 +29,10 @@ class _ProjectSettingsScreenState extends State<ProjectSettingsScreen> {
   late ProjectSettingsModel _projectSettingsModel;
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
-    _projectSettingsModel = Provider.of<ProjectSettingsModel>(context, listen: false);
+    _projectSettingsModel =
+        Provider.of<ProjectSettingsModel>(context, listen: false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!widget.isNew) {
@@ -59,11 +57,15 @@ class _ProjectSettingsScreenState extends State<ProjectSettingsScreen> {
                   height: 40,
                   text: 'Save',
                   textSize: 14,
-                  onPressed: (){_saveProjectSettings(context);}, // Call _submitForm on button press
+                  onPressed: () {
+                    _saveProjectSettings(context);
+                  }, // Call _submitForm on button press
                 ),
               ],
             ),
-            const SizedBox(height: 15,),
+            const SizedBox(
+              height: 15,
+            ),
             // SQL Server Settings
             Text(
               'Database Configuration',
@@ -156,28 +158,26 @@ class _ProjectSettingsScreenState extends State<ProjectSettingsScreen> {
 
   // Function to handle form submission
   Future<void> _saveProjectSettings(BuildContext context) async {
-
     if (_formKey.currentState?.validate() ?? false) {
-      try{
-          _projectSettingsModel.projectSettings = ProjectSettings(
+      try {
+        _projectSettingsModel.projectSettings = ProjectSettings(
             sqlHost: _sqlHostController.text.trim(),
             sqlPort: int.parse(_sqlPortController.text.trim()),
             sqlDatabase: _sqlDatabaseController.text.trim(),
             sqlUsername: _sqlUsernameController.text.trim(),
             sqlPassword: _sqlPasswordController.text.trim(),
-            s3Url : _s3UrlController.text.trim(),
+            s3Url: _s3UrlController.text.trim(),
             s3Username: _s3UsernameController.text.trim(),
-            s3Password: _s3PasswordController.text.trim()
-          );
+            s3Password: _s3PasswordController.text.trim());
 
-          int projectSettingId = await _projectSettingsModel.saveProjectSettings(context);
-          if(projectSettingId>0){
-            SnackbarMessage.showSuccessMessage(context, 'Project settings saved successfully.');
-          }
-      } 
-      catch(e, error_stack_trace){
-          SnackbarMessage.showErrorMessage(context, 
-            e.toString(),
+        int projectSettingId =
+            await _projectSettingsModel.saveProjectSettings(context);
+        if (projectSettingId > 0) {
+          SnackbarMessage.showSuccessMessage(
+              context, 'Project settings saved successfully.');
+        }
+      } catch (e, error_stack_trace) {
+        SnackbarMessage.showErrorMessage(context, e.toString(),
             logError: true,
             errorMessage: e.toString(),
             errorStackTrace: error_stack_trace.toString(),
@@ -190,7 +190,7 @@ class _ProjectSettingsScreenState extends State<ProjectSettingsScreen> {
 
   Future<void> _fetchProjectSettings(BuildContext context) async {
     await _projectSettingsModel.fetchProjectSettingsByUserMachineId(context);
-    
+
     _sqlHostController.text = _projectSettingsModel.getSqlHost;
     _sqlPortController.text = _projectSettingsModel.getSqlPort.toString();
     _sqlDatabaseController.text = _projectSettingsModel.getSqlDatabase;
@@ -204,16 +204,14 @@ class _ProjectSettingsScreenState extends State<ProjectSettingsScreen> {
   Future<void> _loadPage() async {
     try {
       await _fetchProjectSettings(context);
-    } catch(e, error_stack_trace){
-          SnackbarMessage.showErrorMessage(context, 
-            e.toString(),
-            logError: true,
-            errorMessage: e.toString(),
-            errorStackTrace: error_stack_trace.toString(),
-            errorSource: _currentFileName,
-            severityLevel: 'Critical',
-            requestPath: "_loadPage");
-      }
+    } catch (e, error_stack_trace) {
+      SnackbarMessage.showErrorMessage(context, e.toString(),
+          logError: true,
+          errorMessage: e.toString(),
+          errorStackTrace: error_stack_trace.toString(),
+          errorSource: _currentFileName,
+          severityLevel: 'Critical',
+          requestPath: "_loadPage");
+    }
   }
 }
-

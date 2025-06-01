@@ -54,7 +54,7 @@ class TextStyles {
     return GoogleFonts.poppins(
       // Apply Google Font
       fontWeight: FontWeight.w400,
-      color: TextColors.tertiaryTextColor,
+      color: TextColors.secondaryTextColor,
       fontSize: _getFontSize(context, 10.0), // Responsive font size
     );
   }

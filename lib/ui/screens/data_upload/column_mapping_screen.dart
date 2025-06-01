@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
-import 'package:foretale_application/core/services/llms/csv_analysis_prompt.dart';
-import 'package:foretale_application/core/services/llms/llm_api.dart';
+import 'package:foretale_application/core/services/llms/prompts/csv_analysis_prompt.dart';
+import 'package:foretale_application/core/services/llms/api/llm_api.dart';
 import 'package:foretale_application/models/columns_model.dart';
 import 'package:foretale_application/models/file_upload_summary_model.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
@@ -14,7 +14,7 @@ import 'package:foretale_application/ui/widgets/custom_dropdown_list.dart';
 import 'package:foretale_application/ui/widgets/custom_elevated_button.dart';
 import 'package:foretale_application/ui/widgets/custom_enclosure.dart';
 import 'package:foretale_application/ui/widgets/custom_loading_indicator.dart';
-import 'package:foretale_application/ui/widgets/message_helper.dart';
+import 'package:foretale_application/core/utils/message_helper.dart';
 import 'package:provider/provider.dart';
 
 class ColumnMappingScreen extends StatefulWidget {
@@ -77,8 +77,8 @@ class _MappingScreenState extends State<ColumnMappingScreen> {
                       children: [
                         // AI Magic Button
                         AiMagicIconButton(
-                          onPressed: () {
-                            showConfirmDialog(
+                          onPressed: () async {
+                            final confirmed = await showConfirmDialog(
                               context: context,
                               title: "AI Magic",
                               cancelText: "NO",
@@ -87,12 +87,14 @@ class _MappingScreenState extends State<ColumnMappingScreen> {
                               content:
                                   "AI Magic will attempt to automatically map your columns using AI. This will replace any existing mappings, and results may not be fully accurate. Would you like to continue?",
                             );
-                            callingLLM(
-                              consumeColumnModel.sourceFields,
-                              consumeColumnModel.destinationFieldMap.entries
-                                  .map((e) => e.key)
-                                  .toList(),
-                            );
+                            if (confirmed == true) {
+                              callingLLM(
+                                consumeColumnModel.sourceFields,
+                                consumeColumnModel.destinationFieldMap.entries
+                                    .map((e) => e.key)
+                                    .toList(),
+                              );
+                            }
                           },
                           tooltip: 'Auto Map Columns',
                           iconSize: 18.0,
@@ -361,8 +363,8 @@ class _MappingScreenState extends State<ColumnMappingScreen> {
       CsvPrompts prompts = CsvPrompts();
       String callingPrompt = prompts.matchSourceDestinationColumns
           .buildPromptForMatch(source, destination);
-      final modelOuput = await LLMService.callLLM(
-          model: LLMModel.mistral, prompt: callingPrompt, maxTokens: 2000);
+      final modelOuput = await LLMService()
+          .callLLMGeneralPurpose(prompt: callingPrompt, maxTokens: 2000);
 
       final rawMappings = modelOuput["mappings"];
       if (rawMappings is Map) {

@@ -1,7 +1,9 @@
 //core
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:foretale_application/models/inquiry_response_model.dart';
-import 'package:foretale_application/s3_config.dart';
+import 'package:foretale_application/config_s3.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 //models
@@ -23,6 +25,10 @@ class Test {
   String config;
   bool isSelected;
   String defaultConfig;
+  String relevantSchemaName;
+  bool testConfigUpdateStatus;
+  String testCode;
+  int projectTestId;
 
   Test({
     this.testId = 0,
@@ -36,9 +42,14 @@ class Test {
     this.config = '',
     this.isSelected = false,
     this.defaultConfig = '',
+    this.relevantSchemaName = '',
+    this.testConfigUpdateStatus = false,
+    this.testCode = '',
+    this.projectTestId = 0,
   });
 
   factory Test.fromJson(Map<String, dynamic> map) {
+ 
     return Test(
       testId: map['test_id'] ?? 0,
       testName: map['test_name'] ?? '',
@@ -51,6 +62,10 @@ class Test {
       config: map['config'] ?? '',
       isSelected: bool.tryParse(map['is_selected']) ?? false,
       defaultConfig: map['default_config'] ?? '',
+      relevantSchemaName: map['relevant_schema_name'] ?? '',
+      testConfigUpdateStatus: map['test_config_update_status'] ?? false,
+      testCode: map['test_code'] ?? '',
+      projectTestId: map['project_test_id'] ?? 0,
     );
   }
 }
@@ -66,6 +81,7 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
   int _selectedTestId = 0;
   int get getSelectedTestId => _selectedTestId;
 
+
   String _currentSortColumn = 'testName';
   String get getCurrentSortColumn => _currentSortColumn;
   DataGridSortDirection currentSortDirection = DataGridSortDirection.descending;
@@ -73,6 +89,14 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
 
   Future<void> updateTestIdSelection(int testId) async {
     _selectedTestId = testId;
+    notifyListeners();
+  }
+  
+  Future<void> updateTestConfigUpdateStatus(int testId, bool testConfigUpdateStatus) async {
+    var index = testsList.indexWhere((q) => q.testId == testId);
+    if (index != -1) {
+      testsList[index].testConfigUpdateStatus = testConfigUpdateStatus;
+    }
     notifyListeners();
   }
 
@@ -129,6 +153,67 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
     notifyListeners();
   }
 
+  Future<int> insertTestExecutionLog(BuildContext context, Test test) async {
+    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
+
+    final params = {
+      'project_id': projectDetailsModel.getActiveProjectId,
+      'test_id': test.testId,
+      'project_test_id': test.projectTestId,
+      'test_code': test.testCode,
+      'test_name': test.testName,
+      'config': test.config,
+      'status': 'Started',
+      'message': 'Test execution started',
+      'created_by': userDetailsModel.getUserMachineId,
+    };
+
+    int insertedId = await _crudService.addRecord(
+      context,
+      'dbo.sproc_insert_update_test_execution_log',
+      params,
+    );
+
+    return insertedId;
+  }
+
+  Future<int> updateTestExecutionLog(
+      BuildContext context, 
+      Test test, 
+      String status, 
+      String message, 
+      String errorMessage, 
+      String errorStackTrace,
+      String errorSource,
+      String severityLevel,
+      String requestPath
+    ) async {
+    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+    
+    final params = {
+      'project_id': projectDetailsModel.getActiveProjectId,
+      'test_id': test.testId,
+      'project_test_id': test.projectTestId,
+      'status': status,
+      'message': message,
+      'error_message': errorMessage,
+      'error_stack_trace': errorStackTrace,
+      'error_source': errorSource,
+      'severity_level': severityLevel,
+      'request_path': requestPath,
+    };
+
+    int updatedId = await _crudService.updateRecord(
+      context,
+      'dbo.sproc_insert_update_test_execution_log',
+      params,
+    );
+
+    return updatedId;
+  }
+
+
   Future<int> selectTest(BuildContext context, Test test) async {
     var userDetailsModel =
         Provider.of<UserDetailsModel>(context, listen: false);
@@ -181,10 +266,8 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
   }
 
   Future<int> updateProjectTestConfig(BuildContext context, Test test) async {
-    var userDetailsModel =
-        Provider.of<UserDetailsModel>(context, listen: false);
-    var projectDetailsModel =
-        Provider.of<ProjectDetailsModel>(context, listen: false);
+    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
+    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
 
     final params = {
       'project_id': projectDetailsModel.getActiveProjectId,
@@ -193,17 +276,37 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
       'last_updated_by': userDetailsModel.getUserMachineId
     };
 
-    int deletedId = await _crudService.updateRecord(
+    int updatedId = await _crudService.updateRecord(
       context,
       'dbo.sproc_update_project_test_config',
       params,
     );
 
-    if (deletedId > 0) {
+    if (updatedId > 0) {
       _updateTestList(test.testId, false);
     }
 
-    return deletedId;
+    return updatedId;
+  }
+
+  Future<int> updateProjectTestConfigStatus(BuildContext context, Test test, String testConfigUpdateStatus) async {
+    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
+    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+
+    final params = {
+      'project_id': projectDetailsModel.getActiveProjectId,
+      'test_id': test.testId,
+      'test_config_update_status': testConfigUpdateStatus,
+      'last_updated_by': userDetailsModel.getUserMachineId
+    };
+
+    int updatedId = await _crudService.updateRecord(
+      context,
+      'dbo.sproc_update_project_test_config_status',
+      params,
+    );
+
+    return updatedId;
   }
 
   void _updateTestList(int testId, bool isSelected) {

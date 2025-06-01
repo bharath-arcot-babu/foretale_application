@@ -1,23 +1,43 @@
 import 'dart:convert';
-import 'package:foretale_application/llm_api_config';
+import 'package:foretale_application/config_llm_model_selection.dart';
+import 'package:foretale_application/config_llm_api.dart';
 import 'package:http/http.dart' as http;
 
-enum LLMModel {
-  mistral,
-  llama3,
-  claude3,
-}
-
 class LLMService {
-  static Future<dynamic> callLLM({
-    required LLMModel model,
+  final LlmModelPicker modelPicker;
+  final LLMModel model;
+
+  LLMService()
+      : modelPicker = LlmModelPicker(),
+        model = LlmModelPicker().generalPurposeLLM;
+
+  Future<dynamic> callLLMGeneralPurpose({
     required String prompt,
     int maxTokens = 512,
     double temperature = 0.5,
     double topP = 0.9,
     int topK = 50,
   }) async {
-    switch (model) {
+    final selectedModel = modelPicker.generalPurposeLLM;
+    switch (selectedModel) {
+      case LLMModel.mistral:
+        return _callMistral(prompt, maxTokens, temperature, topP, topK);
+      case LLMModel.llama3:
+        return _callLlama3(prompt, maxTokens, temperature, topP);
+      case LLMModel.claude3:
+        return _callClaude3(prompt, maxTokens, temperature, topP, topK);
+    }
+  }
+
+  Future<dynamic> callLLMForCodeGeneration({
+    required String prompt,
+    int maxTokens = 512,
+    double temperature = 0.5,
+    double topP = 0.9,
+    int topK = 50,
+  }) async {
+    final selectedModel = modelPicker.codeGenerationLLM;
+    switch (selectedModel) {
       case LLMModel.mistral:
         return _callMistral(prompt, maxTokens, temperature, topP, topK);
       case LLMModel.llama3:
@@ -40,8 +60,11 @@ class LLMService {
       "system_instruction": ""
     });
 
-    final response =
-        await http.post(Uri.parse(url), headers: _headers(), body: body);
+    final response = await http.post(
+      Uri.parse(url), 
+      headers: _headers(), 
+      body: body);
+      
     final outer = jsonDecode(response.body);
     final innerJsonBody = jsonDecode(outer['body']);
 
@@ -59,8 +82,12 @@ class LLMService {
       "top_p": topP
     });
 
-    final response =
-        await http.post(Uri.parse(url), headers: _headers(), body: body);
+    final response = await http.post(
+      Uri.parse(url),
+      headers: _headers(),
+      body: body,
+    );
+
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
@@ -95,8 +122,11 @@ class LLMService {
       }
     });
 
-    final response =
-        await http.post(Uri.parse(url), headers: _headers(), body: body);
+    final response = await http.post(
+      Uri.parse(url), 
+      headers: _headers(), 
+      body: body);
+
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
