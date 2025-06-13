@@ -52,58 +52,65 @@ class _WelcomePageState extends State<WelcomePage> {
               loadingText: "Loading projects...",
             ),
           )
-        : Padding(
-            padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.0),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: CustomContainer(
-                    title: "Choose an existing project",
-                    child: Consumer<ProjectDetailsModel>(
-                      builder: (context, model, child) {
-                        List<ProjectDetails> projects =
-                            model.getFilteredProjectsList;
-
-                        return Column(
-                          children: [
-                            _buildSearchBar(model),
-                            Expanded(
-                              child: projects.isEmpty
-                                  ? _buildEmptyState()
-                                  : CustomAnimatedSwitcher(
-                                      child: ListView.builder(
-                                        key: ValueKey<String>(_searchQuery),
-                                        itemCount: projects.length,
-                                        itemBuilder: (context, index) {
-                                          ProjectDetails project =
-                                              projects[index];
-                                          return _buildProjectCard(
-                                              context, project);
-                                        },
+        : Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white,
+                  Colors.blue.shade50.withOpacity(0.3),
+                ],
+              ),
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.02),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: CustomContainer(
+                      title: "Your Projects",
+                      child: Consumer<ProjectDetailsModel>(
+                        builder: (context, model, child) {
+                          List<ProjectDetails> projects = model.getFilteredProjectsList;
+                          return Column(
+                            children: [
+                              _buildSearchBar(model),
+                              Expanded(
+                                child: projects.isEmpty
+                                    ? _buildEmptyState()
+                                    : CustomAnimatedSwitcher(
+                                        child: ListView.builder(
+                                          key: ValueKey<String>(_searchQuery),
+                                          itemCount: projects.length,
+                                          itemBuilder: (context, index) {
+                                            ProjectDetails project = projects[index];
+                                            return _buildProjectCard(context, project);
+                                          },
+                                        ),
                                       ),
-                                    ),
-                            ),
-                          ],
-                        );
-                      },
+                              ),
+                            ],
+                          );
+                        },
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(width: MediaQuery.of(context).size.width * 0.08),
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      _buildNewProjectSection(),
-                      const Divider(),
-                      const SizedBox(height: 10),
-                      _buildResourcesSection(),
-                    ],
+                  SizedBox(width: MediaQuery.of(context).size.width * 0.04),
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        _buildNewProjectSection(),
+                        const SizedBox(height: 20),
+                        _buildResourcesSection(),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
   }
@@ -113,7 +120,7 @@ class _WelcomePageState extends State<WelcomePage> {
       padding: const EdgeInsets.all(16.0),
       child: CustomTextField(
         controller: _searchController,
-        label: "Search projects...",
+        label: "Search...",
         isEnabled: true,
         onChanged: (value) {
           setState(() => _searchQuery = value.trim());
@@ -133,36 +140,81 @@ class _WelcomePageState extends State<WelcomePage> {
         type: MaterialType.transparency,
         child: FadeAnimator(
           child: ModernContainer(
-            backgroundColor: isSelected ? Colors.blue.shade50 : Colors.white,
+            //backgroundColor: isSelected ? AppColors.primaryColor.withOpacity(0.4) : Colors.white,
+            elevation: isSelected ? 2 : 1,
+            borderRadius: 16,
             child: InkWell(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               onTap: () => _onProjectSelection(context, project),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
+              child: Container(
+                padding: const EdgeInsets.all(24.0),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: isSelected ? AppColors.primaryColor : Colors.transparent,
+                    width: 1.5,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      project.name,
-                      style: TextStyles.titleText(context),
-                    ),
-                    const SizedBox(height: 8.0),
-                    Text(
-                      project.organization,
-                      style: TextStyles.subtitleText(context),
-                    ),
-                    const SizedBox(height: 8.0),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        Expanded(
+                          child: Text(
+                            project.name,
+                            style: TextStyles.titleText(context).copyWith(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade800,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: isSelected ? AppColors.primaryColor.withOpacity(0.1) : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 14,
+                            color: isSelected ? AppColors.primaryColor : Colors.grey.shade400,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16.0),
+                    Text(
+                      project.organization,
+                      style: TextStyles.subtitleText(context).copyWith(
+                        color: Colors.grey.shade600,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 20.0),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
                         _buildInfoChip(
-                            Icons.business_outlined, project.industry),
+                          Icons.business_outlined,
+                          project.industry,
+                          isSelected: isSelected,
+                        ),
                         _buildInfoChip(
-                            Icons.category_outlined, project.projectType),
+                          Icons.category_outlined,
+                          project.projectType,
+                          isSelected: isSelected,
+                        ),
                         _buildInfoChip(
                           Icons.calendar_today_outlined,
-                          "Started on: ${project.createdDate.toString()}",
+                          "Started: ${project.createdDate.toString()}",
                           iconSize: 12,
+                          isSelected: isSelected,
                         ),
                       ],
                     ),
@@ -176,33 +228,52 @@ class _WelcomePageState extends State<WelcomePage> {
     );
   }
 
-  Widget _buildInfoChip(IconData icon, String text, {double iconSize = 14}) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: iconSize, color: Colors.grey),
-        const SizedBox(width: 4),
-        Text(
-          text,
-          style: TextStyles.gridText(context).copyWith(color: Colors.grey[600]),
+  Widget _buildInfoChip(IconData icon, String text, {double iconSize = 14, bool isSelected = false}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: isSelected ? AppColors.primaryColor.withOpacity(0.3) : Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isSelected ? AppColors.primaryColor : Colors.grey.shade200,
+          width: 1,
         ),
-      ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: iconSize,
+            color: isSelected ? AppColors.primaryColor.withOpacity(0.3) : Colors.grey.shade600,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: TextStyles.gridText(context).copyWith(
+              color: isSelected ? Colors.black : Colors.grey.shade600,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildEmptyState() {
     return Center(
       child: Container(
-        width: 280,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        width: 320,
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
+              blurRadius: 15,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -210,20 +281,28 @@ class _WelcomePageState extends State<WelcomePage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.blue.shade50,
                 shape: BoxShape.circle,
               ),
               child: Icon(Icons.folder_outlined,
-                  size: 40, color: Colors.blue.shade500),
+                  size: 48, color: Colors.blue.shade600),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             Text(
               "No Projects Found",
               style: TextStyles.subjectText(context).copyWith(
                 color: Colors.grey.shade800,
-                letterSpacing: -0.3,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              "Start by creating a new project",
+              style: TextStyles.subtitleText(context).copyWith(
+                color: Colors.grey.shade600,
               ),
             ),
           ],
@@ -233,39 +312,101 @@ class _WelcomePageState extends State<WelcomePage> {
   }
 
   Widget _buildNewProjectSection() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10.0),
-      child: CustomElevatedButton(
-        width: MediaQuery.of(context).size.width * 0.07,
-        height: 60,
-        text: "Start a new project",
-        textSize: 14,
-        onPressed: () => _showCreateProjectDialog(context),
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text(
+            "Start a New Project",
+            style: TextStyles.titleText(context).copyWith(
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade800,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            "Create a new forensic analytics project",
+            textAlign: TextAlign.center,
+            style: TextStyles.subtitleText(context).copyWith(
+              color: Colors.grey.shade600,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 24),
+          CustomElevatedButton(
+            width: MediaQuery.of(context).size.width * 0.8,
+            height: 48,
+            text: "Create New Project",
+            textSize: 14,
+            onPressed: () => _showCreateProjectDialog(context),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildResourcesSection() {
-    return Column(
-      children: [
-        Text(
-          "Learn More About This Tool:",
-          style: TextStyles.titleText(context).copyWith(letterSpacing: 4.0),
-        ),
-        const SizedBox(height: 10),
-        const ResourceCard(
-          title: "Flutter Documentation",
-          url: "https://flutter.dev/docs",
-        ),
-        const ResourceCard(
-          title: "Flutter YouTube Channel",
-          url: "https://www.youtube.com/c/FlutterDev",
-        ),
-        const ResourceCard(
-          title: "Flutter Community",
-          url: "https://flutter.dev/community",
-        ),
-      ],
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text(
+            "Learn More",
+            style: TextStyles.titleText(context).copyWith(
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade800,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            "Explore our resources to get started",
+            textAlign: TextAlign.center,
+            style: TextStyles.subtitleText(context).copyWith(
+              color: Colors.grey.shade600,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 20),
+          const ResourceCard(
+            title: "Documentation",
+            url: "https://foretale-revolutionizing-x5v0nb0.gamma.site/",
+          ),
+          const SizedBox(height: 12),
+          const ResourceCard(
+            title: "Tutorials",
+            url: "https://foretale-revolutionizing-x5v0nb0.gamma.site/",
+          ),
+          const SizedBox(height: 12),
+          const ResourceCard(
+            title: "Support",
+            url: "https://foretale-revolutionizing-x5v0nb0.gamma.site/",
+          ),
+        ],
+      ),
     );
   }
 

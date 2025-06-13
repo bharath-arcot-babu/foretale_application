@@ -29,6 +29,7 @@ class CustomTextField extends StatelessWidget {
         obscureText: obscureText,
         maxLines: maxLines,
         style: TextStyles.inputMainTextStyle(context),
+        
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyles.inputMainTextStyle(context),
@@ -38,7 +39,8 @@ class CustomTextField extends StatelessWidget {
             borderRadius: BorderRadius.circular(8), // Rounded corners
             borderSide: const BorderSide(
               color: FillColors.tertiaryColor, // Border color
-              width: 1.2, // Border width
+              width: 0.8, // Border width
+              
             ),
           ),
           focusedBorder: OutlineInputBorder(

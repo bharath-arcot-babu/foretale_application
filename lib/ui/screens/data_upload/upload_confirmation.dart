@@ -108,11 +108,12 @@ class _UploadConfirmationPageState extends State<UploadConfirmationPage> {
                       Align(
                         alignment: Alignment.bottomRight,
                         child: CustomElevatedButton(
-                          width: 80,
+                          width: 150,
                           height: 56,
-                          text: 'Confirm Upload',
-                          textSize: 14,
-                          onPressed: _startUpload,
+                          text: 'Confirm',
+                          textSize: 12,
+                          onPressed: () => _startUpload(),
+                          isLoading: isPageLoading,
                         ),
                       ),
                     ],
@@ -123,35 +124,37 @@ class _UploadConfirmationPageState extends State<UploadConfirmationPage> {
           );
   }
 
-  Future<void> _loadPage() async {
-    selectedMappings = Map.from(columnsModel.activeSelectedMappings);
-    fileName = uploadSummaryModel.activeFileUploadSelectionName;
-  }
-
-  void _startUpload() {
+  void _startUpload() async{
     try {
       setState(() {
         isPageLoading = true;
         loadText = 'Initiating upload process...';
       });
 
-      Map<String, dynamic> payload = {
+      final payload = {
         'user_id': userDetailsModel.getUserMachineId,
         'file_upload_id': uploadSummaryModel.activeFileUploadId,
       };
 
-      LambdaHelper(apiGatewayUrl: LambdaApiConfig.dataUploadInvoker)
-          .invokeLambda(
-        payload: payload,
+      final lambdaHelper = LambdaHelper(
+        apiGatewayUrl: LambdaApiConfig.dataUploadInvoker,
       );
 
-      setState(() => isPageLoading = false);
+      await Future.delayed(const Duration(seconds: 5), () {
+        lambdaHelper.invokeLambda(payload: payload);
+      });
 
+      setState(() {
+        isPageLoading = false;
+      });
       SnackbarMessage.showSuccessMessage(
         context,
         "Data upload initiated successfully.",
       );
     } catch (e, error_stack_trace) {
+      setState(() {
+        isPageLoading = false;
+      });
       SnackbarMessage.showErrorMessage(context, e.toString(),
           logError: true,
           errorMessage: e.toString(),
@@ -160,5 +163,10 @@ class _UploadConfirmationPageState extends State<UploadConfirmationPage> {
           severityLevel: 'Critical',
           requestPath: "_startUpload");
     }
+  }
+
+  Future<void> _loadPage() async {
+    selectedMappings = Map.from(columnsModel.activeSelectedMappings);
+    fileName = uploadSummaryModel.activeFileUploadSelectionName;
   }
 }

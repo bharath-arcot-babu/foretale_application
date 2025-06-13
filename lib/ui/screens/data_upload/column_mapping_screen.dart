@@ -327,7 +327,7 @@ class _MappingScreenState extends State<ColumnMappingScreen> {
     }
   }
 
-  void confirmAndUpload() {
+  void confirmAndUpload() async{
     try {
       if (selectedMappings.isEmpty) {
         SnackbarMessage.showErrorMessage(
@@ -341,12 +341,11 @@ class _MappingScreenState extends State<ColumnMappingScreen> {
 
       Map<String, String?> dbCompatibleMappings = {
         for (var entry in columnsModel.technicalFieldMap.entries)
-          columnsModel.technicalFieldMap[entry.key]!:
-              selectedMappings[entry.key]
+          columnsModel.technicalFieldMap[entry.key]! : selectedMappings[entry.key]
       };
 
       String jsonString = jsonEncode(dbCompatibleMappings);
-      columnsModel.updateFileUpload(context, jsonString);
+      await columnsModel.updateFileUpload(context, jsonString);
     } catch (e, error_stack_trace) {
       SnackbarMessage.showErrorMessage(context, e.toString(),
           logError: true,

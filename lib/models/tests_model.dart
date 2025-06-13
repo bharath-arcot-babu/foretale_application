@@ -24,7 +24,6 @@ class Test {
   String testCategory;
   String config;
   bool isSelected;
-  String defaultConfig;
   String relevantSchemaName;
   bool testConfigUpdateStatus;
   String testCode;
@@ -41,7 +40,6 @@ class Test {
     this.testCategory = '',
     this.config = '',
     this.isSelected = false,
-    this.defaultConfig = '',
     this.relevantSchemaName = '',
     this.testConfigUpdateStatus = false,
     this.testCode = '',
@@ -61,7 +59,6 @@ class Test {
       testCategory: map['test_category'] ?? '',
       config: map['config'] ?? '',
       isSelected: bool.tryParse(map['is_selected']) ?? false,
-      defaultConfig: map['default_config'] ?? '',
       relevantSchemaName: map['relevant_schema_name'] ?? '',
       testConfigUpdateStatus: map['test_config_update_status'] ?? false,
       testCode: map['test_code'] ?? '',
@@ -80,7 +77,6 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
 
   int _selectedTestId = 0;
   int get getSelectedTestId => _selectedTestId;
-
 
   String _currentSortColumn = 'testName';
   String get getCurrentSortColumn => _currentSortColumn;
@@ -131,9 +127,20 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
     notifyListeners();
   }
 
+    void _updateTestList(int testId, bool isSelected) {
+    var index = testsList.indexWhere((q) => q.testId == testId);
+    if (index != -1) {
+      testsList[index].isSelected = isSelected;
+    }
+
+    notifyListeners();
+  }
+
+  @override
+  int get selectedId => getSelectedTestId;
+
   Future<void> fetchTestsByProject(BuildContext context) async {
-    var projectDetailsModel =
-        Provider.of<ProjectDetailsModel>(context, listen: false);
+    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
 
     final params = {
       'project_id': projectDetailsModel.getActiveProjectId,
@@ -215,10 +222,8 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
 
 
   Future<int> selectTest(BuildContext context, Test test) async {
-    var userDetailsModel =
-        Provider.of<UserDetailsModel>(context, listen: false);
-    var projectDetailsModel =
-        Provider.of<ProjectDetailsModel>(context, listen: false);
+    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
+    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
 
     var params = {
       'project_id': projectDetailsModel.getActiveProjectId,
@@ -309,28 +314,14 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
     return updatedId;
   }
 
-  void _updateTestList(int testId, bool isSelected) {
-    var index = testsList.indexWhere((q) => q.testId == testId);
-    if (index != -1) {
-      testsList[index].isSelected = isSelected;
-    }
-
-    notifyListeners();
-  }
-
-  @override
-  int get selectedId => getSelectedTestId;
-
   @override
   Future<void> fetchResponses(BuildContext context) {
-    return Provider.of<InquiryResponseModel>(context, listen: false)
-        .fetchResponsesByTest(context);
+    return Provider.of<InquiryResponseModel>(context, listen: false).fetchResponsesByTest(context);
   }
 
   @override
   Future<int> insertResponse(BuildContext context, String responseText) {
-    return Provider.of<InquiryResponseModel>(context, listen: false)
-        .insertResponseByTest(context, responseText);
+    return Provider.of<InquiryResponseModel>(context, listen: false).insertResponseByTest(context, responseText);
   }
 
   @override
@@ -343,8 +334,7 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
 
   @override
   String getStoragePath(BuildContext context, int responseId) {
-    final projectDetailsModel =
-        Provider.of<ProjectDetailsModel>(context, listen: false);
+    final projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
     return buildStoragePath(
       projectId: projectDetailsModel.getActiveProjectId.toString(),
       responseId: responseId.toString(),

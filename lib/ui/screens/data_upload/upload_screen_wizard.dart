@@ -87,11 +87,9 @@ class _UploadScreenWizardState extends State<UploadScreenWizard>
                   unselectedLabelStyle:
                       TextStyles.tabUnselectedLabelText(context),
                   tabs: [
-                    buildTab(
-                        icon: Icons.grid_4x4_rounded, label: 'Choose a table'),
+                    buildTab(icon: Icons.grid_4x4_rounded, label: 'Choose a table'),
                     buildTab(icon: Icons.upload, label: 'Column Mapping'),
-                    buildTab(
-                        icon: Icons.confirmation_num, label: 'Confirm Upload'),
+                    buildTab(icon: Icons.confirmation_num, label: 'Confirm Upload'),
                   ],
                 ),
                 const SizedBox(height: 20),

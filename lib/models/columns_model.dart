@@ -167,7 +167,7 @@ class ColumnsModel with ChangeNotifier{
     final params = {
       'file_upload_id': uploadSummaryModel.activeFileUploadId,
       'column_mapping': columnMappings,
-      'last_update_by': userDetailsModel.getUserMachineId
+      'last_updated_by': userDetailsModel.getUserMachineId
     };
 
     await _crudService.updateRecord(

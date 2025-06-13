@@ -9,6 +9,7 @@ class CustomElevatedButton extends StatelessWidget {
   final double textSize;
   final VoidCallback onPressed;
   final IconData? icon;
+  final bool isLoading;
 
   const CustomElevatedButton({
     super.key,
@@ -18,6 +19,7 @@ class CustomElevatedButton extends StatelessWidget {
     required this.textSize,
     required this.onPressed,
     this.icon,
+    this.isLoading = false,
   });
 
   @override
@@ -29,9 +31,20 @@ class CustomElevatedButton extends StatelessWidget {
       width: width,
       height: height,
       child: ElevatedButton(
-        onPressed: onPressed,
+        onPressed: isLoading ? null : onPressed,
         style: ButtonStyles.elevatedButtonStyle(),
-        child: _buildContent(context, hasText, hasIcon),
+        child: isLoading
+            ? SizedBox(
+                width: textSize + 2,
+                height: textSize + 2,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    Theme.of(context).colorScheme.onPrimary,
+                  ),
+                ),
+              )
+            : _buildContent(context, hasText, hasIcon),
       ),
     );
   }

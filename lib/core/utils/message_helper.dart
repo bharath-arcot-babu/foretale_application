@@ -27,19 +27,17 @@ class SnackbarMessage {
     try {
       String errMessage = SnackbarMessage.extractErrorMessage(message);
 
+      print("errMessage: $errMessage");
+
       if (showUserMessage) {
-        _showSnackBar(context, message, const Color.fromARGB(255, 167, 34, 25),
-            SnackBarBehavior.floating);
+        _showSnackBar(context, message, const Color.fromARGB(255, 167, 34, 25), SnackBarBehavior.floating);
       } else if (errMessage != 'NOT_FOUND') {
-        _showSnackBar(context, errMessage,
-            const Color.fromARGB(255, 167, 34, 25), SnackBarBehavior.floating);
+        _showSnackBar(context, errMessage, const Color.fromARGB(255, 167, 34, 25), SnackBarBehavior.floating);
       } else {
-        _showSnackBar(context, 'Something went wrong!',
-            const Color.fromARGB(255, 167, 34, 25), SnackBarBehavior.floating);
+        _showSnackBar(context, 'Something went wrong!', const Color.fromARGB(255, 167, 34, 25), SnackBarBehavior.floating);
 
         if (logError) {
-          var userDetailsModel =
-              Provider.of<UserDetailsModel>(context, listen: false);
+          var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
 
           Map<String, dynamic> params = {
             "error_message": errorMessage,
@@ -50,10 +48,13 @@ class SnackbarMessage {
             "request_path": requestPath,
           };
 
+          print("params: $params");
           await DatabaseApiService().insertRecord("dbo.SPROC_LOG_ERROR", params);
+          print("Error logged to databasesss");
         }
       }
     } catch (e) {
+      print("Error in showErrorMessage: $e");
       print(e.toString());
       //Do nothing
     }

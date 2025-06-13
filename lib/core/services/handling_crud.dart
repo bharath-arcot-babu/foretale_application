@@ -15,6 +15,7 @@ class CRUD {
         throw Exception('Failed to add record');
       }
     } catch (e, error_stack_trace) {
+      print("Error in addRecord: $e");
       _handleError(context, e, error_stack_trace, storedProcedure, 'insertRecord');
       return 0;
     }

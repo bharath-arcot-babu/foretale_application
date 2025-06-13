@@ -4,11 +4,7 @@ import 'package:foretale_application/config_ecs.dart';
 import 'package:foretale_application/config_lambda_api.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
 import 'package:foretale_application/core/mixins/polling_mixin.dart';
-import 'package:foretale_application/core/services/check_ecs_task_status.dart';
 import 'package:foretale_application/core/services/lambda_activities.dart';
-import 'package:foretale_application/core/services/llms/api/llm_api.dart';
-import 'package:foretale_application/core/services/llms/prompts/test_config_prompt.dart';
-import 'package:foretale_application/core/utils/polling.dart';
 import 'package:foretale_application/models/inquiry_response_model.dart';
 import 'package:foretale_application/models/project_details_model.dart';
 import 'package:foretale_application/models/user_details_model.dart';
@@ -18,15 +14,19 @@ import 'package:foretale_application/ui/widgets/animation/custom_animator.dart';
 import 'package:foretale_application/ui/widgets/custom_ai_magic_button.dart';
 import 'package:foretale_application/ui/widgets/custom_alert.dart';
 import 'package:foretale_application/ui/widgets/custom_chip.dart';
+import 'package:foretale_application/ui/widgets/custom_code_formatter.dart';
 import 'package:foretale_application/ui/widgets/custom_container.dart';
 import 'package:foretale_application/ui/widgets/custom_icon_button.dart';
-import 'package:foretale_application/ui/widgets/custom_selectable_list.dart';
-import 'package:foretale_application/ui/widgets/custom_text_button.dart';
-import 'package:foretale_application/ui/widgets/custom_toggle.dart';
+import 'package:foretale_application/ui/widgets/custom_selectable_list.dart'; 
 import 'package:provider/provider.dart';
 import 'package:foretale_application/models/tests_model.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:foretale_application/core/utils/message_helper.dart';
+import 'package:flutter_highlight/flutter_highlight.dart';
+import 'package:flutter_highlight/themes/github.dart';
+import 'package:code_text_field/code_text_field.dart';
+import 'package:highlight/languages/sql.dart';
+import 'package:flutter_highlight/themes/github.dart';  
 
 class PollingController extends ChangeNotifier with PollingMixin {}
 
@@ -45,7 +45,7 @@ class _TestsListViewState extends State<TestsListView> {
   late UserDetailsModel userModel;
   late ProjectDetailsModel projectModel;
   late PollingController pollingController;
-  final TextEditingController queryController = TextEditingController();
+  late CodeController _codeController;
 
   @override
   void initState() {
@@ -55,7 +55,10 @@ class _TestsListViewState extends State<TestsListView> {
     userModel = Provider.of<UserDetailsModel>(context, listen: false);
     projectModel = Provider.of<ProjectDetailsModel>(context, listen: false);
     pollingController = PollingController();
-
+    _codeController = CodeController(
+      text: '',
+      language: sql
+    );
     inquiryResponseModel.responseList.clear();
   }
 
@@ -179,7 +182,7 @@ class _TestsListViewState extends State<TestsListView> {
                                   inquiryResponseModel.getSortedResponseTexts.join("|\n"), 
                                   test.relevantSchemaName, 
                                   test.testId.toString(),
-                                  test.defaultConfig
+                                  test.config
                                 );
 
                                 //Update the test config update status
@@ -319,9 +322,12 @@ class _TestsListViewState extends State<TestsListView> {
   }
 
   Future<void> showSqlQueryDialog(BuildContext context, Test test) async {
-    final formattedQuery = jsonDecode(test.config)["formatted_sql"];
-    queryController.text = formattedQuery;
-    bool isEdited = false;
+    String formattedQuery = "";
+    if(test.config.isEmpty){
+      formattedQuery = "";
+    } else {
+      formattedQuery = jsonDecode(test.config)["formatted_sql"];
+    }
 
     return showDialog(
       context: context,
@@ -352,31 +358,12 @@ class _TestsListViewState extends State<TestsListView> {
                     ),
                     const SizedBox(height: 16),
                     Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: TextField(
-                          controller: queryController,
-                          maxLines: null,
-                          expands: true,
-                          style: TextStyles.gridText(context).copyWith(
-                            fontFamily: 'monospace',
-                            fontSize: 14,
-                          ),
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                          onChanged: (value) {
-                            setState(() {
-                              isEdited = true;
-                            });
+                        child: CustomCodeFormatter(
+                          initialCode: formattedQuery,
+                          onCodeChanged: (code) {
+                            _codeController.text = code;
                           },
                         ),
-                      ),
                     ),
                   ],
                 ),
@@ -392,9 +379,7 @@ class _TestsListViewState extends State<TestsListView> {
                 CustomIconButton(
                   icon: Icons.save,
                   onPressed: () async {
-                    if (isEdited) {
-                      await _saveSqlQuery(context, test);
-                    }
+                    await _saveSqlQuery(context, test);
                     Navigator.of(context).pop();
                   },
                   tooltip: 'Save',
@@ -420,12 +405,28 @@ class _TestsListViewState extends State<TestsListView> {
 
   Future<int> _saveSqlQuery(BuildContext context, Test test) async {
     try {
-      test.config = jsonEncode({"formatted_sql": queryController.text});
-      int updatedId = await testsModel.updateProjectTestConfig(context, test);
+      
 
-      if(updatedId > 0){
-        SnackbarMessage.showSuccessMessage(context, "SQL query saved successfully");
+      const content = "The result of the query will replace the existing analysis. Would you like to continue with the execution?";
+      //Show the confirmation dialog
+      final confirmed = await showConfirmDialog(
+        context: context,
+        title: "Execute SQL Query",
+        cancelText: "NO",
+        confirmText: "YES",
+        confirmTextColor: Colors.green,
+        content: content,
+      );
+
+      int updatedId = 0;
+      if (confirmed == true) {
+        test.config = jsonEncode({"formatted_sql": _codeController.text});
+        updatedId = await testsModel.updateProjectTestConfig(context, test);
+        if(updatedId > 0){
+          SnackbarMessage.showSuccessMessage(context, "SQL query saved successfully");
+        }
       }
+      
       return updatedId;
     } catch (e) {
       print("Error: $e");
@@ -445,6 +446,7 @@ class _TestsListViewState extends State<TestsListView> {
     try {
       int updatedId = await _saveSqlQuery(context, test);
 
+      
       if(updatedId > 0){
         try{
           int insertedId = await testsModel.insertTestExecutionLog(context, test);
@@ -489,6 +491,7 @@ class _TestsListViewState extends State<TestsListView> {
         );
 
         resultId = confirmed ? await testsModel.removeTest(context, test) : -1;
+
       } else {
         resultId = await testsModel.selectTest(context, test);
       }
@@ -497,7 +500,14 @@ class _TestsListViewState extends State<TestsListView> {
         setState(() {}); // refresh UI if needed
       }
     } catch (e) {
-      SnackbarMessage.showErrorMessage(context, e.toString());
+      SnackbarMessage.showErrorMessage(
+        context, 
+        e.toString(),
+        logError: true,
+        errorMessage: e.toString(),
+        errorSource: _currentFileName,
+        severityLevel: 'Critical',
+        requestPath: "_handleTestSelection");
     }
   }
 
