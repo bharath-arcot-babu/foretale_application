@@ -28,14 +28,14 @@ class _AppLayoutState extends State<AppLayout> {
   String _highlightedTile = 'Home';
 
   final String _display1 = "Home";
-  final String _display2 = "Inquiry";
+  final String _display2 = "Knowledge Base";
   final String _display3 = "Data Request";
-  final String _display4 = "Test Configurations";
+  final String _display4 = "Test Library";
   final String _display5 = "Analysis";
-  final String _display6 = "Review";
-  final String _display7 = "Report";
+  final String _display6 = "Review & Approval";
+  final String _display7 = "Issues & Exceptions";
   final String _display8 = "Settings";
-  final String _display9 = "Legal";
+  final String _display9 = "Help & Support";
   final String _display10 = "Logout";
 
   @override

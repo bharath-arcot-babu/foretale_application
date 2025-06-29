@@ -5,9 +5,11 @@ import 'package:foretale_application/config_lambda_api.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
 import 'package:foretale_application/core/mixins/polling_mixin.dart';
 import 'package:foretale_application/core/services/lambda_activities.dart';
+import 'package:foretale_application/core/utils/test_config_parser.dart';
 import 'package:foretale_application/models/inquiry_response_model.dart';
 import 'package:foretale_application/models/project_details_model.dart';
 import 'package:foretale_application/models/user_details_model.dart';
+import 'package:foretale_application/ui/screens/analysis/result.dart';
 import 'package:foretale_application/ui/widgets/animation/animated_checkbox.dart';
 import 'package:foretale_application/ui/widgets/animation/animated_switcher.dart';
 import 'package:foretale_application/ui/widgets/animation/custom_animator.dart';
@@ -17,16 +19,15 @@ import 'package:foretale_application/ui/widgets/custom_chip.dart';
 import 'package:foretale_application/ui/widgets/custom_code_formatter.dart';
 import 'package:foretale_application/ui/widgets/custom_container.dart';
 import 'package:foretale_application/ui/widgets/custom_icon_button.dart';
+import 'package:foretale_application/ui/widgets/custom_loading_indicator.dart';
 import 'package:foretale_application/ui/widgets/custom_selectable_list.dart'; 
 import 'package:provider/provider.dart';
 import 'package:foretale_application/models/tests_model.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:foretale_application/core/utils/message_helper.dart';
-import 'package:flutter_highlight/flutter_highlight.dart';
-import 'package:flutter_highlight/themes/github.dart';
 import 'package:code_text_field/code_text_field.dart';
 import 'package:highlight/languages/sql.dart';
-import 'package:flutter_highlight/themes/github.dart';  
+
 
 class PollingController extends ChangeNotifier with PollingMixin {}
 
@@ -153,7 +154,7 @@ class _TestsListViewState extends State<TestsListView> {
                               isSelected: test.isSelected,
                               onTap: () => _handleTestSelection(test),
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: Text(
                                 test.testName,
@@ -161,65 +162,18 @@ class _TestsListViewState extends State<TestsListView> {
                               ),
                             ),
 
-                            CustomIconButton(
-                              icon: Icons.query_stats,
-                              onPressed: () => showSqlQueryDialog(context, test),
-                              tooltip: 'Show SQL query',
-                              isProcessing: test.testConfigUpdateStatus,
-                            ),
-
-                            const SizedBox(width: 16),
-                            AiMagicIconButton(
-                              onPressed: test.testConfigUpdateStatus?
-                              (){}
-                              : () async {
-                                
-                                //Invoke the AI Magic to generate the query
-                                await aiMagicGenerateQuery(
-                                  context, 
-                                  test.testName, 
-                                  test.testDescription, 
-                                  inquiryResponseModel.getSortedResponseTexts.join("|\n"), 
-                                  test.relevantSchemaName, 
-                                  test.testId.toString(),
-                                  test.config
-                                );
-
-                                //Update the test config update status
-                                await testsModel.updateProjectTestConfigStatus(
-                                  context, 
-                                  test, 
-                                  "Started"
-                                );
-
-                                //Update the test config update status
-                                await testsModel.updateTestConfigUpdateStatus(
-                                  test.testId,
-                                  true
-                                );
-
-                                //Start polling
-                                pollingController.startPolling(context, (BuildContext ctx) async {
-                                  await testsModel.fetchTestsByProject(context);
-                                  final stillPending = testsModel.testsList.any((x) => x.testConfigUpdateStatus == true);
-                                  if (!stillPending) {
-                                    pollingController.stopPolling(); // ✅ Stop polling if nothing left
-                                  }
-                                });
-                                
-                              },
-                              tooltip: 'AI Magic - Generate query',
-                              iconSize: 18.0,
-                            ),
+                            
                           ],
                         ),
+                        
                         const SizedBox(height: 12),
                         Text(
-                          test.testDescription,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyles.gridText(context),
-                        ),
+                            test.testDescription,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyles.gridText(context),
+                          ),
+                        
                         const SizedBox(height: 12),
                         Row(
                           children: [
@@ -228,6 +182,97 @@ class _TestsListViewState extends State<TestsListView> {
                             CustomChip(label: test.testRunType),
                             const SizedBox(width: 12),
                             CustomChip(label: test.testCriticality),
+                            const Spacer(),
+                            Column(
+                              children: [
+                                AiMagicIconButton(
+                                  onPressed: () async {                               
+                                    //Invoke the AI Magic to generate the query
+                                    await aiMagicGenerateQuery(
+                                      context = context, 
+                                      test.testName, 
+                                      test.testDescription, 
+                                      test.technicalDescription,
+                                      inquiryResponseModel.getSortedResponseTexts.join("\n"), 
+                                      test.relevantSchemaName, 
+                                      test.testId.toString(),
+                                      test.config,
+                                      test.selectClause
+                                    );
+
+                                    //Update the test config update status --listener
+                                    await testsModel.updateTestConfigGenerationStatus(
+                                      test.testId,
+                                      "Started"
+                                    );
+
+                                    //Start polling
+                                    pollingController.startPolling(context, (BuildContext ctx) async {
+                                      await testsModel.fetchTestsByProject(context);
+                                      final stillPending = testsModel.testsList.any((x) => x.testConfigGenerationStatus == "Started");
+                                      if (!stillPending) {
+                                        pollingController.stopPolling(); // ✅ Stop polling if nothing left
+                                      }
+                                    });
+                                    
+                                  },
+                                  tooltip: 'AI Magic - Generate query',
+                                  iconSize: 18.0,
+                                ),
+                                const SizedBox(height: 1),
+                                if (test.testConfigGenerationStatus == "Started")
+                                LinearLoadingIndicator(
+                                  isLoading: true,
+                                  color: AppColors.primaryColor,
+                                  backgroundColor: Colors.grey[300]!,
+                                  loadingText: test.testConfigGenerationStatus,
+                                  textStyle: TextStyles.tinySupplementalInfo(context),
+                                  width: 30,
+                                  height: 4,
+                                ),
+                                if (test.testConfigGenerationStatus != "Started")
+                                Text(
+                                  test.testConfigGenerationStatus,
+                                  style: TextStyles.tinySupplementalInfo(context),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(width: 20),
+                            Column(
+                              children: [
+                                CustomIconButton(
+                                  icon: Icons.query_stats,
+                                  onPressed: () => showSqlQueryDialog(context, test),
+                                  tooltip: 'Show SQL query',
+                                  isProcessing: false,
+                                  iconSize: 18.0,
+                                ),
+                                const SizedBox(height: 1),
+                                Text(
+                                  test.testConfigExecutionStatus,
+                                  style: TextStyles.tinySupplementalInfo(context),
+                                ),
+                              ],
+                            ),
+                            
+                            const SizedBox(width: 20),
+                            Column(
+                              children: [
+                                CustomIconButton(
+                                  icon: Icons.flag,
+                                  onPressed: () => showFlaggedTransactionsDialog(context, test),
+                                  tooltip: 'Show flagged transactions',
+                                  isProcessing: false,
+                                  iconSize: 18.0,
+                                ),
+                                const SizedBox(height: 1),
+                                Text(
+                                  test.testConfigExecutionStatus == "Completed" ? "Show Results" : " ",
+                                  style: TextStyles.tinySupplementalInfo(context),
+                                ),
+                              ],
+                            ),
+                            
                           ],
                         ),
                       ],
@@ -242,16 +287,16 @@ class _TestsListViewState extends State<TestsListView> {
     );
   }
 
-  
-
   Future<void> aiMagicGenerateQuery(
     BuildContext context,
     String testName,
     String testDescription,
+    String technicalDescription,
     String pastUserResponses,
     String relevantSchemaName,
     String testId,
-    String defaultConfig) async {
+    String defaultConfig,
+    String selectClause) async {
 
     try {
         const content = "Queries are generated using an AI language model and may not be fully accurate. Users must review, validate, and test all queries before execution. The system does not guarantee compliance with business or regulatory rules. This tool is intended to assist, not replace, expert judgment. Would you like to continue?";
@@ -266,7 +311,8 @@ class _TestsListViewState extends State<TestsListView> {
         );
 
         //Run the embedding task
-        if (confirmed == true) {
+        if (confirmed) {
+          print("confirmed: $confirmed");
           SnackbarMessage.showSuccessMessage(context, "AI Magic is working in the background to generate the query.");
 
           //Invoke the lambda function to run the embedding task
@@ -282,13 +328,14 @@ class _TestsListViewState extends State<TestsListView> {
                 }
               ],
               "test_case": testName,
-              "test_description": testDescription,
+              "test_description": technicalDescription,
               "past_user_responses": pastUserResponses,
               "schema_name": relevantSchemaName,
               "project_id": projectModel.getActiveProjectId,
               "test_id": testId,
               "last_updated_by": userModel.getUserMachineId,
-              "default_config": defaultConfig
+              "default_config": defaultConfig,
+              "select_clause": selectClause
             };
 
             final commandPayload = jsonEncode(inputState);
@@ -322,12 +369,7 @@ class _TestsListViewState extends State<TestsListView> {
   }
 
   Future<void> showSqlQueryDialog(BuildContext context, Test test) async {
-    String formattedQuery = "";
-    if(test.config.isEmpty){
-      formattedQuery = "";
-    } else {
-      formattedQuery = jsonDecode(test.config)["formatted_sql"];
-    }
+    String formattedQuery = TestConfigParser.parseFormattedSql(test.config);
 
     return showDialog(
       context: context,
@@ -405,8 +447,6 @@ class _TestsListViewState extends State<TestsListView> {
 
   Future<int> _saveSqlQuery(BuildContext context, Test test) async {
     try {
-      
-
       const content = "The result of the query will replace the existing analysis. Would you like to continue with the execution?";
       //Show the confirmation dialog
       final confirmed = await showConfirmDialog(
@@ -420,7 +460,7 @@ class _TestsListViewState extends State<TestsListView> {
 
       int updatedId = 0;
       if (confirmed == true) {
-        test.config = jsonEncode({"formatted_sql": _codeController.text});
+        test.config = TestConfigParser.createConfigJson(_codeController.text);
         updatedId = await testsModel.updateProjectTestConfig(context, test);
         if(updatedId > 0){
           SnackbarMessage.showSuccessMessage(context, "SQL query saved successfully");
@@ -446,19 +486,36 @@ class _TestsListViewState extends State<TestsListView> {
     try {
       int updatedId = await _saveSqlQuery(context, test);
 
-      
       if(updatedId > 0){
         try{
-          int insertedId = await testsModel.insertTestExecutionLog(context, test);
-          if(insertedId > 0){
-
+          int executionLogId = await testsModel.insertTestExecutionLog(context, test);
+          if(executionLogId > 0){
+            try{
+              testsModel.executeTest(context, executionLogId);
+              SnackbarMessage.showSuccessMessage(context, "Test is running in the background.");
+            } catch (e) {
+              print("executeTest: $e");
+              SnackbarMessage.showErrorMessage(
+                context, 
+                "Unable to execute the test. Please try again later.",
+                logError: true,
+                errorMessage: e.toString(),
+                errorSource: _currentFileName,
+                severityLevel: 'Critical',
+                requestPath: "_saveAndRunSqlQuery"
+              );
+            }
           }
         } catch (e) {
+          print("saveAndRunSqlQuery: $e");
           SnackbarMessage.showErrorMessage(
             context, 
-            e.toString(),
+            "Unable to execute the test. Please try again later.",
             logError: true,
             errorMessage: e.toString(),
+            errorSource: _currentFileName,
+            severityLevel: 'Critical',
+            requestPath: "_saveAndRunSqlQuery"
           );
         }
       }
@@ -466,13 +523,31 @@ class _TestsListViewState extends State<TestsListView> {
       print("Error: $e");
       SnackbarMessage.showErrorMessage(
         context, 
-        e.toString(),
+        "Unable to save and execute the test. Please try again later.",
         logError: true,
         errorMessage: e.toString(),
         errorSource: _currentFileName,
         severityLevel: 'Critical',
-        requestPath: "_saveSqlQuery");
+        requestPath: "_saveAndRunSqlQuery");
     }
+  }
+
+  Future<void> showFlaggedTransactionsDialog(BuildContext context, Test test) async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(16.0),
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            height: MediaQuery.of(context).size.height * 0.9,
+            child: ResultScreen(
+              test: test,
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _handleTestSelection(dynamic test) async {

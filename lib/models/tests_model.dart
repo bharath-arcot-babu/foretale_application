@@ -1,6 +1,4 @@
 //core
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:foretale_application/models/inquiry_response_model.dart';
 import 'package:foretale_application/config_s3.dart';
@@ -25,9 +23,13 @@ class Test {
   String config;
   bool isSelected;
   String relevantSchemaName;
-  bool testConfigUpdateStatus;
+  String testConfigGenerationStatus;
+  String testConfigExecutionStatus;
   String testCode;
   int projectTestId;
+  String selectClause;
+  String technicalDescription;
+  String analysisTableName;
 
   Test({
     this.testId = 0,
@@ -41,9 +43,13 @@ class Test {
     this.config = '',
     this.isSelected = false,
     this.relevantSchemaName = '',
-    this.testConfigUpdateStatus = false,
+    this.testConfigGenerationStatus = '',
+    this.testConfigExecutionStatus = '',
     this.testCode = '',
     this.projectTestId = 0,
+    this.selectClause = '',
+    this.technicalDescription = '',
+    this.analysisTableName = '',
   });
 
   factory Test.fromJson(Map<String, dynamic> map) {
@@ -60,9 +66,13 @@ class Test {
       config: map['config'] ?? '',
       isSelected: bool.tryParse(map['is_selected']) ?? false,
       relevantSchemaName: map['relevant_schema_name'] ?? '',
-      testConfigUpdateStatus: map['test_config_update_status'] ?? false,
+      testConfigGenerationStatus: map['config_generation_status'] ?? '',
+      testConfigExecutionStatus: map['config_execution_status'] ?? '',
       testCode: map['test_code'] ?? '',
       projectTestId: map['project_test_id'] ?? 0,
+      selectClause: map['select_clause'] ?? '',
+      technicalDescription: map['technical_description'] ?? '',
+      analysisTableName: map['analysis_table_name'] ?? '',
     );
   }
 }
@@ -88,10 +98,10 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
     notifyListeners();
   }
   
-  Future<void> updateTestConfigUpdateStatus(int testId, bool testConfigUpdateStatus) async {
+  Future<void> updateTestConfigGenerationStatus(int testId, String testConfigGenerationStatus) async {
     var index = testsList.indexWhere((q) => q.testId == testId);
     if (index != -1) {
-      testsList[index].testConfigUpdateStatus = testConfigUpdateStatus;
+      testsList[index].testConfigGenerationStatus = testConfigGenerationStatus;
     }
     notifyListeners();
   }
@@ -127,7 +137,7 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
     notifyListeners();
   }
 
-    void _updateTestList(int testId, bool isSelected) {
+  void _updateTestList(int testId, bool isSelected) {
     var index = testsList.indexWhere((q) => q.testId == testId);
     if (index != -1) {
       testsList[index].isSelected = isSelected;
@@ -176,6 +186,7 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
       'created_by': userDetailsModel.getUserMachineId,
     };
 
+
     int insertedId = await _crudService.addRecord(
       context,
       'dbo.sproc_insert_update_test_execution_log',
@@ -183,6 +194,23 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
     );
 
     return insertedId;
+  }
+
+  Future<int> executeTest(BuildContext context, int executionLogId) async {
+    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
+
+    final params = {
+      'execution_id': executionLogId,
+      'executed_by': userDetailsModel.getUserMachineId,
+    };
+
+    int updatedId = await _crudService.updateRecord(
+      context,
+      'dbo.sproc_execute_config_sql',
+      params,
+    );
+
+    return updatedId;
   }
 
   Future<int> updateTestExecutionLog(
@@ -284,30 +312,6 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
     int updatedId = await _crudService.updateRecord(
       context,
       'dbo.sproc_update_project_test_config',
-      params,
-    );
-
-    if (updatedId > 0) {
-      _updateTestList(test.testId, false);
-    }
-
-    return updatedId;
-  }
-
-  Future<int> updateProjectTestConfigStatus(BuildContext context, Test test, String testConfigUpdateStatus) async {
-    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
-    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
-
-    final params = {
-      'project_id': projectDetailsModel.getActiveProjectId,
-      'test_id': test.testId,
-      'test_config_update_status': testConfigUpdateStatus,
-      'last_updated_by': userDetailsModel.getUserMachineId
-    };
-
-    int updatedId = await _crudService.updateRecord(
-      context,
-      'dbo.sproc_update_project_test_config_status',
       params,
     );
 

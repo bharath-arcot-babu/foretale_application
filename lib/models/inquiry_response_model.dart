@@ -89,7 +89,10 @@ class InquiryResponseModel with ChangeNotifier {
   }
 
   List<String> get getSortedResponseTexts {
-    return responseList.map((e) => e.responseText).toList()
+    return responseList
+        .where((response) => response.isAiMagicResponse == 0)
+        .map((e) => e.responseText)
+        .toList()
       ..sort((a, b) => a.compareTo(b));
   }
 

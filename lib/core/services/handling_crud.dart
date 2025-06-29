@@ -21,13 +21,10 @@ class CRUD {
     }
   }
 
-  Future<int> updateRecord(BuildContext context, String storedProcedure,
-      Map<String, dynamic> params) async {
+  Future<int> updateRecord(BuildContext context, String storedProcedure, Map<String, dynamic> params) async {
     try {
-      var jsonResponse =
-          await DatabaseApiService().updateRecord(storedProcedure, params);
-      int updatedId =
-          int.parse(jsonResponse['data'][0]['updated_id'].toString());
+      var jsonResponse = await DatabaseApiService().updateRecord(storedProcedure, params);
+      int updatedId = int.parse(jsonResponse['data'][0]['updated_id'].toString());
 
       if (updatedId > 0) {
         return updatedId;
@@ -35,8 +32,7 @@ class CRUD {
         throw Exception('Failed to update record');
       }
     } catch (e, error_stack_trace) {
-      _handleError(
-          context, e, error_stack_trace, storedProcedure, 'updateRecord');
+      _handleError(context, e, error_stack_trace, storedProcedure, 'updateRecord');
       return 0;
     }
   }
@@ -67,8 +63,7 @@ class CRUD {
       Map<String, dynamic> params,
       T Function(Map<String, dynamic>) fromJson) async {
     try {
-      var jsonResponse =
-          await DatabaseApiService().readRecord(storedProcedure, params);
+      var jsonResponse = await DatabaseApiService().readRecord(storedProcedure, params);
 
       if (jsonResponse != null && jsonResponse['data'] != null) {
         var data = jsonResponse['data'];
@@ -98,13 +93,13 @@ class CRUD {
   }
 
   Future<List<T>> getJsonRecords<T>(
-      BuildContext context,
-      String storedProcedure,
-      Map<String, dynamic> params,
-      T Function(Map<String, dynamic>) fromJson) async {
+    BuildContext context, 
+    String storedProcedure, 
+    Map<String, dynamic> params, 
+    T Function(Map<String, dynamic>) fromJson) async {
+
     try {
-      var jsonResponse =
-          await DatabaseApiService().readJsonRecord(storedProcedure, params);
+      var jsonResponse = await DatabaseApiService().readJsonRecord(storedProcedure, params);
 
       if (jsonResponse != null && jsonResponse['data'] != null) {
         var data = jsonResponse['data'];
@@ -113,8 +108,7 @@ class CRUD {
           return [];
         }
 
-        return data
-            .map<T?>((json) {
+        return data.map<T?>((json) {
               try {
                 return fromJson(json)!;
               } catch (e) {
@@ -127,16 +121,14 @@ class CRUD {
         return [];
       }
     } catch (e, error_stack_trace) {
-      _handleError(
-          context, e, error_stack_trace, storedProcedure, 'readJsonRecord');
+      _handleError(context, e, error_stack_trace, storedProcedure, 'readJsonRecord');
       return [];
     }
   }
 
   // Handle errors and show messages to users
-  void _handleError(BuildContext context, dynamic error, StackTrace stackTrace,
-      String storedProcedure, String action) {
-    print("Error in _handleError: $error");
+  void _handleError(BuildContext context, dynamic error, StackTrace stackTrace, String storedProcedure, String action) {
+
     SnackbarMessage.showErrorMessage(
       context,
       'Unable to complete the action. Please contact support for assistance.',
@@ -147,5 +139,6 @@ class CRUD {
       severityLevel: 'Critical',
       requestPath: action,
     );
+
   }
 }

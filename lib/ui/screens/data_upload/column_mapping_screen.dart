@@ -11,8 +11,8 @@ import 'package:foretale_application/ui/widgets/custom_ai_magic_button.dart';
 import 'package:foretale_application/ui/widgets/custom_alert.dart';
 import 'package:foretale_application/ui/widgets/custom_chip.dart';
 import 'package:foretale_application/ui/widgets/custom_dropdown_list.dart';
-import 'package:foretale_application/ui/widgets/custom_elevated_button.dart';
 import 'package:foretale_application/ui/widgets/custom_enclosure.dart';
+import 'package:foretale_application/ui/widgets/custom_icon_button.dart';
 import 'package:foretale_application/ui/widgets/custom_loading_indicator.dart';
 import 'package:foretale_application/core/utils/message_helper.dart';
 import 'package:provider/provider.dart';
@@ -100,26 +100,22 @@ class _MappingScreenState extends State<ColumnMappingScreen> {
                           iconSize: 18.0,
                         ),
                         const SizedBox(width: 10),
-                        CustomElevatedButton(
-                          height: 40,
-                          width: 300,
+                        CustomIconButton(
+                          iconSize: 18.0,
                           onPressed: () {
                             handleMappingConfirm();
                           },
-                          text: 'Save Mappings',
-                          textSize: 16,
-                          icon: Icons.save,
+                          icon: Icons.save_rounded,
+                          tooltip: 'Save Column Mappings',
                         ),
                         const SizedBox(width: 10),
-                        CustomElevatedButton(
-                          height: 40,
-                          width: 300,
+                        CustomIconButton(
+                          iconSize: 18.0,
                           onPressed: () {
                             confirmAndUpload();
                           },
-                          text: 'Confirm and Upload',
-                          textSize: 16,
-                          icon: Icons.save,
+                          icon: Icons.upload_rounded,
+                          tooltip: 'Confirm and Upload',
                         )
                       ],
                     ),
@@ -314,16 +310,16 @@ class _MappingScreenState extends State<ColumnMappingScreen> {
       String jsonString = jsonEncode(dbCompatibleMappings);
       columnsModel.updateFileUpload(context, jsonString);
 
-      SnackbarMessage.showSuccessMessage(
-          context, "Mappings are saved successfully");
+      SnackbarMessage.showSuccessMessage(context, "Mappings are saved successfully");
     } catch (e, error_stack_trace) {
+      
       SnackbarMessage.showErrorMessage(context, e.toString(),
           logError: true,
           errorMessage: e.toString(),
           errorStackTrace: error_stack_trace.toString(),
           errorSource: _currentFileName,
           severityLevel: 'Critical',
-          requestPath: "callMistral");
+          requestPath: "handleMappingConfirm");
     }
   }
 
@@ -336,9 +332,7 @@ class _MappingScreenState extends State<ColumnMappingScreen> {
       }
 
       widget.onConfirm();
-
       columnsModel.activeSelectedMappings = selectedMappings;
-
       Map<String, String?> dbCompatibleMappings = {
         for (var entry in columnsModel.technicalFieldMap.entries)
           columnsModel.technicalFieldMap[entry.key]! : selectedMappings[entry.key]
@@ -346,6 +340,7 @@ class _MappingScreenState extends State<ColumnMappingScreen> {
 
       String jsonString = jsonEncode(dbCompatibleMappings);
       await columnsModel.updateFileUpload(context, jsonString);
+
     } catch (e, error_stack_trace) {
       SnackbarMessage.showErrorMessage(context, e.toString(),
           logError: true,
@@ -353,7 +348,7 @@ class _MappingScreenState extends State<ColumnMappingScreen> {
           errorStackTrace: error_stack_trace.toString(),
           errorSource: _currentFileName,
           severityLevel: 'Critical',
-          requestPath: "callMistral");
+          requestPath: "confirmAndUpload");
     }
   }
 

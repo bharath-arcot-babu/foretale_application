@@ -1,10 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:foretale_application/core/services/embeddings/process_files_by_response.dart';
 import 'package:foretale_application/models/abstracts/chat_driving_model.dart';
 import 'package:foretale_application/models/inquiry_attachment_model.dart';
-import 'package:foretale_application/models/llm/clarify_model.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:foretale_application/core/services/s3_activites.dart';
 import 'package:foretale_application/ui/widgets/chat/info_card.dart';
@@ -233,7 +230,9 @@ class ChatBubble extends StatelessWidget {
           return InfoCard( 
                 question: aiResponseText,
                 reason: "",
-                calloutText: 'AI'
+                calloutText: 'AI',
+                questionFontSize: 12,
+                calloutTextFontSize: 10,
               );
         } catch (parseError) {
           return const SizedBox.shrink();

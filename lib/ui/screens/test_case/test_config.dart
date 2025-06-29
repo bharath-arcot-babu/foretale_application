@@ -77,42 +77,114 @@ class _TestConfigPageState extends State<TestConfigPage> {
               children: [
                 Expanded(
                   flex: 4,
-                  // Ensure Expanded is directly inside Row
                   child: CustomContainer(
                     title: "Choose a test",
                     child: Column(
                       children: [
                         Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: CustomTextField(
-                            controller: _searchController,
-                            label: "Search...",
-                            isEnabled: true,
-                            onChanged: (value) =>
-                                testsModel.filterData(value.trim()),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: CustomTextField(
+                                  controller: _searchController,
+                                  label: "Search tests...",
+                                  isEnabled: true,
+                                  onChanged: (value) =>
+                                      testsModel.filterData(value.trim()),
+                                ),
+                              ),
+                              if (_searchController.text.isNotEmpty)
+                                IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    testsModel.filterData('');
+                                  },
+                                  tooltip: 'Clear search',
+                                ),
+                            ],
                           ),
                         ),
-                        const Expanded(child: TestsListView()),
+                        Expanded(
+                          child: Selector<TestsModel, List<dynamic>>(
+                            selector: (context, model) => model.getFilteredTestList,
+                            builder: (context, filteredTests, __) {
+                              if (filteredTests.isEmpty) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.search_off,
+                                        size: 48,
+                                        color: AppColors.primaryColor.withOpacity(0.5),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        _searchController.text.isEmpty
+                                            ? 'No tests available'
+                                            : 'No tests found matching "${_searchController.text}"',
+                                        style: TextStyle(
+                                          color: AppColors.primaryColor.withOpacity(0.7),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                              return const TestsListView();
+                            },
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(width: 16),
-                Expanded(
-                  flex: 4,
-                  child: CustomContainer(
-                    title: "Details / Configuration",
-                    child: Selector<TestsModel, int>(
-                      selector: (context, model) => model.getSelectedTestId,
-                      builder: (context, selectedTestId, __) {
-                        return ChatScreen(
-                          drivingModel: testsModel,
-                          isChatEnabled: selectedTestId > 0,
-                        );
-                      },
-                    ),
-                  ),
+                Selector<TestsModel, int>(
+                  selector: (context, model) => model.getSelectedTestId,
+                  builder: (context, selectedTestId, __) {
+                    return selectedTestId > 0 
+                    ? Expanded(
+                        flex: 4,
+                        child: CustomContainer(
+                          title: "Details / Configuration",
+                          child: Selector<TestsModel, int>(
+                            selector: (context, model) => model.getSelectedTestId,
+                            builder: (context, selectedTestId, __) {
+                              if (selectedTestId <= 0) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.select_all,
+                                        size: 48,
+                                        color: AppColors.primaryColor.withOpacity(0.5),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'Select a test to view details',
+                                        style: TextStyle(
+                                          color: AppColors.primaryColor.withOpacity(0.7),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                              return ChatScreen(
+                                drivingModel: testsModel,
+                                isChatEnabled: true,
+                              );
+                            },
+                          ),
+                        ),
+                      ) : const SizedBox.shrink();
+                  },
                 ),
+                
               ],
             ),
           );

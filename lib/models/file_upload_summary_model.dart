@@ -94,6 +94,26 @@ class UploadSummaryModel with ChangeNotifier{
     );
 
     notifyListeners();
+    
+  }
+
+  Future<bool> fetchFileUploadTableExists(BuildContext context, String fileName, int tableId) async {
+    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+
+    final params = {
+      'file_name': fileName,
+      'project_id': projectDetailsModel.getActiveProjectId,
+      'table_id': tableId,
+    };
+
+    final tableExists = await _crudService.getRecords<bool>(
+      context,
+      'dbo.sproc_check_file_exists',
+      params,
+      (json) => json['is_exists'] ?? false,
+    );
+
+    return tableExists.first;
   }
 
   Future<int> insertFileUpload(
@@ -106,6 +126,7 @@ class UploadSummaryModel with ChangeNotifier{
       int columnCount,
       int tableId,
       String csvDetails,
+      String chunkName,
       ) async {
     var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
     var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
@@ -119,10 +140,11 @@ class UploadSummaryModel with ChangeNotifier{
       'row_count': rowCount,
       'column_count': columnCount,
       'upload_status': 'Pending',
-      'error_message': 'File has not been processed yet. Check back later.',
+      'message': 'File has not been processed yet. Check back later.',
       'created_by': userDetailsModel.getUserMachineId,
       'table_id': tableId,
-      'csv_details': csvDetails
+      'csv_details': csvDetails,
+      'chunk_name': chunkName
     };
 
     int insertedId = await _crudService.addRecord(
@@ -132,24 +154,6 @@ class UploadSummaryModel with ChangeNotifier{
     );
 
     return insertedId;
-  }
-
-  Future<void> updateFileUpload(
-      BuildContext context,
-      int fileUploadId,
-      String uploadStatus,
-      String errorMessage) async {
-    var params = {
-      'file_upload_id': fileUploadId,
-      'upload_status': uploadStatus,
-      'error_message': errorMessage,
-    };
-
-    await _crudService.updateRecord(
-      context,
-      'dbo.sproc_update_file_upload',
-      params,
-    );
   }
 
   Future<void> deleteFileUpload(BuildContext context, int fileUploadId) async {

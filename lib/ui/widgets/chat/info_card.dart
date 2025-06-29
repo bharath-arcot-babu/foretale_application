@@ -6,6 +6,8 @@ class InfoCard extends StatefulWidget {
   final String reason;
   final String? initialValue;
   final String? calloutText;
+  final int? calloutTextFontSize;
+  final int? questionFontSize;
 
   const InfoCard({
     super.key,
@@ -13,6 +15,8 @@ class InfoCard extends StatefulWidget {
     required this.reason,
     this.initialValue,
     this.calloutText,
+    this.calloutTextFontSize,
+    this.questionFontSize,
   });
 
   @override
@@ -39,50 +43,55 @@ class _InfoCardState extends State<InfoCard> {
     return Card(
       elevation: 4,
       margin: const EdgeInsets.all(16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Question and Callout Row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    widget.question,
-                    style: TextStyles.titleText(context).copyWith(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                if (widget.calloutText != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
+      child: IntrinsicHeight(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Question and Callout Row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
                     child: Text(
-                      widget.calloutText!,
-                      style: TextStyles.responseText(context).copyWith(
-                        fontSize: 12,
-                        color: Theme.of(context).colorScheme.secondary,
+                      widget.question,
+                      style: TextStyles.titleText(context).copyWith(
+                        fontSize: widget.questionFontSize?.toDouble() ?? 20,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Reason
-            Text(
-              widget.reason,
-              style: TextStyles.responseText(context),
-            )
-          ],
+                  if (widget.calloutText != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        widget.calloutText!,
+                        style: TextStyles.responseText(context).copyWith(
+                          fontSize: widget.calloutTextFontSize?.toDouble() ?? 10,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              if (widget.reason.isNotEmpty)
+                const SizedBox(height: 16),
+              if (widget.reason.isNotEmpty) 
+              // Reason
+              Text(
+                widget.reason,
+                style: TextStyles.responseText(context),
+              )
+            ],
+          ),
         ),
       ),
     );

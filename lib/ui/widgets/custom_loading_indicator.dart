@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foretale_application/ui/themes/text_styles.dart';
 
 class LinearLoadingIndicator extends StatefulWidget {
   final bool isLoading;
@@ -95,11 +96,7 @@ class _LinearLoadingIndicatorState extends State<LinearLoadingIndicator>
     if (!widget.isLoading) return const SizedBox.shrink();
 
     final borderRadius = widget.borderRadius ?? BorderRadius.circular(widget.height);
-    final theme = Theme.of(context);
-    final defaultTextStyle = theme.textTheme.bodyMedium?.copyWith(
-      color: widget.color,
-      fontWeight: FontWeight.w500,
-    );
+    final defaultTextStyle = TextStyles.subjectText(context);
 
     return Column(
       mainAxisSize: MainAxisSize.min,

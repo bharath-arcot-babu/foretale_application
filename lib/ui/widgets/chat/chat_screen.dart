@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:foretale_application/config_ecs.dart';
-import 'package:foretale_application/config_lambda_api.dart';
 import 'package:foretale_application/core/services/embeddings/process_files_by_response.dart';
-import 'package:foretale_application/core/services/lambda_activities.dart';
 import 'package:foretale_application/core/utils/file_picker.dart';
-import 'package:foretale_application/core/utils/polling.dart';
-import 'package:foretale_application/ui/widgets/custom_alert.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 
@@ -66,8 +61,7 @@ class _ChatScreenState extends State<ChatScreen> {
         : Column(
             children: [
               Expanded(
-                child: ModernContainer(
-                  child: Consumer<InquiryResponseModel>(
+                child: Consumer<InquiryResponseModel>(
                     builder: (context, inquiryResponseModel, child) {
                       final responses = inquiryResponseModel.getResponseList;
 
@@ -118,7 +112,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       );
                     },
                   ),
-                ),
+                
               ),
               InputArea(
                 controller: _responseController,

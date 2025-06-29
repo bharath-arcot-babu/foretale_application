@@ -1,6 +1,7 @@
 //core
 import 'package:flutter/material.dart';
 import 'package:foretale_application/models/data_assessment_model.dart';
+import 'package:foretale_application/models/result_model.dart';
 import 'package:provider/provider.dart';
 import 'package:foretale_application/amplifyconfiguration.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
@@ -24,10 +25,6 @@ import 'package:foretale_application/models/question_model.dart';
 import 'package:foretale_application/models/team_contacts_model.dart';
 import 'package:foretale_application/models/tests_model.dart';
 import 'package:foretale_application/models/columns_model.dart';
-//themes
-import 'package:foretale_application/ui/themes/text_styles.dart';
-import 'package:foretale_application/ui/themes/button_styles.dart';
-import 'package:foretale_application/core/constants/colors/app_colors.dart';
 
 //entry
 void main() async {
@@ -109,6 +106,7 @@ class ForeTaleApp extends StatelessWidget {
           ChangeNotifierProvider(create: (_) => UploadSummaryModel()),
           ChangeNotifierProvider(create: (_) => ColumnsModel()),
           ChangeNotifierProvider(create: (_) => DataQualityProfileModel()),
+          ChangeNotifierProvider(create: (_) => ResultModel()),
         ],
         child: Authenticator(
             authenticatorBuilder: _authenticatorBuilder,

@@ -1,6 +1,5 @@
 //core
 import 'dart:convert';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:foretale_application/core/utils/csv_file_analysis.dart';
@@ -30,8 +29,7 @@ class UploadScreenWizard extends StatefulWidget {
   State<UploadScreenWizard> createState() => _UploadScreenWizardState();
 }
 
-class _UploadScreenWizardState extends State<UploadScreenWizard>
-    with SingleTickerProviderStateMixin {
+class _UploadScreenWizardState extends State<UploadScreenWizard> with SingleTickerProviderStateMixin {
   final String _currentFileName = "upload_screen_wizard.dart";
 
   late TabController _tabController;
@@ -42,14 +40,18 @@ class _UploadScreenWizardState extends State<UploadScreenWizard>
   bool isPageLoading = false;
   String loadText = 'Loading...';
 
+  bool _pickfileLoading = false;
+  final List<int> _selectedFileUploadIdsForPickFile = [];
+  bool _deleteFileLoading = false;
+  final List<int> _selectedFileUploadIdsForDeleteFile = [];
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    projectDetailsModel =
-        Provider.of<ProjectDetailsModel>(context, listen: false);
-    uploadSummaryModel =
-        Provider.of<UploadSummaryModel>(context, listen: false);
+
+    projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+    uploadSummaryModel = Provider.of<UploadSummaryModel>(context, listen: false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       setState(() {
@@ -84,8 +86,12 @@ class _UploadScreenWizardState extends State<UploadScreenWizard>
                   indicatorColor: AppColors.primaryColor,
                   indicatorWeight: 4,
                   labelStyle: TextStyles.tabSelectedLabelText(context),
-                  unselectedLabelStyle:
-                      TextStyles.tabUnselectedLabelText(context),
+                  unselectedLabelStyle: TextStyles.tabUnselectedLabelText(context),
+                  onTap: (index) {
+                    if (index > 0) {
+                      _tabController.index = 0;
+                    }
+                  },
                   tabs: [
                     buildTab(icon: Icons.grid_4x4_rounded, label: 'Choose a table'),
                     buildTab(icon: Icons.upload, label: 'Column Mapping'),
@@ -113,22 +119,19 @@ class _UploadScreenWizardState extends State<UploadScreenWizard>
           );
   }
 
-  Widget buildTab(
-      {required IconData icon,
-      required String label,
-      Color color = AppColors.primaryColor}) {
+  Widget buildTab({required IconData icon, required String label, Color color = AppColors.primaryColor}) {
     return Tab(
       child: FittedBox(
           child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: TextStyles.subjectText(context),
-          ),
-        ],
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: color, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyles.subjectText(context),
+              ),
+            ],
       )),
     );
   }
@@ -147,8 +150,7 @@ class _UploadScreenWizardState extends State<UploadScreenWizard>
           );
         }
 
-        final sortedTables = [...uploadSummaryList]
-          ..sort((a, b) => a.tableName.compareTo(b.tableName));
+        final sortedTables = [...uploadSummaryList]..sort((a, b) => a.tableName.compareTo(b.tableName));
 
         return Column(children: [
           Expanded(
@@ -175,16 +177,13 @@ class _UploadScreenWizardState extends State<UploadScreenWizard>
                       borderRadius: BorderRadius.circular(16),
                       clipBehavior: Clip.antiAlias,
                       child: Theme(
-                        data: Theme.of(context)
-                            .copyWith(dividerColor: Colors.transparent),
+                        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                         child: ExpansionTile(
                           tilePadding: const EdgeInsets.fromLTRB(16, 16, 8, 16),
                           childrenPadding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 8),
-                          backgroundColor:
-                              Theme.of(context).colorScheme.surface,
-                          collapsedBackgroundColor:
-                              Theme.of(context).colorScheme.surface,
+                          backgroundColor:Theme.of(context).colorScheme.surface,
+                          collapsedBackgroundColor:Theme.of(context).colorScheme.surface,
                           expandedAlignment: Alignment.topLeft,
                           title: Text(
                             table.simpleText,
@@ -215,14 +214,24 @@ class _UploadScreenWizardState extends State<UploadScreenWizard>
                                     await displayDataAssessment(table.tableId);
                                   },
                                   tooltip: "Data Assessment"),
+                              const SizedBox(width: 16),
                               CustomIconButton(
                                   icon: Icons.cloud_upload_rounded,
                                   onPressed: () async {
+                                    setState(() {
+                                      _pickfileLoading = true;
+                                      _selectedFileUploadIdsForPickFile.add(table.tableId);
+                                    });
                                     await pickFile(table.tableId);
+                                    setState(() {
+                                      _pickfileLoading = false;
+                                      _selectedFileUploadIdsForPickFile.remove(table.tableId);
+                                    });
                                   },
-                                  tooltip:
-                                      "Upload data for ${table.simpleText}"),
-                              const SizedBox(width: 8),
+                                  tooltip: "Upload data for ${table.simpleText}",
+                                  isProcessing: _selectedFileUploadIdsForPickFile.contains(table.tableId) ? _pickfileLoading : false,
+                                  ),
+                              const SizedBox(width: 16),
                               const CustomIcon(
                                   icon: Icons.keyboard_arrow_down_rounded,
                                   size: 20),
@@ -247,35 +256,41 @@ class _UploadScreenWizardState extends State<UploadScreenWizard>
                                             style: TextStyles.subtitleText(
                                                 context),
                                           ),
+                                          const SizedBox(height: 2),
                                           Row(
                                             children: [
                                               Text(
                                                 "${file.rowCount.toString()} Rows",
-                                                style: TextStyles
-                                                    .smallSupplementalInfo(
-                                                        context),
+                                                style: TextStyles.smallSupplementalInfo(context),
                                               ),
                                               const SizedBox(width: 8),
                                               Text(
                                                 "${(file.fileSizeInBytes / (1024)).toStringAsFixed(2)} KB",
-                                                style: TextStyles
-                                                    .smallSupplementalInfo(
-                                                        context),
+                                                style: TextStyles.smallSupplementalInfo(context),
                                               )
                                             ],
-                                          )
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            file.chunkName,
+                                            style: TextStyles.smallSupplementalInfo(context).copyWith(fontStyle: FontStyle.italic),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            file.errorMessage,
+                                            style: TextStyles.smallSupplementalInfo(context).copyWith(fontStyle: FontStyle.italic),
+                                          ),
                                         ]),
                                     trailing: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        // Column Mapping Status
                                         CustomIconButton(
                                           icon: file.uploadStatus == 1
                                               ? Icons.task_alt_rounded
-                                              : Icons.rule_folder_rounded,
+                                              : Icons.view_column_rounded,
                                           iconColor: file.uploadStatus == 1
                                               ? Colors.blueAccent
-                                              : Colors.orange,
+                                              : Colors.redAccent,
                                           onPressed: () {
                                             moveToMapping(
                                                 table.tableId,
@@ -283,45 +298,31 @@ class _UploadScreenWizardState extends State<UploadScreenWizard>
                                                 table.simpleText,
                                                 file.fileName);
                                           },
-                                          tooltip: "Column mapping",
-                                        ),
-                                        const SizedBox(width: 8),
-
-                                        // Data Quality Status
-                                        CustomIconButton(
-                                          icon: file.uploadStatus == 1
-                                              ? Icons.warning_amber_rounded
-                                              : Icons.verified_rounded,
-                                          iconColor: file.uploadStatus == 1
-                                              ? Colors.amber
-                                              : Colors.green,
-                                          onPressed: () {},
                                           tooltip: file.uploadStatus == 1
-                                              ? "Data quality issues found"
-                                              : "Data quality passed",
+                                              ? file.errorMessage
+                                              : "Update column mapping",
                                         ),
-                                        const SizedBox(width: 8),
-                                        CustomIconButton(
-                                          icon: file.uploadStatus == 1
-                                              ? Icons.warning_amber_rounded
-                                              : Icons.verified_rounded,
-                                          iconColor: file.uploadStatus == 1
-                                              ? Colors.lightGreen
-                                              : Colors.redAccent,
-                                          onPressed: () {},
-                                          tooltip: file.errorMessage,
-                                        ),
-                                        const SizedBox(width: 8),
+                                        const SizedBox(width: 16),
                                         CustomIconButton(
                                             icon: Icons.delete_rounded,
                                             onPressed: () async {
+                                              setState(() {
+                                                _deleteFileLoading = true;
+                                                _selectedFileUploadIdsForDeleteFile.add(file.fileUploadId);
+                                              });
                                               await deleteFile(
                                                   file.filePath,
-                                                  file.fileName,
+                                                  file.chunkName,
                                                   file.fileUploadId);
+                                              setState(() {
+                                                _deleteFileLoading = false;
+                                                _selectedFileUploadIdsForDeleteFile.remove(file.fileUploadId);
+                                              });
                                             },
-                                            tooltip: "Delete file"),
-                                        const SizedBox(width: 8),
+                                            tooltip: "Delete file",
+                                            isProcessing: _selectedFileUploadIdsForDeleteFile.contains(file.fileUploadId) ? _deleteFileLoading : false,
+                                            ),
+                                        const SizedBox(width: 16),
                                         CustomIconButton(
                                             icon: Icons.download_rounded,
                                             onPressed: () async {
@@ -437,9 +438,8 @@ class _UploadScreenWizardState extends State<UploadScreenWizard>
   }
 
   Future<void> pickFile(int tableId) async {
-    String uuid = Uuid().v4();
-    String storagePath =
-        'public/data/${projectDetailsModel.getActiveProjectId}/${projectDetailsModel.getProjectTypeId}/$tableId/$uuid/';
+    String uuid = const Uuid().v4();
+    String storagePath = 'public/data/${projectDetailsModel.getActiveProjectId}/${projectDetailsModel.getProjectTypeId}/$tableId/$uuid/';
 
     try {
       filePickerResult = await FilePicker.platform.pickFiles(
@@ -452,21 +452,37 @@ class _UploadScreenWizardState extends State<UploadScreenWizard>
 
       if (filePickerResult != null) {
         for (var file in filePickerResult!.files) {
-          final csvDetails = await CsvUtils.readTopRowsFromCsv(file);
+          final tableExists = await uploadSummaryModel.fetchFileUploadTableExists(context, file.name, tableId);
+          
+          if (tableExists) {
+            SnackbarMessage.showErrorMessage(context, "${file.name} already exists. ",
+                logError: true,
+                errorMessage: "${file.name} already exists. Please delete the file and try again.",
+                errorStackTrace: "${file.name} already exists. Please delete the file and try again.",
+                errorSource: _currentFileName,
+                severityLevel: 'Critical',
+                requestPath: "pickFile");
+            continue;
+          }
+          else {
+            final csvDetails = await CsvUtils.readTopRowsFromCsv(file, storagePath, rowLimit: 50, chunkSize: 10000);
+            //await s3Service.uploadFile(file, storagePath);
 
-          await s3Service.uploadFile(file, storagePath);
-
-          await uploadSummaryModel.insertFileUpload(
-            context,
-            storagePath,
-            file.name,
-            file.extension ?? "",
-            file.size,
-            0,
-            0,
-            tableId,
-            jsonEncode(csvDetails),
-          );
+            for (var chunkName in csvDetails['file_chunks']) {
+              await uploadSummaryModel.insertFileUpload(
+                context,
+                storagePath,
+                file.name,
+                file.extension ?? "",
+                file.size,
+                0,
+                0,
+                tableId,
+                jsonEncode(csvDetails),
+                chunkName,
+              );
+            }
+          }
         }
 
         await uploadSummaryModel.fetchFileUploadsByProject(context);
@@ -474,6 +490,7 @@ class _UploadScreenWizardState extends State<UploadScreenWizard>
         filePickerResult = null;
       }
     } catch (e, error_stack_trace) {
+      print("Error: $e");
       SnackbarMessage.showErrorMessage(context, e.toString(),
           logError: true,
           errorMessage: e.toString(),

@@ -86,7 +86,7 @@ class CustomLoginScaffold extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            "Data Quality Assessment Platform",
+                            "Risk & Assurance Controls Testing Platform",
                             style: TextStyles.subtitleText(context),
                           ),
                         ],

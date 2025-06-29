@@ -1,7 +1,9 @@
+import 'dart:convert';
+
 import 'package:amplify_core/amplify_core.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show Uint8List, kIsWeb;
 
 class S3Service {
   Future<void> uploadFile(PlatformFile file, String storagePath) async {
@@ -77,4 +79,17 @@ class S3Service {
     ).result;
     return result.url.toString();
   }
+
+  Future<void> uploadCsvStringToS3(String csvContent, String filename, String storagePath) async {
+    final bytes = utf8.encode(csvContent);
+    final awsFile = AWSFile.fromData(Uint8List.fromList(bytes), name: filename);
+
+    await Amplify.Storage.uploadFile(
+      localFile: awsFile,
+      path: StoragePath.fromString('$storagePath/$filename'),
+    ).result;
+
+    print('✅ Uploaded $filename to S3');
+  }
+
 }

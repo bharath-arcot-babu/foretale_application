@@ -14,11 +14,11 @@ class DatabaseApiService {
       "procedure_name": procedureName,
       "params": params,
     });
+
     return _handleResponse(response);
   }
 
-  Future<dynamic> updateRecord(
-      String procedureName, Map<String, dynamic> params) async {
+  Future<dynamic> updateRecord(String procedureName, Map<String, dynamic> params) async {
     final response = await _put('/update_record', {
       "procedure_name": procedureName,
       "params": params,
@@ -26,8 +26,7 @@ class DatabaseApiService {
     return _handleResponse(response);
   }
 
-  Future<dynamic> deleteRecord(
-      String procedureName, Map<String, dynamic> params) async {
+  Future<dynamic> deleteRecord(String procedureName, Map<String, dynamic> params) async {
     final response = await _delete('/delete_record', {
       "procedure_name": procedureName,
       "params": params,
@@ -35,8 +34,7 @@ class DatabaseApiService {
     return _handleResponse(response);
   }
 
-  Future<dynamic> readRecord(
-      String procedureName, Map<String, dynamic> params) async {
+  Future<dynamic> readRecord(String procedureName, Map<String, dynamic> params) async {
     final uri = Uri.parse('$baseUrl/read_record').replace(queryParameters: {
       "procedure_name": procedureName,
       ...params.map((key, value) => MapEntry(key, value.toString())),
@@ -45,28 +43,28 @@ class DatabaseApiService {
     return _handleResponse(response);
   }
 
-  Future<dynamic> readJsonRecord(
-      String procedureName, Map<String, dynamic> params) async {
-    final uri =
-        Uri.parse('$baseUrl/read_json_record').replace(queryParameters: {
-      "procedure_name": procedureName,
-      ...params.map((key, value) => MapEntry(key, value.toString())),
+  Future<dynamic> readJsonRecord(String procedureName, Map<String, dynamic> params) async {
+    final uri = Uri
+      .parse('$baseUrl/read_json_record')
+      .replace(queryParameters: {
+        "procedure_name": procedureName,
+        ...params.map((key, value) => MapEntry(key, value.toString())),
     });
 
-    final response =
-        await http.get(uri, headers: {"Accept": "application/json"});
+    final response = await http.get(uri, headers: {"Accept": "application/json"});
+
+    print(response);
 
     return _handleResponse(response);
   }
 
-  Future<http.Response> _post(
-      String endpoint, Map<String, dynamic> body) async {
+  Future<http.Response> _post(String endpoint, Map<String, dynamic> body) async {
     final uri = Uri.parse('$baseUrl$endpoint');
 
     return http.post(
       uri,
       headers: {"Content-Type": "application/json"},
-      body: jsonEncode(body), // Send the params as part of the body
+      body: jsonEncode(body),
     );
   }
 

@@ -12,6 +12,11 @@ class TextStyles {
     double minFontSize = 9.0;
     double maxFontSize = factor;
 
+    // Ensure maxFontSize is not less than minFontSize
+    if (maxFontSize < minFontSize) {
+      maxFontSize = minFontSize;
+    }
+
     // Calculate the scaling factor based on the screen width
     double scalingFactor = (screenWidth - baseWidth) / (1920 - baseWidth);
 
