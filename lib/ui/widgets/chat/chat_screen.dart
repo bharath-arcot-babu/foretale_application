@@ -12,7 +12,6 @@ import 'package:foretale_application/models/user_details_model.dart';
 import 'package:foretale_application/ui/widgets/chat/avatar.dart';
 import 'package:foretale_application/ui/widgets/chat/input_area.dart';
 import 'package:foretale_application/ui/widgets/chat/msg_bubble.dart';
-import 'package:foretale_application/ui/widgets/custom_container.dart';
 import 'package:foretale_application/ui/widgets/custom_loading_indicator.dart';
 import 'package:foretale_application/core/utils/message_helper.dart';
 
@@ -72,8 +71,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         itemCount: responses.length,
                         itemBuilder: (context, index) {
                           final item = responses[index];
-                          final isUser =
-                              (item.responseByMachineId == userMachineId);
+                          final isUser = (item.responseByMachineId == userMachineId);
 
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 8),
@@ -181,10 +179,8 @@ class _ChatScreenState extends State<ChatScreen> {
               (file.size / (1024 * 1024)).round(),
             );
           }
-
           //invoke the lambda function to run the embedding task
           await _runEmbeddingsForAllResponses(insertedId, userModel.getUserMachineId?? "");
-          print("Embeddings run for response $insertedId");
         }
 
         setState(() {

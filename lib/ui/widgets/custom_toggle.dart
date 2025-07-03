@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foretale_application/core/constants/colors/app_colors.dart';
 
 class CustomToggle extends StatefulWidget {
   final bool value;
@@ -12,17 +13,17 @@ class CustomToggle extends StatefulWidget {
   final TextStyle? labelStyle;
 
   const CustomToggle({
-    Key? key,
+    super.key,
     required this.value,
     required this.onChanged,
-    this.activeColor = Colors.blue,
-    this.inactiveColor = Colors.grey,
+    this.activeColor = AppColors.primaryColor,
+    this.inactiveColor = AppColors.secondaryColor,
     this.width = 60.0,
     this.height = 30.0,
     this.activeLabel,
     this.inactiveLabel,
     this.labelStyle,
-  }) : super(key: key);
+  });
 
   @override
   State<CustomToggle> createState() => _CustomToggleState();

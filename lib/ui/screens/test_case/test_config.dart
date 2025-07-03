@@ -210,6 +210,6 @@ class _TestConfigPageState extends State<TestConfigPage> {
   }
 
   Future<void> _loadResponses() async {
-    await inquiryResponseModel.fetchResponsesByTest(context);
+    await inquiryResponseModel.fetchResponsesByReference(context, testsModel.getSelectedTestId, 'test');
   }
 }

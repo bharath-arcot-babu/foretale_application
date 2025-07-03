@@ -452,22 +452,28 @@ class _WelcomePageState extends State<WelcomePage> {
 
   Future<void> _loadPage() async {
     try {
-      setState(() => _isLoading = true);
+      if (mounted) {
+        setState(() => _isLoading = true);
+      }
       await Provider.of<ProjectDetailsModel>(context, listen: false)
           .fetchProjectsByUserMachineId(context);
     } catch (e, error_stack_trace) {
-      SnackbarMessage.showErrorMessage(
-        context,
-        e.toString(),
-        logError: true,
-        errorMessage: e.toString(),
-        errorStackTrace: error_stack_trace.toString(),
-        errorSource: _currentFileName,
-        severityLevel: 'Critical',
-        requestPath: "_loadPage",
-      );
+      if (mounted) {
+        SnackbarMessage.showErrorMessage(
+          context,
+          e.toString(),
+          logError: true,
+          errorMessage: e.toString(),
+          errorStackTrace: error_stack_trace.toString(),
+          errorSource: _currentFileName,
+          severityLevel: 'Critical',
+          requestPath: "_loadPage",
+        );
+      }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 

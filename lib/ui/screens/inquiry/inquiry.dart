@@ -20,9 +20,7 @@ class _InquiryPageState extends State<InquiryPage> {
   @override
   void initState() {
     super.initState();
-
-    inquiryQuestionModel =
-        Provider.of<InquiryQuestionModel>(context, listen: false);
+    inquiryQuestionModel =  Provider.of<InquiryQuestionModel>(context, listen: false);
   }
 
   @override
@@ -35,11 +33,8 @@ class _InquiryPageState extends State<InquiryPage> {
               flex: 3,
               child: CustomContainer(
                   title: "Choose a question",
-                  child: Column(
-                      children: [Expanded(child: QuestionsInquiryLv())]))),
-          const SizedBox(
-            width: 30,
-          ),
+                  child: Column(children: [Expanded(child: QuestionsInquiryLv())]))),
+          const SizedBox(width: 30),
           Expanded(
             flex: 4,
             child: CustomContainer(

@@ -168,32 +168,25 @@ class InquiryQuestionModel with ChangeNotifier implements ChatDrivingModel {
 
   @override
   Future<void> fetchResponses(BuildContext context) {
-    return Provider.of<InquiryResponseModel>(context, listen: false)
-        .fetchResponsesByQuestion(context);
+    var inquiryResponseModel = Provider.of<InquiryResponseModel>(context, listen: false);
+    return inquiryResponseModel.fetchResponsesByReference(context, getSelectedInquiryQuestionId, 'question');
   }
 
   @override
   Future<int> insertResponse(BuildContext context, String responseText) {
-    return Provider.of<InquiryResponseModel>(context, listen: false)
-        .insertResponseByQuestion(context, responseText);
+    var inquiryResponseModel = Provider.of<InquiryResponseModel>(context, listen: false);
+    return inquiryResponseModel.insertResponseByReference(context, getSelectedInquiryQuestionId, 'question', responseText);
   }
 
   @override
-  String buildStoragePath({
-    required String projectId,
-    required String responseId,
-  }) {
+  String buildStoragePath({required String projectId, required String responseId}) {
     return '${S3Config.baseResponseQuestionAttachmentPath}$projectId/$selectedId/$responseId';
   }
 
   @override
   String getStoragePath(BuildContext context, int responseId) {
-    final projectDetailsModel =
-        Provider.of<ProjectDetailsModel>(context, listen: false);
-    return buildStoragePath(
-      projectId: projectDetailsModel.getActiveProjectId.toString(),
-      responseId: responseId.toString(),
-    );
+    final projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+    return buildStoragePath(projectId: projectDetailsModel.getActiveProjectId.toString(), responseId: responseId.toString());
   }
 
   @override

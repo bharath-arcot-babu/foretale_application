@@ -20,7 +20,8 @@ import 'package:foretale_application/ui/widgets/custom_code_formatter.dart';
 import 'package:foretale_application/ui/widgets/custom_container.dart';
 import 'package:foretale_application/ui/widgets/custom_icon_button.dart';
 import 'package:foretale_application/ui/widgets/custom_loading_indicator.dart';
-import 'package:foretale_application/ui/widgets/custom_selectable_list.dart'; 
+import 'package:foretale_application/ui/widgets/custom_selectable_list.dart';
+import 'package:foretale_application/ui/widgets/custom_show_status_text.dart'; 
 import 'package:provider/provider.dart';
 import 'package:foretale_application/models/tests_model.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
@@ -135,146 +136,23 @@ class _TestsListViewState extends State<TestsListView> {
                 onTap: () async {
                   await inquiryResponseModel.setIsPageLoading(true);
                   await testsModel.updateTestIdSelection(test.testId);
-                  await inquiryResponseModel.fetchResponsesByTest(context);
+                  await inquiryResponseModel.fetchResponsesByReference(context, test.testId, 'test');
                   await inquiryResponseModel.setIsPageLoading(false);
                 },
                 borderRadius: BorderRadius.circular(12),
                 child: ModernContainer(
-                  //margin: const EdgeInsets.only(bottom: 12),
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(8),
                   backgroundColor: isSelected ? Colors.blue.shade50 : Colors.white,
                   borderRadius: 12,
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
+                    padding: const EdgeInsets.all(5),
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            AnimatedCheckbox(
-                              isSelected: test.isSelected,
-                              onTap: () => _handleTestSelection(test),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                test.testName,
-                                style: TextStyles.subjectText(context),
-                              ),
-                            ),
-
-                            
-                          ],
-                        ),
-                        
-                        const SizedBox(height: 12),
-                        Text(
-                            test.testDescription,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyles.gridText(context),
-                          ),
-                        
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            CustomChip(label: test.testCategory),
-                            const SizedBox(width: 12),
-                            CustomChip(label: test.testRunType),
-                            const SizedBox(width: 12),
-                            CustomChip(label: test.testCriticality),
-                            const Spacer(),
-                            Column(
-                              children: [
-                                AiMagicIconButton(
-                                  onPressed: () async {                               
-                                    //Invoke the AI Magic to generate the query
-                                    await aiMagicGenerateQuery(
-                                      context = context, 
-                                      test.testName, 
-                                      test.testDescription, 
-                                      test.technicalDescription,
-                                      inquiryResponseModel.getSortedResponseTexts.join("\n"), 
-                                      test.relevantSchemaName, 
-                                      test.testId.toString(),
-                                      test.config,
-                                      test.selectClause
-                                    );
-
-                                    //Update the test config update status --listener
-                                    await testsModel.updateTestConfigGenerationStatus(
-                                      test.testId,
-                                      "Started"
-                                    );
-
-                                    //Start polling
-                                    pollingController.startPolling(context, (BuildContext ctx) async {
-                                      await testsModel.fetchTestsByProject(context);
-                                      final stillPending = testsModel.testsList.any((x) => x.testConfigGenerationStatus == "Started");
-                                      if (!stillPending) {
-                                        pollingController.stopPolling(); // ✅ Stop polling if nothing left
-                                      }
-                                    });
-                                    
-                                  },
-                                  tooltip: 'AI Magic - Generate query',
-                                  iconSize: 18.0,
-                                ),
-                                const SizedBox(height: 1),
-                                if (test.testConfigGenerationStatus == "Started")
-                                LinearLoadingIndicator(
-                                  isLoading: true,
-                                  color: AppColors.primaryColor,
-                                  backgroundColor: Colors.grey[300]!,
-                                  loadingText: test.testConfigGenerationStatus,
-                                  textStyle: TextStyles.tinySupplementalInfo(context),
-                                  width: 30,
-                                  height: 4,
-                                ),
-                                if (test.testConfigGenerationStatus != "Started")
-                                Text(
-                                  test.testConfigGenerationStatus,
-                                  style: TextStyles.tinySupplementalInfo(context),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(width: 20),
-                            Column(
-                              children: [
-                                CustomIconButton(
-                                  icon: Icons.query_stats,
-                                  onPressed: () => showSqlQueryDialog(context, test),
-                                  tooltip: 'Show SQL query',
-                                  isProcessing: false,
-                                  iconSize: 18.0,
-                                ),
-                                const SizedBox(height: 1),
-                                Text(
-                                  test.testConfigExecutionStatus,
-                                  style: TextStyles.tinySupplementalInfo(context),
-                                ),
-                              ],
-                            ),
-                            
-                            const SizedBox(width: 20),
-                            Column(
-                              children: [
-                                CustomIconButton(
-                                  icon: Icons.flag,
-                                  onPressed: () => showFlaggedTransactionsDialog(context, test),
-                                  tooltip: 'Show flagged transactions',
-                                  isProcessing: false,
-                                  iconSize: 18.0,
-                                ),
-                                const SizedBox(height: 1),
-                                Text(
-                                  test.testConfigExecutionStatus == "Completed" ? "Show Results" : " ",
-                                  style: TextStyles.tinySupplementalInfo(context),
-                                ),
-                              ],
-                            ),
-                            
-                          ],
-                        ),
+                        _buildLeftSideOfCard(context, test),
+                        const SizedBox(width: 16),
+                        _buildRightSideOfCard(context, test),
                       ],
                     ),
                   ),
@@ -284,6 +162,177 @@ class _TestsListViewState extends State<TestsListView> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildLeftSideOfCard(BuildContext context, Test test) {
+    return Expanded(
+      flex: 8,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header row with checkbox and test name
+          Row(
+            children: [
+              AnimatedCheckbox(
+                isSelected: test.isSelected,
+                onTap: () => _handleTestSelection(test),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  test.testName,
+                  style: TextStyles.subjectText(context),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Test description
+          Text(
+            test.testDescription,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyles.gridText(context),
+          ),
+          const SizedBox(height: 16),
+          // Test metadata chips
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              CustomChip(label: test.testCategory ?? ''),
+              CustomChip(label: test.testRunType ?? ''),
+              CustomChip(label: test.testCriticality ?? ''),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRightSideOfCard(BuildContext context, Test test) {
+    return Expanded(
+      flex: 1,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _buildScriptGenerationWidget(context, test),
+          const SizedBox(height: 12),
+          _buildScriptExecutionWidget(context, test),
+          const SizedBox(height: 12),
+          _buildShowResultsWidget(context, test),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScriptGenerationWidget(BuildContext context, Test test) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // AI Magic button
+        AiMagicIconButton(
+          onPressed: () async {                               
+            // Invoke the AI Magic to generate the query
+            await aiMagicGenerateQuery(
+              context,
+              test.testName, 
+              test.testDescription, 
+              test.technicalDescription,
+              inquiryResponseModel.getSortedResponseTexts.join("\n"), 
+              test.relevantSchemaName, 
+              test.testId.toString(),
+              test.config,
+              test.selectClause
+            );
+
+            // Update the test config update status --listener
+            await testsModel.updateTestConfigGenerationStatus(
+              test.testId,
+              "Started"
+            );
+
+            // Start polling
+            pollingController.startPolling(context, (BuildContext ctx) async {
+              await testsModel.fetchTestsByProject(context);
+              final stillPending = testsModel.testsList.any((x) => x.testConfigGenerationStatus == "Started");
+              if (!stillPending) {
+                pollingController.stopPolling(); // ✅ Stop polling if nothing left
+              }
+            });
+          },
+          tooltip: 'AI Magic - Generate query',
+          iconSize: 18.0,
+        ),
+        const SizedBox(height: 5),
+        // Status indicators
+        if (test.testConfigGenerationStatus == "Started")
+          LinearLoadingIndicator(
+            isLoading: true,
+            color: AppColors.primaryColor,
+            backgroundColor: Colors.grey[300]!,
+            loadingText: test.testConfigGenerationStatus ?? '',
+            textStyle: TextStyles.tinySupplementalInfo(context),
+            width: 30,
+            height: 3,
+          ),
+        if (test.testConfigGenerationStatus != null && test.testConfigGenerationStatus != "Started")
+          StatusBadge(
+            text: test.testConfigGenerationStatus ?? '',
+          ),
+      ],
+    );
+  }
+
+  Widget _buildScriptExecutionWidget(BuildContext context, Test test) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // SQL Query button
+        CustomIconButton(
+          icon: Icons.query_stats,
+          onPressed: () => showSqlQueryDialog(context, test),
+          tooltip: 'Show SQL query',
+          isProcessing: false,
+          iconSize: 18.0,
+        ),
+        const SizedBox(height: 8),
+        // Status indicator
+        if (test.testConfigExecutionStatus == "Completed")
+          StatusBadge(
+            text: test.testConfigExecutionStatus ?? '',
+          ),
+      ],
+    );
+  }
+
+  Widget _buildShowResultsWidget(BuildContext context, Test test) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Results button
+        CustomIconButton(
+          icon: Icons.flag,
+          onPressed: () => showFlaggedTransactionsDialog(context, test),
+          tooltip: 'Show flagged transactions',
+          isProcessing: false,
+          iconSize: 18.0,
+        ),
+        const SizedBox(height: 8),
+        // Status indicator
+        if (test.testConfigExecutionStatus == "Completed")
+          StatusBadge(
+            text: "Show Results",
+          ),
+      ],
     );
   }
 
@@ -312,7 +361,6 @@ class _TestsListViewState extends State<TestsListView> {
 
         //Run the embedding task
         if (confirmed) {
-          print("confirmed: $confirmed");
           SnackbarMessage.showSuccessMessage(context, "AI Magic is working in the background to generate the query.");
 
           //Invoke the lambda function to run the embedding task

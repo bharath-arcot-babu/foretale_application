@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:foretale_application/core/constants/colors/app_colors.dart';
 import 'package:foretale_application/ui/screens/create_project/project_questions.dart';
 import 'package:foretale_application/ui/widgets/animation/custom_animator.dart';
 import 'package:foretale_application/ui/widgets/animation/animated_switcher.dart';
@@ -37,10 +36,8 @@ class _QuestionsInquiryLvState extends State<QuestionsInquiryLv> {
   @override
   void initState() {
     super.initState();
-    inquiryQuestionModel =
-        Provider.of<InquiryQuestionModel>(context, listen: false);
-    inquiryResponseModel =
-        Provider.of<InquiryResponseModel>(context, listen: false);
+    inquiryQuestionModel = Provider.of<InquiryQuestionModel>(context, listen: false);
+    inquiryResponseModel = Provider.of<InquiryResponseModel>(context, listen: false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _loadPage();
@@ -328,7 +325,7 @@ class _QuestionsInquiryLvState extends State<QuestionsInquiryLv> {
           iconSize: 15,
           onPressed: () async {
             await inquiryResponseModel.setIsPageLoading(true);
-            await inquiryResponseModel.fetchResponsesByQuestion(context);
+            await inquiryResponseModel.fetchResponsesByReference(context, questionId, 'question');
             await inquiryResponseModel.setIsPageLoading(false);
           },
         ),
@@ -441,7 +438,7 @@ class _QuestionsInquiryLvState extends State<QuestionsInquiryLv> {
   }
 
   Future<void> _loadResponses() async {
-    await inquiryResponseModel.fetchResponsesByQuestion(context);
+    await inquiryResponseModel.fetchResponsesByReference(context, inquiryQuestionModel.getSelectedInquiryQuestionId, 'question');
   }
 
   @override
