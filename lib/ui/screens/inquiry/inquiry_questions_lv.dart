@@ -324,9 +324,12 @@ class _QuestionsInquiryLvState extends State<QuestionsInquiryLv> {
           icon: icon,
           iconSize: 15,
           onPressed: () async {
-            await inquiryResponseModel.setIsPageLoading(true);
-            await inquiryResponseModel.fetchResponsesByReference(context, questionId, 'question');
-            await inquiryResponseModel.setIsPageLoading(false);
+            // Use Future.microtask to ensure this runs after the current build phase
+            Future.microtask(() async {
+              await inquiryResponseModel.setIsPageLoading(true);
+              await inquiryResponseModel.fetchResponsesByReference(context, questionId, 'question');
+              await inquiryResponseModel.setIsPageLoading(false);
+            });
           },
         ),
       ),

@@ -10,6 +10,7 @@ class CustomTextField extends StatelessWidget {
   final String? Function(String?)? validator; // Add validator function
   final bool isEnabled;
   final Function(String)? onChanged;
+  final TextInputType? keyboardType;
 
   const CustomTextField(
       {super.key,
@@ -19,7 +20,8 @@ class CustomTextField extends StatelessWidget {
       this.maxLines = 1,
       this.validator, // Add the validator parameter
       required this.isEnabled,
-      this.onChanged});
+      this.onChanged,
+      this.keyboardType});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +31,7 @@ class CustomTextField extends StatelessWidget {
         obscureText: obscureText,
         maxLines: maxLines,
         style: TextStyles.inputMainTextStyle(context),
-        
+        keyboardType: keyboardType,
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyles.inputMainTextStyle(context),

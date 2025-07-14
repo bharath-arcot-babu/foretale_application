@@ -5,18 +5,25 @@ import 'package:syncfusion_flutter_core/theme.dart';
 
 class SFDataGridTheme {
   static SfDataGridThemeData sfCustomDataGridTheme = SfDataGridThemeData( 
-    headerColor: DatagridColors.datagridHeaderColor, // Light blue header background for better readability
-    headerHoverColor: DatagridColors.datagridHeaderColor, // Subtle hover effect for the header
-    selectionColor: DatagridColors.datagridRowSelectionColor,
-    //gridLineColor: BorderColors.secondaryColor, // Light grey grid lines for a softer look
-    //gridLineStrokeWidth: 0.5, // Slightly thicker grid lines for better visibility
-    rowHoverColor: AppColors.primaryColor, // Light row hover color for a clean effect
+    headerColor: const Color(0xFFFAFBFC), // Very light, almost white header
+    headerHoverColor: const Color(0xFFF5F6F7), // Subtle hover effect
+    selectionColor: const Color(0xFFE3F2FD).withOpacity(0.3), // Very light blue selection
+    gridLineColor: const Color(0xFFE8EAED), // Very light grey grid lines
+    gridLineStrokeWidth: 0.3, // Ultra-thin grid lines for sleek look
+    rowHoverColor: const Color(0xFFF8F9FA), // Minimal hover effect
     sortIcon: const Icon(
-      Icons.sort,
-      size: 14,
-      color: Colors.black, // Neutral, elegant blue-grey sort icon color
+      Icons.keyboard_arrow_up,
+      size: 16,
+      color: Color(0xFF5F6368), // Subtle grey sort icon
     ),
-    filterPopupTextStyle: TextStyles.gridFilterText(),
-    filterPopupDisabledTextStyle: TextStyles.gridFilterText(),
+    filterPopupTextStyle: TextStyles.gridFilterText().copyWith(
+      fontSize: 13,
+      fontWeight: FontWeight.w400,
+    ),
+    filterPopupDisabledTextStyle: TextStyles.gridFilterText().copyWith(
+      fontSize: 13,
+      fontWeight: FontWeight.w400,
+      color: const Color(0xFF9AA0A6),
+    ),
   );  
 }

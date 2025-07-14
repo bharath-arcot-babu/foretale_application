@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
 import 'package:foretale_application/models/inquiry_response_model.dart';
 import 'package:foretale_application/ui/widgets/chat/chat_screen.dart';
+import 'package:foretale_application/ui/widgets/custom_icon_button.dart';
 import 'package:foretale_application/ui/widgets/custom_loading_indicator.dart';
 import 'package:provider/provider.dart';
 //model
@@ -43,12 +44,13 @@ class _TestConfigPageState extends State<TestConfigPage> {
     super.initState();
     testsModel = Provider.of<TestsModel>(context, listen: false);
     userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
-    projectDetailsModel =
-        Provider.of<ProjectDetailsModel>(context, listen: false);
-    inquiryResponseModel =
-        Provider.of<InquiryResponseModel>(context, listen: false);
+    projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+    inquiryResponseModel = Provider.of<InquiryResponseModel>(context, listen: false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Set loading state after the first frame is built
+      await inquiryResponseModel.setIsPageLoading(false);
+      
       setState(() {
         isPageLoading = true;
         loadText = "Loading test cases...";
@@ -71,9 +73,7 @@ class _TestConfigPageState extends State<TestConfigPage> {
             color: AppColors.primaryColor,
             loadingText: loadText,
           ))
-        : Padding(
-            padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.02),
-            child: Row(
+        : Row(
               children: [
                 Expanded(
                   flex: 4,
@@ -94,15 +94,24 @@ class _TestConfigPageState extends State<TestConfigPage> {
                                       testsModel.filterData(value.trim()),
                                 ),
                               ),
-                              if (_searchController.text.isNotEmpty)
-                                IconButton(
-                                  icon: const Icon(Icons.clear),
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    testsModel.filterData('');
-                                  },
-                                  tooltip: 'Clear search',
-                                ),
+                              const SizedBox(width: 16),
+                              CustomIconButton(
+                                icon: Icons.clear,
+                                onPressed: () {
+                                  _searchController.clear();
+                                  testsModel.filterData('');
+                                },
+                                tooltip: 'Clear search',
+                              ),
+                              const SizedBox(width: 16),
+                              CustomIconButton(
+                                icon: Icons.add,
+                                onPressed: () {
+                                  _searchController.clear();
+                                  testsModel.filterData('');
+                                },
+                                tooltip: 'Add a new test',
+                              ),
                             ],
                           ),
                         ),
@@ -147,7 +156,7 @@ class _TestConfigPageState extends State<TestConfigPage> {
                   builder: (context, selectedTestId, __) {
                     return selectedTestId > 0 
                     ? Expanded(
-                        flex: 4,
+                        flex: 2,
                         child: CustomContainer(
                           title: "Details / Configuration",
                           child: Selector<TestsModel, int>(
@@ -186,8 +195,7 @@ class _TestConfigPageState extends State<TestConfigPage> {
                 ),
                 
               ],
-            ),
-          );
+            );
   }
 
   Future<void> _loadPage() async {

@@ -31,8 +31,7 @@ class _ProjectSettingsScreenState extends State<ProjectSettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _projectSettingsModel =
-        Provider.of<ProjectSettingsModel>(context, listen: false);
+    _projectSettingsModel = Provider.of<ProjectSettingsModel>(context, listen: false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!widget.isNew) {

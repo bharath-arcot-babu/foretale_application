@@ -41,7 +41,6 @@ class TopicList {
       params,
       (json) => Topic.fromJson(json),
     );
-
     return topicList;
   }
 }

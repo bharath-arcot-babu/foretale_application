@@ -25,12 +25,12 @@ class SnackbarMessage {
       String severityLevel = "",
       String requestPath = ""}) async {
     try {
-      String errMessage = SnackbarMessage.extractErrorMessage(message);
+      String errMessage = SnackbarMessage.extractErrorMessage(errorMessage);
 
-      if (showUserMessage) {
-        _showSnackBar(context, message, const Color.fromARGB(255, 167, 34, 25), SnackBarBehavior.floating);
-      } else if (errMessage != 'NOT_FOUND') {
+      if (errMessage != 'NOT_FOUND') {
         _showSnackBar(context, errMessage, const Color.fromARGB(255, 167, 34, 25), SnackBarBehavior.floating);
+      } else if (showUserMessage) {
+        _showSnackBar(context, message, const Color.fromARGB(255, 167, 34, 25), SnackBarBehavior.floating);
       } else {
         _showSnackBar(context, 'Something went wrong!', const Color.fromARGB(255, 167, 34, 25), SnackBarBehavior.floating);
       }
@@ -57,14 +57,22 @@ class SnackbarMessage {
 
   // Function to extract the message between <ERR_START> and <ERR_END>
   static String extractErrorMessage(String errorMessage) {
-    int startIndex = errorMessage.indexOf('<ERR_START>');
-    int endIndex = errorMessage.indexOf('<ERR_END>');
+    const startTag = '<ERR_START>';
+    const endTag = '<ERR_END>';
 
-    if (startIndex != -1 && endIndex != -1) {
-      return errorMessage.substring(startIndex + 11, endIndex).trim();
+    int startIndex = errorMessage.indexOf(startTag);
+    int endIndex = errorMessage.indexOf(endTag);
+
+    if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
+      return errorMessage.substring(
+        startIndex + startTag.length,
+        endIndex,
+      ).trim();
     }
+
     return 'NOT_FOUND';
   }
+
 
   /// A reusable method that can be used for success and error messages.
   static void _showSnackBar(

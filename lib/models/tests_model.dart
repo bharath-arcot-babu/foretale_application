@@ -30,6 +30,7 @@ class Test {
   String selectClause;
   String technicalDescription;
   String analysisTableName;
+  bool markAsCompleted;
 
   Test({
     this.testId = 0,
@@ -50,6 +51,7 @@ class Test {
     this.selectClause = '',
     this.technicalDescription = '',
     this.analysisTableName = '',
+    this.markAsCompleted = false,
   });
 
   factory Test.fromJson(Map<String, dynamic> map) {
@@ -73,6 +75,7 @@ class Test {
       selectClause: map['select_clause'] ?? '',
       technicalDescription: map['technical_description'] ?? '',
       analysisTableName: map['analysis_table_name'] ?? '',
+      markAsCompleted: bool.tryParse(map['mark_as_completed']) ?? false,
     );
   }
 }
@@ -92,6 +95,8 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
   String get getCurrentSortColumn => _currentSortColumn;
   DataGridSortDirection currentSortDirection = DataGridSortDirection.descending;
   DataGridSortDirection get getCurrentSortDirection => currentSortDirection;
+
+  Test get getSelectedTest => testsList.firstWhere((test) => test.testId == _selectedTestId);
 
   Future<void> updateTestIdSelection(int testId) async {
     _selectedTestId = testId;
@@ -201,7 +206,7 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
 
     final params = {
       'execution_id': executionLogId,
-      'executed_by': userDetailsModel.getUserMachineId,
+      'executed_by': userDetailsModel.getUserMachineId
     };
 
     int updatedId = await _crudService.updateRecord(
@@ -316,6 +321,75 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
     );
 
     return updatedId;
+  }
+
+  Future<int> updateTestCompletion(BuildContext context, Test test, bool status) async {
+    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
+    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+
+    final params = {
+      'project_id': projectDetailsModel.getActiveProjectId,
+      'test_id': test.testId,
+      'status': status,
+      'last_updated_by': userDetailsModel.getUserMachineId
+    };
+
+    int updatedId = await _crudService.updateRecord(
+      context,
+      'dbo.sproc_update_mark_test_completion_status',
+      params,
+    );
+
+    return updatedId;
+  }
+
+  void updatedTestCompletionOffline(Test test, bool status) {
+    var index = testsList.indexWhere((q) => q.testId == test.testId);
+    if (index != -1) {
+      testsList[index].markAsCompleted = status;
+    }
+    notifyListeners();
+  }
+
+  Future<int> createNewTest(
+      BuildContext context, 
+      String testName,
+      String testDescription,
+      String testTechnicalDescription,
+      String industryName,
+      String topicName,
+      String subtopicName,
+      String testRunType,
+      String testRunProgram,
+      String testCategory,
+      String testModule,
+      String testCriticality) async {
+    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
+    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+
+    final params = {
+      'project_id': projectDetailsModel.getActiveProjectId,
+      'name': testName,
+      'description': testDescription,
+      'technical_description': testTechnicalDescription,
+      'industry_name': industryName,
+      'topic_name': topicName,
+      'sub_topic_name': subtopicName,
+      'created_by': userDetailsModel.getUserMachineId,
+      'run_type': testRunType,
+      'run_program': testRunProgram,
+      'category': testCategory,
+      'module': testModule,
+      'criticality': testCriticality,
+    };
+
+    int insertedId = await _crudService.addRecord(
+      context,
+      'dbo.sproc_insert_test',
+      params,
+    );
+
+    return insertedId;
   }
 
   @override

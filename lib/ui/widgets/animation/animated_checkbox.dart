@@ -5,22 +5,24 @@ class AnimatedCheckbox extends StatelessWidget {
   final bool isSelected;
   final bool isLoading;
   final VoidCallback onTap;
+  final bool isEnabled;
 
   const AnimatedCheckbox({
     super.key,
     required this.isSelected,
     required this.onTap,
     this.isLoading = false,
+    this.isEnabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: isLoading ? null : onTap,
+      onTap: isLoading || !isEnabled ? null : onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        width: 28,
-        height: 28,
+        width: 14,
+        height: 14,
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primaryColor : Colors.white,
           borderRadius: BorderRadius.circular(6),
@@ -35,7 +37,7 @@ class AnimatedCheckbox extends StatelessWidget {
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 )
               : isSelected
-                  ? const Icon(Icons.check, size: 20, color: Colors.white)
+                  ? const Icon(Icons.check, size: 10, color: Colors.white)
                   : null,
         ),
       ),

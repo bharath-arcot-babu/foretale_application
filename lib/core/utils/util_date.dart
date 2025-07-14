@@ -15,3 +15,82 @@ String convertToDateString(String dateTimeString) {
     return '';
   }
 }
+
+/// Validates if a date string is in the correct yyyy-mm-dd format and is a valid date
+bool isValidDateFormat(String date) {
+  try {
+    // Check if the date matches yyyy-mm-dd format
+    RegExp dateRegex = RegExp(r'^\d{4}-\d{2}-\d{2}$');
+    if (!dateRegex.hasMatch(date)) {
+      return false;
+    }
+    
+    // Parse the date to ensure it's a valid date
+    DateTime.parse(date);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/// Checks if a date is in the past (before today)
+bool isDateInPast(String date) {
+  try {
+    DateTime inputDate = DateTime.parse(date);
+    DateTime today = DateTime.now();
+    // Compare only the date part (year, month, day)
+    DateTime todayDate = DateTime(today.year, today.month, today.day);
+    DateTime inputDateOnly = DateTime(inputDate.year, inputDate.month, inputDate.day);
+    
+    return inputDateOnly.isBefore(todayDate);
+  } catch (e) {
+    return false;
+  }
+}
+
+/// Validates that end date is after start date
+bool isEndDateAfterStartDate(String startDate, String endDate) {
+  try {
+    DateTime start = DateTime.parse(startDate);
+    DateTime end = DateTime.parse(endDate);
+    
+    // Compare only the date part (year, month, day)
+    DateTime startDateOnly = DateTime(start.year, start.month, start.day);
+    DateTime endDateOnly = DateTime(end.year, end.month, end.day);
+    
+    return endDateOnly.isAfter(startDateOnly);
+  } catch (e) {
+    return false;
+  }
+}
+
+/// Formats a date string to a more readable format
+String formatDateForDisplay(String date) {
+  try {
+    DateTime dateTime = DateTime.parse(date);
+    return DateFormat('MMM dd, yyyy').format(dateTime);
+  } catch (e) {
+    return date; // Return original string if parsing fails
+  }
+}
+
+/// Gets today's date in yyyy-mm-dd format
+String getTodayDate() {
+  return DateFormat('yyyy-MM-dd').format(DateTime.now());
+}
+
+/// Validates if a date is today
+bool isDateToday(String date) {
+  try {
+    DateTime inputDate = DateTime.parse(date);
+    DateTime today = DateTime.now();
+    // Compare only the date part (year, month, day)
+    DateTime todayDate = DateTime(today.year, today.month, today.day);
+    DateTime inputDateOnly = DateTime(inputDate.year, inputDate.month, inputDate.day);
+    
+    return inputDateOnly.isAtSameMomentAs(todayDate);
+  } catch (e) {
+    return false;
+  }
+}
+

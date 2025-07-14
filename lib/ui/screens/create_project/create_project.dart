@@ -24,7 +24,7 @@ class _CreateProjectState extends State<CreateProject>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
   }
 
   @override
@@ -52,7 +52,7 @@ class _CreateProjectState extends State<CreateProject>
                 buildTab(icon: Icons.settings, label: 'Settings'),
                 buildTab(icon: Icons.people_outline, label: 'Client'),
                 buildTab(icon: Icons.group, label: 'Team'),
-                //buildTab(icon: Icons.group, label: 'Inquiry'),
+                buildTab(icon: Icons.question_answer, label: 'Questions'),
               ],
             ),
             const SizedBox(height: 20),

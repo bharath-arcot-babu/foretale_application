@@ -84,8 +84,10 @@ class InquiryResponseModel with ChangeNotifier {
   bool get getIsPageLoading => _isPageLoading;
 
   Future<void> setIsPageLoading(bool value) async {
-    _isPageLoading = value;
-    notifyListeners();
+    if (_isPageLoading != value) {
+      _isPageLoading = value;
+      notifyListeners();
+    }
   }
 
   List<String> get getSortedResponseTexts {
@@ -116,6 +118,7 @@ class InquiryResponseModel with ChangeNotifier {
       params,
       (json) => InquiryResponse.fromJson(json),
     );
+
 
     notifyListeners();
   }

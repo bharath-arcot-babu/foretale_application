@@ -23,6 +23,10 @@ class ProjectDetails {
   String createdByEmail;
   String industry;
   int industryId;
+  String systemName;
+  String projectScopeStartDate;
+  String projectScopeEndDate;
+  int daysIntoProject;
 
   // Constructor with default values
   ProjectDetails(
@@ -39,7 +43,12 @@ class ProjectDetails {
       this.createdByName = '',
       this.createdByEmail = '',
       this.industry = '',
-      this.industryId = 0});
+      this.industryId = 0,
+      this.systemName = '',
+      this.projectScopeStartDate = '',
+      this.projectScopeEndDate = '',
+      this.daysIntoProject = 0
+      });
 
   // Factory method to create an instance from a JSON map
   factory ProjectDetails.fromJson(Map<String, dynamic> json) {
@@ -57,7 +66,12 @@ class ProjectDetails {
         createdByName: json['user_name'] ?? '',
         createdByEmail: json['user_email'] ?? '',
         industry: json['industry'] ?? '',
-        industryId: json['industry_id'] ?? 0);
+        industryId: json['industry_id'] ?? 0,
+        systemName: json['system_name'] ?? '',
+        projectScopeStartDate: json['project_scope_start_date'] ?? '',
+        projectScopeEndDate: json['project_scope_end_date'] ?? '',
+        daysIntoProject: json['days_elapsed'] ?? 0,
+      );
   }
 }
 
@@ -81,16 +95,19 @@ class ProjectDetailsModel with ChangeNotifier {
   String get getCreatedByEmail => projectDetails.createdByEmail;
   String get getIndustry => projectDetails.industry;
   int get getIndustryId => projectDetails.industryId;
+  String get getSystemName => projectDetails.systemName;
+  String get getProjectScopeStartDate => projectDetails.projectScopeStartDate;
+  String get getProjectScopeEndDate => projectDetails.projectScopeEndDate;
+  String get getProjectStartDate => projectDetails.createdDate;
+  int get getDaysIntoProject => projectDetails.daysIntoProject;
 
   List<ProjectDetails> filteredProjectsList = [];
   List<ProjectDetails> get getFilteredProjectsList => filteredProjectsList;
 
-  void updateProjectDetails(
-      BuildContext context, ProjectDetails projDetails) async {
+  void updateProjectDetails(BuildContext context, ProjectDetails projDetails) async {
     projectDetails = projDetails;
     // Save to shared preferences using the helper
-    await SharedPreferencesHelper.setValue(
-        _activeProjectKey, projDetails.activeProjectId);
+    await SharedPreferencesHelper.setValue(_activeProjectKey, projDetails.activeProjectId);
     notifyListeners();
   }
 
@@ -106,7 +123,10 @@ class ProjectDetailsModel with ChangeNotifier {
       'project_type': getProjectType,
       'user_name': getCreatedByName,
       'user_email': getCreatedByEmail,
-      'industry': getIndustry
+      'industry': getIndustry,
+      'system_name': getSystemName,
+      'project_scope_start_date': projectDetails.projectScopeStartDate,
+      'project_scope_end_date': projectDetails.projectScopeEndDate
     };
 
     int insertedId = await _crudService.addRecord(
@@ -134,8 +154,7 @@ class ProjectDetailsModel with ChangeNotifier {
   }
 
   Future<void> fetchProjectsByUserMachineId(BuildContext context) async {
-    var userDetailsModel =
-        Provider.of<UserDetailsModel>(context, listen: false);
+    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
 
     final params = {'user_machine_id': userDetailsModel.getUserMachineId};
 
@@ -149,9 +168,7 @@ class ProjectDetailsModel with ChangeNotifier {
     filteredProjectsList = projectListByUser;
 
     // Load active project from shared preferences using the helper
-
-    projectDetails.activeProjectId =
-        SharedPreferencesHelper.getValue<int>(_activeProjectKey, 0) ?? 0;
+    projectDetails.activeProjectId = SharedPreferencesHelper.getValue<int>(_activeProjectKey, 0) ?? 0;
 
     notifyListeners();
   }

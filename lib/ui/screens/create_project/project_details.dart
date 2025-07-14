@@ -4,9 +4,7 @@ import 'package:foretale_application/models/industry_list_model.dart';
 import 'package:foretale_application/models/organization_list_model.dart';
 import 'package:foretale_application/models/project_details_model.dart';
 import 'package:foretale_application/models/project_type_list_model.dart';
-import 'package:foretale_application/ui/widgets/custom_container.dart';
 import 'package:foretale_application/ui/widgets/custom_enclosure.dart';
-import 'package:foretale_application/ui/widgets/custom_future_dropdown.dart';
 import 'package:foretale_application/ui/widgets/custom_dropdown_search.dart';
 import 'package:provider/provider.dart';
 //models
@@ -15,10 +13,12 @@ import 'package:foretale_application/models/user_details_model.dart';
 import 'package:foretale_application/ui/widgets/custom_elevated_button.dart';
 import 'package:foretale_application/ui/widgets/custom_text_field.dart';
 import 'package:foretale_application/core/utils/message_helper.dart';
+import 'package:foretale_application/core/utils/util_date.dart';
 import 'package:foretale_application/ui/widgets/custom_grid_menu.dart';
 import 'package:foretale_application/ui/widgets/custom_loading_indicator.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
+import 'package:foretale_application/core/constants/values.dart';
 
 class ProjectDetailsScreen extends StatefulWidget {
   bool isNew;
@@ -40,6 +40,9 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
   String? _selectedProjectType;
   String? _selectedOrganization;
   String? _selectedIndustry;
+  String? _selectedSystemName;
+  final TextEditingController _projectScopeStartDateController = TextEditingController();
+  final TextEditingController _projectScopeEndDateController = TextEditingController();
 
   late UserDetailsModel _userDetailsModel;
   late ProjectDetailsModel _projectDetailsModel;
@@ -56,8 +59,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
   void initState() {
     super.initState();
     _userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
-    _projectDetailsModel =
-        Provider.of<ProjectDetailsModel>(context, listen: false);
+    _projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       setState(() {
@@ -161,6 +163,19 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                                       });
                                     },
                                   ),
+                                const SizedBox(height: 20),
+                                CustomDropdownSearch(
+                                    items: systemNames,
+                                    isEnabled: widget.isNew,
+                                    hintText: 'Choose System',
+                                    title: "System Name",
+                                    selectedItem: _selectedSystemName,
+                                    onChanged: (String? selectedItem) {
+                                      setState(() {
+                                        _selectedSystemName = selectedItem;
+                                      });
+                                    },
+                                  ),
                                 ],
                               ),
                             ),
@@ -198,20 +213,16 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                                                 ),
                                               )
                                             : LayoutBuilder(
-                                                builder:
-                                                    (context, constraints) {
+                                                builder: (context, constraints) {
                                                   return SingleChildScrollView(
                                                     child: CustomGridMenu(
                                                       isEnabled: widget.isNew,
                                                       items: _projectTypes,
                                                       labelText: "Project Type",
-                                                      selectedItem:
-                                                          _selectedProjectType,
-                                                      onItemSelected: (String
-                                                          selectedItem) {
+                                                      selectedItem: _selectedProjectType,
+                                                      onItemSelected: (String selectedItem) {
                                                         setState(() {
-                                                          _selectedProjectType =
-                                                              selectedItem;
+                                                          _selectedProjectType = selectedItem;
                                                         });
                                                       },
                                                     ),
@@ -259,6 +270,61 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                             return null;
                           },
                         ),
+                        const SizedBox(height: 20),
+                        
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: CustomTextField(
+                                  isEnabled: widget.isNew,
+                                  controller: _projectScopeStartDateController,
+                                  label: 'Project Scope Start Date (yyyy-mm-dd)',
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Start date is required';
+                                    }
+                                    // Validate date format
+                                    if (!isValidDateFormat(value)) {
+                                      return 'Please enter date in yyyy-mm-dd format';
+                                    }
+                                    // Validate that start date is not in the past
+                                    if (isDateInPast(value)) {
+                                      return 'Start date cannot be in the past';
+                                    }
+                                    return null;
+                                  },
+                                  keyboardType: TextInputType.datetime,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: CustomTextField(
+                                  isEnabled: widget.isNew,
+                                  controller: _projectScopeEndDateController,
+                                  label: 'Project Scope End Date (yyyy-mm-dd)',
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'End date is required';
+                                    }
+                                    // Validate date format
+                                    if (!isValidDateFormat(value)) {
+                                      return 'Please enter date in yyyy-mm-dd format';
+                                    }
+                                    // Validate that end date is after start date
+                                    if (_projectScopeStartDateController.text.isNotEmpty) {
+                                      if (!isEndDateAfterStartDate(_projectScopeStartDateController.text, value)) {
+                                        return 'End date must be after start date';
+                                      }
+                                    }
+                                    return null;
+                                  },
+                                  keyboardType: TextInputType.datetime,
+                                ),
+                              ),
+                            ],
+                          ),
+                        
                       ],
                     ),
                   ),
@@ -280,8 +346,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
 
   Future<void> _fetchIndustries() async {
     if (_industries.isEmpty) {
-      List<Industry> lkpList =
-          await IndustryList().fetchAllActiveIndustries(context);
+      List<Industry> lkpList = await IndustryList().fetchAllActiveIndustries(context);
       setState(() {
         _industries = lkpList.map((obj) => obj.name).toList();
       });
@@ -327,6 +392,9 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
         _selectedOrganization = _projectDetailsModel.getOrganization;
         _selectedIndustry = _projectDetailsModel.getIndustry;
         _selectedProjectType = _projectDetailsModel.getProjectType;
+        _selectedSystemName = _projectDetailsModel.getSystemName;
+        _projectScopeStartDateController.text = _projectDetailsModel.getProjectScopeStartDate;
+        _projectScopeEndDateController.text = _projectDetailsModel.getProjectScopeEndDate;
       });
     }
 
@@ -335,6 +403,13 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
   }
 
   Future<void> _saveProjectDetails(BuildContext context) async {
+
+    if(_selectedProjectType == null) {
+      SnackbarMessage.showErrorMessage(context, 'Project type is required');
+      return;
+    }
+    
+    // Additional validation for dropdown fields
     if (_formKey.currentState?.validate() ?? false) {
       try {
         _projectDetailsModel.projectDetails = ProjectDetails(
@@ -343,12 +418,15 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             organization: _selectedOrganization!.trim(),
             recordStatus: 'A',
             createdBy: _userDetailsModel.getUserMachineId!,
-            activeProjectId:
-                widget.isNew ? 0 : _projectDetailsModel.getActiveProjectId,
+            activeProjectId: widget.isNew ? 0 : _projectDetailsModel.getActiveProjectId,
             projectType: _selectedProjectType!,
             createdByName: _userDetailsModel.getName!,
             createdByEmail: _userDetailsModel.getEmail!,
-            industry: _selectedIndustry!);
+            industry: _selectedIndustry!,
+            systemName: _selectedSystemName ?? '',
+            projectScopeStartDate: _projectScopeStartDateController.text.trim(),
+            projectScopeEndDate: _projectScopeEndDateController.text.trim()
+        );
 
         int resultId = await _projectDetailsModel.saveProjectDetails(context);
 
@@ -359,8 +437,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             widget.isNew = false;
           });
 
-          SnackbarMessage.showSuccessMessage(context,
-              'Project "${_projectNameController.text.trim()}" has been saved successfully.');
+          SnackbarMessage.showSuccessMessage(context, 'Project "${_projectNameController.text.trim()}" has been saved successfully.');
         }
       } catch (e, error_stack_trace) {
         SnackbarMessage.showErrorMessage(context, e.toString(),
@@ -386,5 +463,14 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           severityLevel: 'Critical',
           requestPath: "_saveProjectDetails");
     }
+  }
+
+  @override
+  void dispose() {
+    _projectNameController.dispose();
+    _projectDescriptionController.dispose();
+    _projectScopeStartDateController.dispose();
+    _projectScopeEndDateController.dispose();
+    super.dispose();
   }
 }

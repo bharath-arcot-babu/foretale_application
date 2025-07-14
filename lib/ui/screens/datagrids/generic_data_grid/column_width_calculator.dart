@@ -23,6 +23,9 @@ class ColumnWidthCalculator {
       case GenericGridCellType.checkbox:
         baseWidth = 60.0; // Fixed width for checkbox column
         break;
+      case GenericGridCellType.dropdown:
+        baseWidth = 200.0; // Increased width for dropdown column to ensure full visibility
+        break;
       case GenericGridCellType.badge:
         baseWidth += 24.0; // Extra space for badge padding and border
         break;
@@ -112,6 +115,9 @@ class ColumnWidthCalculator {
     switch (cellType) {
       case GenericGridCellType.checkbox:
         baseWidth = 60.0;
+        break;
+      case GenericGridCellType.dropdown:
+        baseWidth = 200.0;
         break;
       case GenericGridCellType.badge:
         baseWidth += 24.0;

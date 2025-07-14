@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
 //utils
 import 'package:foretale_application/core/services/cognito_activities.dart';
+import 'package:foretale_application/ui/screens/create_test/create_test.dart';
+import 'package:foretale_application/ui/screens/report/report_wrap.dart';
+import 'package:foretale_application/ui/screens/review/review.dart';
 
 //screens
 import 'package:foretale_application/ui/screens/welcome.dart';
@@ -29,11 +32,11 @@ class _AppLayoutState extends State<AppLayout> {
 
   final String _display1 = "Home";
   final String _display2 = "Knowledge Base";
-  final String _display3 = "Data Request";
+  final String _display3 = "Data Upload";
   final String _display4 = "Test Library";
-  final String _display5 = "Analysis";
+  final String _display5 = "Result & Review";
   final String _display6 = "Review & Approval";
-  final String _display7 = "Issues & Exceptions";
+  final String _display7 = "Report";
   final String _display8 = "Settings";
   final String _display9 = "Help & Support";
   final String _display10 = "Logout";
@@ -110,11 +113,11 @@ class _AppLayoutState extends State<AppLayout> {
     } else if (_selectedScreen == _display4) {
       return const TestConfigPage();
     } else if (_selectedScreen == _display5) {
-      return const Placeholder();
+      return const ReviewPage();
     } else if (_selectedScreen == _display6) {
-      return const Placeholder();
+      return const CreateTest(isNew: true);
     } else if (_selectedScreen == _display7) {
-      return const Placeholder();
+      return const RiskReportPage();
     }
     return const Placeholder();
   }

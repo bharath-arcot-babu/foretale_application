@@ -24,31 +24,35 @@ class CustomDropdownSearch extends StatelessWidget {
   });
 
   InputDecoration _buildInputDecoration(BuildContext context) {
-    final border = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(
-        color: BorderColors.secondaryColor.withOpacity(0.7),
-        width: 1.2,
-      ),
-    );
-
     return InputDecoration(
       hintText: hintText,
-      floatingLabelBehavior: FloatingLabelBehavior.always,
-      hintStyle: TextStyles.inputHintTextStyle(context)
-          .copyWith(color: Colors.black38),
+      labelStyle: TextStyles.inputMainTextStyle(context),
       filled: true,
-      fillColor: isEnabled ? Colors.white : Colors.grey[50],
-      border: border,
-      focusedBorder: border.copyWith(
-        borderSide:
-            const BorderSide(color: BorderColors.secondaryColor, width: 1.8),
+      fillColor: Colors.transparent, // Light background for the text field
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8), // Rounded corners
+        borderSide: const BorderSide(
+          color: FillColors.tertiaryColor, // Border color
+          width: 0.8, // Border width
+        ),
       ),
-      enabledBorder: border,
-      disabledBorder: border.copyWith(
-        borderSide: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1.2),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(
+          color: BorderColors.secondaryColor, // Highlight color when focused
+          width: 1.5,
+        ),
       ),
-      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(
+          color: BorderColors.secondaryColor, // Border color when not focused
+          width: 0.8,
+        ),
+      ),
+      contentPadding: const EdgeInsets.symmetric(
+          vertical: 10, horizontal: 12), // Reduced padding
+      hintStyle: TextStyles.inputHintTextStyle(context),
       suffixIcon: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -66,105 +70,67 @@ class CustomDropdownSearch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(15),
+    return DropdownSearch<String>(
+      enabled: isEnabled,
+      items: items,
+      selectedItem: selectedItem,
+      onChanged: onChanged,
+      validator: (value) =>
+          (value == null || value.isEmpty) ? '$title is required.' : null,
+      clearButtonProps: ClearButtonProps(
+        isVisible: selectedItem != null,
+        icon: const Icon(Icons.clear, size: 18),
+      ),
+      dropdownDecoratorProps: DropDownDecoratorProps(
+        baseStyle: TextStyles.inputMainTextStyle(context),
+        dropdownSearchDecoration: _buildInputDecoration(context),
+      ),
+      popupProps: PopupProps.menu(
+        showSelectedItems: true,
+        showSearchBox: showSearchBox,
+        fit: FlexFit.loose,
+        constraints: const BoxConstraints(maxHeight: 300),
+        itemBuilder: (context, item, isSelected) => Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          height: 40,
           decoration: BoxDecoration(
-            color: Colors.transparent,
-            border: Border.all(color: BorderColors.tertiaryColor, width: 0.8),
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0),
-                blurRadius: 5,
-                spreadRadius: 2,
+            color: isSelected
+                ? FillColors.tertiaryColor.withOpacity(0.1)
+                : Colors.transparent,
+            border: Border(
+              bottom: BorderSide(
+                color: BorderColors.secondaryColor.withOpacity(0.15),
+                width: 0.8,
               ),
-            ],
+            ),
           ),
-          child: DropdownSearch<String>(
-            enabled: isEnabled,
-            items: items,
-            selectedItem: selectedItem,
-            onChanged: onChanged,
-            validator: (value) =>
-                (value == null || value.isEmpty) ? '$title is required.' : null,
-            clearButtonProps: ClearButtonProps(
-              isVisible: selectedItem != null,
-              icon: const Icon(Icons.clear, size: 18),
-            ),
-            dropdownDecoratorProps: DropDownDecoratorProps(
-              baseStyle: TextStyles.inputHintTextStyle(context)
-                  .copyWith(color: Colors.black87),
-              dropdownSearchDecoration: _buildInputDecoration(context),
-            ),
-            popupProps: PopupProps.menu(
-              showSelectedItems: true,
-              showSearchBox: showSearchBox,
-              fit: FlexFit.loose,
-              itemBuilder: (context, item, isSelected) => Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? FillColors.tertiaryColor.withOpacity(0.1)
-                      : Colors.transparent,
-                  border: Border(
-                    bottom: BorderSide(
-                      color: BorderColors.secondaryColor.withOpacity(0.15),
-                      width: 0.8,
-                    ),
-                  ),
-                ),
-                child: Text(
-                  item,
-                  style: TextStyles.inputMainTextStyle(context).copyWith(
-                    fontWeight:
-                        isSelected ? FontWeight.w500 : FontWeight.normal,
-                  ),
-                ),
-              ),
-              searchFieldProps: TextFieldProps(
-                decoration: InputDecoration(
-                  hintText: 'Search...',
-                  prefixIcon: const Icon(Icons.search, size: 20),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                        color: BorderColors.secondaryColor.withOpacity(0.3)),
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-              ),
-              menuProps: MenuProps(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                backgroundColor: Colors.white,
-                elevation: 8,
-              ),
+          child: Text(
+            item,
+            style: TextStyles.inputMainTextStyle(context).copyWith(
+              fontWeight:
+                  isSelected ? FontWeight.w500 : FontWeight.normal,
             ),
           ),
         ),
-        Positioned(
-          top: -10,
-          left: 12,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-            decoration: BoxDecoration(
-              color: AppColors.backgroundColor,
-              borderRadius: BorderRadius.circular(4),
+        searchFieldProps: TextFieldProps(
+          decoration: InputDecoration(
+            hintText: 'Search...',
+            prefixIcon: const Icon(Icons.search, size: 20),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: BorderColors.secondaryColor.withOpacity(0.3)),
             ),
-            child: Text(
-              title,
-              style: TextStyles.enclosureText(context),
-            ),
+            filled: true,
+            fillColor: Colors.white,
           ),
         ),
-      ],
+        menuProps: MenuProps(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: Colors.white,
+          elevation: 8,
+        ),
+      ),
     );
   }
 }

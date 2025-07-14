@@ -61,47 +61,24 @@ class PromptTemplate {
     return prompt;
   }
 
-  /// Builds the full prompt with examples and input
-  String buildPromptToClarifyTestConfig(
-      String testName, String testDescription, String context) {
+  String buildPromptForTestConfig(String projectType, String topic, String testName) {
+    final exampleSection = examples.map((e) => 'Example:\n$e').join('\n\n');
     String prompt = '''
       $role
 
-      $goal
-
       $instructions
-
-      $outputFormat
-
-      Here is the test case name and description:
-      Test Case Name: $testName
-      Test Case Description: $testDescription
-
-      ${context.isEmpty ? '' : 'Here is the list of past user responses in the descending order to the test case:\n$context'}
-
-      ''';
-
-    return prompt;
-  }
-
-  String buildPromptToFindTablesForTestConfig(
-    String testName, String testDescription, String pastUserResponses) {
-    String prompt = '''
-      $role
 
       $goal
 
-      $instructions
+      $exampleSection
 
       $outputFormat
 
-      Here is the test case name and description:
-      Test Case Name: $testName
-      Test Case Description: $testDescription
+      Here is the actual input for you to analyze:
 
-      ${pastUserResponses.isEmpty ? '' : 'Here is the list of past user responses in the descending order to the test case:\n$pastUserResponses'}
-
-      $examples
+      Project Type: $projectType
+      Topic: $topic
+      Test Name: $testName
       ''';
 
     return prompt;

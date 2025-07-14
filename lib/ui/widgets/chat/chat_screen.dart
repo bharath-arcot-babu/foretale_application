@@ -122,8 +122,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 onRemoveFile: (file) {
                   setState(() {
                     if (filePickerResult != null) {
-                      final files =
-                          List<PlatformFile>.from(filePickerResult!.files);
+                      final files = List<PlatformFile>.from(filePickerResult!.files);
                       files.removeWhere((f) => f.name == file.name);
                       filePickerResult = FilePickerResult(files);
                     }
