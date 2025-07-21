@@ -1,9 +1,7 @@
 //core
 import 'package:flutter/material.dart';
-import 'package:foretale_application/models/tests_model.dart';
 import 'package:provider/provider.dart';
 //models
-import 'package:foretale_application/models/inquiry_question_model.dart';
 import 'package:foretale_application/models/project_details_model.dart';
 import 'package:foretale_application/models/user_details_model.dart';
 import 'package:foretale_application/models/inquiry_attachment_model.dart';
@@ -118,7 +116,6 @@ class InquiryResponseModel with ChangeNotifier {
       params,
       (json) => InquiryResponse.fromJson(json),
     );
-
 
     notifyListeners();
   }

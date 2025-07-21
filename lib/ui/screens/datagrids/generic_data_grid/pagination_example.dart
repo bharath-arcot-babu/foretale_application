@@ -75,35 +75,35 @@ class _PaginationExampleState extends State<PaginationExample> {
             // The GenericDataGrid with pagination enabled
             GenericDataGrid(
               key: _gridKey,
-              columns: [
-                const GenericGridColumn(
+              columns: const [
+                GenericGridColumn(
                   columnName: 'id',
                   label: 'ID',
                   width: 80,
                   cellType: GenericGridCellType.number,
                 ),
-                const GenericGridColumn(
+                GenericGridColumn(
                   columnName: 'name',
                   label: 'Name',
                   width: 200,
                 ),
-                const GenericGridColumn(
+                GenericGridColumn(
                   columnName: 'description',
                   label: 'Description',
                   width: 300,
                 ),
-                const GenericGridColumn(
+                GenericGridColumn(
                   columnName: 'category',
                   label: 'Category',
                   width: 150,
                 ),
-                const GenericGridColumn(
+                GenericGridColumn(
                   columnName: 'status',
                   label: 'Status',
                   width: 120,
                   cellType: GenericGridCellType.badge,
                 ),
-                const GenericGridColumn(
+                GenericGridColumn(
                   columnName: 'date',
                   label: 'Date',
                   width: 120,

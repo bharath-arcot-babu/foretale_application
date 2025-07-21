@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:foretale_application/core/mixins/polling_mixin.dart';
+import 'package:foretale_application/core/utils/message_helper.dart';
 import 'package:foretale_application/models/inquiry_response_model.dart';
 import 'package:foretale_application/models/project_details_model.dart';
 import 'package:foretale_application/models/user_details_model.dart';
@@ -90,17 +90,36 @@ class _TestsListViewState extends State<TestsListView> {
   }
 
   Future<void> _onTestTap(Test test) async {
-    // Use Future.microtask to ensure this runs after the current build phase
-    Future.microtask(() async {
+    try{
       await inquiryResponseModel.setIsPageLoading(true);
       await testsModel.updateTestIdSelection(test.testId);
       await inquiryResponseModel.fetchResponsesByReference(context, test.testId, 'test');
       await inquiryResponseModel.setIsPageLoading(false);
-    });
+    } catch (e, error_stack_trace) {
+      SnackbarMessage.showErrorMessage(context, 
+          e.toString(),
+          logError: true,
+          errorMessage: e.toString(),
+          errorStackTrace: error_stack_trace.toString(),
+          errorSource: _currentFileName,
+          severityLevel: 'Critical',
+          requestPath: "_onTestTap");
+    }
   }
 
   Future<void> _onTestSelection(Test test) async {
-    await TestSelectionService.handleTestSelection(context, test);
-    setState(() {}); // refresh UI if needed
+    try{
+      await TestSelectionService.handleTestSelection(context, test);
+      setState(() {}); // refresh UI if needed
+    } catch (e, error_stack_trace) {
+      SnackbarMessage.showErrorMessage(context, 
+          e.toString(),
+          logError: true,
+          errorMessage: e.toString(),
+          errorStackTrace: error_stack_trace.toString(),
+          errorSource: _currentFileName,
+          severityLevel: 'Critical',
+          requestPath: "_onTestSelection");
+    }
   }
 }

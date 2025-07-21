@@ -68,7 +68,6 @@ Future<Map<String, String>> checkEcsTaskStatus({
     };
     
   } catch (e) {
-    print("Error: $e");
     SnackbarMessage.showErrorMessage(
       context,
       "Failed to check task status: ${e.toString()}",

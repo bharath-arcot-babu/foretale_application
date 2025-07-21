@@ -167,7 +167,7 @@ class ReportBusinessRisksTab extends StatelessWidget {
                 fontSize: 12,
               ),
             ),
-          )).toList(),
+          )),
         ],
       ),
     );

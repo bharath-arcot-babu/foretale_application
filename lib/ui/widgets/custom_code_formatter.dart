@@ -23,7 +23,7 @@ class CustomCodeFormatter extends StatefulWidget {
     this.readOnly = false,
     this.height,
     this.width,
-    this.theme = 'vs2015',
+    this.theme = 'monokai',
   });
 
   @override
@@ -38,7 +38,7 @@ class _CustomCodeFormatterState extends State<CustomCodeFormatter> {
   void initState() {
     super.initState();
     _themeMap = _getThemeMap();
-
+    print('initialCode: ${widget.initialCode}');
     _codeController = CodeController(
       text: widget.initialCode.isEmpty ? '' : widget.initialCode,
       language: sql,
@@ -50,6 +50,16 @@ class _CustomCodeFormatterState extends State<CustomCodeFormatter> {
           widget.onCodeChanged!(_codeController.text);
         }
       });
+    }
+  }
+
+  @override
+  void didUpdateWidget(CustomCodeFormatter oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // Update the controller text if initialCode has changed
+    if (oldWidget.initialCode != widget.initialCode) {
+      _codeController.text = widget.initialCode.isEmpty ? '' : widget.initialCode;
     }
   }
 
@@ -76,15 +86,22 @@ class _CustomCodeFormatterState extends State<CustomCodeFormatter> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: widget.height ?? 200, // Provide a default height
+      height: widget.height,
       width: widget.width,
       decoration: BoxDecoration(
-        color: _themeMap['root']?.backgroundColor ?? Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
+        color: AppColors.surfaceColor,
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppColors.primaryColor.withOpacity(0.2),
-          width: 1,
+          color: BorderColors.tertiaryColor.withOpacity(0.3),
+          width: 0.8,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: CodeTheme(
         data: CodeThemeData(
@@ -97,7 +114,7 @@ class _CustomCodeFormatterState extends State<CustomCodeFormatter> {
             fontFamily: 'monospace',
           ),
           readOnly: widget.readOnly,
-          expands: true,
+          expands: widget.height == null, // Only expand if no height is specified
           cursorColor: AppColors.primaryColor,
           textSelectionTheme: TextSelectionThemeData(
             cursorColor: AppColors.primaryColor,

@@ -66,30 +66,19 @@ class CsvUtils {
     String storagePath, {
     int chunkSize = 10000,
   }) async {
-    print("started splitting file into chunks2");
-    print("columnSeparator: $columnSeparator");
-    print("rowSeparator: $rowSeparator");
-    print("textQualifier: $textQualifier");
-    print("normalizedContent: ${normalizedContent}");
-    print("chunkSize: $chunkSize");
-    print("kIsWeb: $kIsWeb");
-
     // Step 1: Parse CSV
     final csvConverter = CsvToListConverter(
       fieldDelimiter: columnSeparator,
       textDelimiter: textQualifier,
       eol: rowSeparator,
     );
-    print("csvConverter:");
 
     final allRows = csvConverter.convert(normalizedContent);
-    print("all rows: ${allRows.length}");
 
     if (allRows.isEmpty || allRows.length == 1) {
       throw Exception("CSV file has no data rows.");
     }
-    print("all rows: ${allRows.length}");
-
+ 
     final header = allRows.first;
     final dataRows = allRows.sublist(1);
     final fileName = path.basenameWithoutExtension(file.name);
@@ -106,7 +95,6 @@ class CsvUtils {
       await outputDir.create(recursive: true);
       outputDirPath = outputDir.path;
     }
-    print("output dir path: $outputDirPath");
 
     // Step 2: Split and store chunks
     int chunkIndex = 1;

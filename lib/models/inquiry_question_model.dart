@@ -1,5 +1,7 @@
 //core
 import 'package:flutter/material.dart';
+import 'package:foretale_application/config_ecs.dart';
+import 'package:foretale_application/core/services/websocket_service.dart';
 import 'package:foretale_application/models/abstracts/chat_driving_model.dart';
 import 'package:foretale_application/models/inquiry_response_model.dart';
 import 'package:foretale_application/config_s3.dart';
@@ -191,4 +193,21 @@ class InquiryQuestionModel with ChangeNotifier implements ChatDrivingModel {
 
   @override
   int getSelectedId(BuildContext context) => selectedId;
+
+  @override
+  Future<void> sendMessage(BuildContext context, String message, WebSocketService webSocketService) async {
+    //placeholder for now
+  }
+
+  @override
+  String getDrivingModelName(BuildContext context) => 'Question';
+
+  @override
+  String getWebSocketUrl(BuildContext context) => WebSocketECSForQueryGeneration.webSocket;
+
+  @override
+  Future<int> updateConfig(BuildContext context, String aiSummary, String keyTables, String keyColumns, String keyCriteria, String keyJoins, String keyAmbiguities, String fullState, String initialState, String config, String configExecStatus, String configExecMessage) {
+    // TODO: implement updateConfig
+    throw UnimplementedError();
+  }
 }

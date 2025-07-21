@@ -17,7 +17,7 @@ class TestConfigurationSection extends StatefulWidget {
   final Function(String?) onRunProgramChanged;
   final String? topic;
 
-  TestConfigurationSection({
+  const TestConfigurationSection({
     super.key,
     required this.selectedRunType,
     required this.selectedCriticality,

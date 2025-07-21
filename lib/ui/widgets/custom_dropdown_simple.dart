@@ -14,7 +14,7 @@ class CustomDropdownSimple<T> extends StatelessWidget {
   final bool compact;
 
   const CustomDropdownSimple({
-    Key? key,
+    super.key,
     this.hint,
     required this.value,
     required this.items,
@@ -24,7 +24,7 @@ class CustomDropdownSimple<T> extends StatelessWidget {
     this.label,
     this.errorText,
     this.compact = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

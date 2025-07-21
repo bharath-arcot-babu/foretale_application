@@ -63,73 +63,106 @@ class ChatBubble extends StatelessWidget {
       BuildContext context, List<InquiryAttachment> attachments) {
     return attachments.map((attachment) {
       return Container(
-        margin: const EdgeInsets.only(top: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isUser
-              ? Colors.white.withOpacity(0.1)
-              : Colors.grey.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
+              ? Colors.white.withOpacity(0.15)
+              : Colors.grey.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isUser
+                ? Colors.white.withOpacity(0.2)
+                : Colors.grey.withOpacity(0.2),
+            width: 1,
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              _getFileIcon(attachment.fileName),
-              size: 18,
-              color: isUser ? Colors.white : Colors.black87,
-            ),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                attachment.fileName,
-                style: TextStyles.responseTextFileInfo(context).copyWith(
-                  color: isUser ? Colors.white : Colors.black87,
-                ),
-                overflow: TextOverflow.ellipsis,
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: isUser
+                    ? Colors.white.withOpacity(0.2)
+                    : Colors.grey.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              "(${attachment.fileSize} KB)",
-              style: TextStyles.responseTextFileInfo(context).copyWith(
+              child: Icon(
+                _getFileIcon(attachment.fileName),
+                size: 16,
                 color: isUser ? Colors.white : Colors.black87,
               ),
             ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    attachment.fileName,
+                    style: TextStyles.responseTextFileInfo(context).copyWith(
+                      color: isUser ? Colors.white : Colors.black87,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    "${attachment.fileSize} KB",
+                    style: TextStyles.tinySupplementalInfo(context).copyWith(
+                      color: isUser 
+                          ? Colors.white.withOpacity(0.7)
+                          : Colors.black54,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(width: 8),
-            IconButton(
-              icon: const Icon(Icons.download, size: 14),
-              color: isUser ? Colors.white : Colors.black87,
-              onPressed: () async {
-                try {
-                  final s3Service = S3Service();
-                  final filePath =
-                      '${attachment.filePath}/${attachment.fileName}';
-                  final fileUrl = await s3Service.getFileUrl(filePath);
+            Container(
+              decoration: BoxDecoration(
+                color: isUser
+                    ? Colors.white.withOpacity(0.2)
+                    : Colors.grey.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.download, size: 16),
+                color: isUser ? Colors.white : Colors.black87,
+                padding: const EdgeInsets.all(8),
+                constraints: const BoxConstraints(
+                  minWidth: 32,
+                  minHeight: 32,
+                ),
+                onPressed: () async {
+                  try {
+                    final s3Service = S3Service();
+                    final filePath =
+                        '${attachment.filePath}/${attachment.fileName}';
+                    final fileUrl = await s3Service.getFileUrl(filePath);
 
-                  if (fileUrl != null) {
-                    // Open the file URL in the browser
-                    // You'll need to add url_launcher package for this
-                    // await launchUrl(Uri.parse(fileUrl));
-                    await s3Service.downloadFile(filePath);
-                    SnackbarMessage.showSuccessMessage(
-                      context,
-                      "Download is complete.",
-                    );
-                  } else {
-                    throw Exception("Failed to get file URL");
+                    if (fileUrl != null) {
+                      await s3Service.downloadFile(filePath);
+                      SnackbarMessage.showSuccessMessage(
+                        context,
+                        "Download is complete.",
+                      );
+                    } else {
+                      throw Exception("Failed to get file URL");
+                    }
+                  } catch (e, error_stack_trace) {
+                    SnackbarMessage.showErrorMessage(context, e.toString(),
+                        logError: true,
+                        errorMessage: "Error downloading file: $e",
+                        errorStackTrace: error_stack_trace.toString(),
+                        errorSource: _currentFileName,
+                        severityLevel: 'Critical',
+                        requestPath: "_buildAttachments");
                   }
-                } catch (e, error_stack_trace) {
-                  SnackbarMessage.showErrorMessage(context, e.toString(),
-                      logError: true,
-                      errorMessage: "Error downloading file: $e",
-                      errorStackTrace: error_stack_trace.toString(),
-                      errorSource: _currentFileName,
-                      severityLevel: 'Critical',
-                      requestPath: "_buildAttachments");
-                }
-              },
-              tooltip: "Download ${attachment.fileName}",
+                },
+                tooltip: "Download ${attachment.fileName}",
+              ),
             ),
           ],
         ),
@@ -139,182 +172,248 @@ class ChatBubble extends StatelessWidget {
 
   Widget _buildEmbeddingStatus(BuildContext context) {
     return embeddingStatus == true
-    ? CustomIconButton(
-        icon: Icons.info,
-        iconSize: 14,
-        padding: 2,
-        tooltip: "Vectorized for AI Magic",
-        onPressed: () {},
-      )
-    : CustomIconButton(
-        icon: Icons.refresh,
-        iconSize: 14,
-        padding: 2,
-        tooltip: "Retry creating embeddings for AI magic",
-        onPressed: () {
-          try{
-            EmbeddingService().runEmbeddingsForResponse(
-              responseId,
-              userId
-            );
-          } catch (e, error_stack_trace) {
-            SnackbarMessage.showErrorMessage(context, e.toString(),
-                logError: true,
-                errorMessage: "Error creating embeddings: $e",
-                errorStackTrace: error_stack_trace.toString(),
-                errorSource: _currentFileName,
-                severityLevel: 'Critical',
-                requestPath: "buildEmbeddingStatus");
-          }
-        },
-      );
-
+        ? Container(
+            decoration: BoxDecoration(
+              color: Colors.green.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.green.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: CustomIconButton(
+              icon: Icons.check_circle,
+              iconSize: 14,
+              padding: 6,
+              tooltip: "Vectorized for AI Magic",
+              onPressed: () {},
+            ),
+          )
+        : Container(
+            decoration: BoxDecoration(
+              color: Colors.orange.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.orange.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: CustomIconButton(
+              icon: Icons.refresh,
+              iconSize: 14,
+              padding: 6,
+              tooltip: "Retry creating embeddings for AI magic",
+              onPressed: () {
+                try {
+                  EmbeddingService().runEmbeddingsForResponse(
+                    responseId,
+                    userId,
+                  );
+                } catch (e, error_stack_trace) {
+                  SnackbarMessage.showErrorMessage(context, e.toString(),
+                      logError: true,
+                      errorMessage: "Error creating embeddings: $e",
+                      errorStackTrace: error_stack_trace.toString(),
+                      errorSource: _currentFileName,
+                      severityLevel: 'Critical',
+                      requestPath: "buildEmbeddingStatus");
+                }
+              },
+            ),
+          );
   }
 
   Widget _buildDeleteButton(BuildContext context) {
-    return CustomIconButton(
-      icon: Icons.delete_outline,
-      iconSize: 14,
-      padding: 2,
-      tooltip: "Delete response",
-      onPressed: () async {
-        try {
-          final inquiryResponseModel =
-              Provider.of<InquiryResponseModel>(context, listen: false);
-          final confirmed = await showConfirmDialog(
-            context: context,
-            title: 'Delete Response',
-            content: 'Are you sure you want to delete this response?',
-            confirmText: 'Delete',
-            cancelText: 'Cancel',
-            confirmTextColor: Colors.green,
-          );
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.red.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.red.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: CustomIconButton(
+        icon: Icons.delete_outline,
+        iconSize: 14,
+        padding: 6,
+        tooltip: "Delete response",
+        onPressed: () async {
+          try {
+            final inquiryResponseModel =
+                Provider.of<InquiryResponseModel>(context, listen: false);
+            final confirmed = await showConfirmDialog(
+              context: context,
+              title: 'Delete Response',
+              content: 'Are you sure you want to delete this response?',
+              confirmText: 'Delete',
+              cancelText: 'Cancel',
+              confirmTextColor: Colors.green,
+            );
 
-          if (confirmed == true) {
-            int deletedId =
-                await inquiryResponseModel.deleteResponse(context, responseId);
-            if (deletedId > 0) {
-              await drivingModel.fetchResponses(context);
-              SnackbarMessage.showSuccessMessage(
-                context,
-                "Response deleted successfully.",
-              );
-            } else {
-              SnackbarMessage.showErrorMessage(
-                context,
-                "Failed to delete response.",
-              );
+            if (confirmed == true) {
+              int deletedId =
+                  await inquiryResponseModel.deleteResponse(context, responseId);
+              if (deletedId > 0) {
+                await drivingModel.fetchResponses(context);
+                SnackbarMessage.showSuccessMessage(
+                  context,
+                  "Response deleted successfully.",
+                );
+              } else {
+                SnackbarMessage.showErrorMessage(
+                  context,
+                  "Failed to delete response.",
+                );
+              }
             }
+          } catch (e, error_stack_trace) {
+            SnackbarMessage.showErrorMessage(
+              context,
+              e.toString(),
+              logError: true,
+              errorMessage: "Error deleting response: $e",
+              errorStackTrace: error_stack_trace.toString(),
+              errorSource: _currentFileName,
+              severityLevel: 'Critical',
+              requestPath: "deleteResponse",
+            );
           }
-        } catch (e, error_stack_trace) {
-          SnackbarMessage.showErrorMessage(
-            context,
-            e.toString(),
-            logError: true,
-            errorMessage: "Error deleting response: $e",
-            errorStackTrace: error_stack_trace.toString(),
-            errorSource: _currentFileName,
-            severityLevel: 'Critical',
-            requestPath: "deleteResponse",
-          );
-        }
-      },
+        },
+      ),
     );
   }
 
   Widget _buildAiMagicResponse(BuildContext context, String aiResponseText) {
-    //Parse the response
-      //Response is a list of maps. Map is string key and dynamic value.
-      if (aiResponseText.isNotEmpty) {
-        try {
-          return InfoCard( 
-                question: aiResponseText,
-                reason: "",
-                calloutText: 'AI',
-                questionFontSize: 12,
-                calloutTextFontSize: 10,
-              );
-        } catch (parseError) {
-          return const SizedBox.shrink();
-        }
-      } else {
+    if (aiResponseText.isNotEmpty) {
+      try {
+        return Container(
+          margin: const EdgeInsets.only(top: 8),
+          child: InfoCard(
+            question: aiResponseText,
+            reason: "",
+            calloutText: 'AI',
+            questionFontSize: 12,
+            calloutTextFontSize: 10,
+          ),
+        );
+      } catch (parseError) {
         return const SizedBox.shrink();
       }
+    } else {
+      return const SizedBox.shrink();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      child: Column(
         crossAxisAlignment:
             isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
+          // Action buttons row
           Row(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              embeddingStatus == true
-              ? _buildEmbeddingStatus(context)
-              : const SizedBox.shrink(),
-              const SizedBox(width: 8),
+              if (!isUser) ...[
+                _buildEmbeddingStatus(context),
+                const SizedBox(width: 8),
+              ],
               _buildDeleteButton(context),
             ],
           ),
-          isAiMagicResponse == 1 
-          ? _buildAiMagicResponse(context, responseText) 
-          : 
-          Container(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.75,
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: isUser ? theme.colorScheme.primary : Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: const Radius.circular(18),
-                topRight: const Radius.circular(18),
-                bottomLeft:
-                    isUser ? const Radius.circular(18) : const Radius.circular(4),
-                bottomRight:
-                    isUser ? const Radius.circular(4) : const Radius.circular(18),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 5,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Flexible(
-                  child: Text(
-                    responseText,
-                    style: TextStyles.responseText(context).copyWith(
-                      color: isUser
-                          ? theme.colorScheme.onPrimary
-                          : theme.colorScheme.onSurface,
+          const SizedBox(height: 8),
+          
+          // Main message bubble
+          isAiMagicResponse == 1
+              ? _buildAiMagicResponse(context, responseText)
+              : Container(
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.75,
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: isUser
+                        ? LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              theme.colorScheme.primary,
+                              theme.colorScheme.primary.withOpacity(0.9),
+                            ],
+                          )
+                        : null,
+                    color: isUser ? null : Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: const Radius.circular(20),
+                      topRight: const Radius.circular(20),
+                      bottomLeft: isUser
+                          ? const Radius.circular(20)
+                          : const Radius.circular(6),
+                      bottomRight: isUser
+                          ? const Radius.circular(6)
+                          : const Radius.circular(20),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                        spreadRadius: 0,
+                      ),
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                        spreadRadius: 0,
+                      ),
+                    ],
+                    border: isUser
+                        ? null
+                        : Border.all(
+                            color: Colors.grey.withOpacity(0.1),
+                            width: 1,
+                          ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Message text
+                      Text(
+                        responseText,
+                        style: TextStyles.responseText(context).copyWith(
+                          color: isUser
+                              ? Colors.white
+                              : theme.colorScheme.onSurface,
+                          height: 1.4,
+                        ),
+                      ),
+                      
+                      // Attachments
+                      if (attachments.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        ..._buildAttachments(context, attachments),
+                      ],
+                    ],
                   ),
                 ),
-                if (attachments.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  ..._buildAttachments(context, attachments),
-                ],
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 4, left: 4, right: 4),
+          
+          // Timestamp
+          Container(
+            margin: const EdgeInsets.only(top: 6, left: 8, right: 8),
             child: Text(
               responseDate,
-              style: TextStyles.smallSupplementalInfo(context),
+              style: TextStyles.smallSupplementalInfo(context).copyWith(
+                color: Colors.grey.withOpacity(0.6),
+              ),
             ),
           ),
         ],
-      );
-    }
+      ),
+    );
+  }
 }

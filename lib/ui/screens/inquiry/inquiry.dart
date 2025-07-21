@@ -42,10 +42,13 @@ class _InquiryPageState extends State<InquiryPage> {
               child: Selector<InquiryQuestionModel, int>(
                 selector: (context, model) => model.getSelectedId(context),
                 builder: (context, selectedId, __) {
-                  return ChatScreen(
-                    drivingModel: inquiryQuestionModel,
-                    isChatEnabled: selectedId > 0,
-                  );
+                                      return Expanded(
+                      child: ChatScreen(
+                        key: ValueKey('inquiry_$selectedId'),
+                        drivingModel: inquiryQuestionModel,
+                        isChatEnabled: selectedId > 0,
+                      ),
+                    );
                 },
               ),
             ),

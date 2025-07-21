@@ -20,72 +20,92 @@ class SelectableAnimatedList<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
+    return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      children: items.map((item) {
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final item = items[index];
         final bool isSelected = item == selectedItem;
         final String label = getLabel(item);
         final int count = getCount(item);
 
         return AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          duration: const Duration(milliseconds: 250),
+          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
             color: isSelected
-                ? selectedColor.withOpacity(0.1)
+                ? selectedColor.withOpacity(0.08)
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(10),
+            border: isSelected
+                ? Border.all(color: selectedColor.withOpacity(0.3), width: 1)
+                : null,
           ),
-          child: GestureDetector(
-            onTap: () => onItemSelected(item),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-              child: Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: isSelected ? selectedColor : Colors.transparent,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.w500,
-                        color: isSelected ? selectedColor : Colors.grey[700],
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => onItemSelected(item),
+              borderRadius: BorderRadius.circular(10),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                child: Row(
+                  children: [
+                    // Selection indicator
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 3,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: isSelected ? selectedColor : Colors.transparent,
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? selectedColor.withOpacity(0.2)
-                          : Colors.grey[200],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      count.toString(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: isSelected ? selectedColor : Colors.grey[700],
+                    const SizedBox(width: 12),
+                    // Category label
+                    Expanded(
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                          color: isSelected 
+                              ? selectedColor 
+                              : Colors.grey[700],
+                          letterSpacing: 0.2,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    // Count badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? selectedColor.withOpacity(0.15)
+                            : Colors.grey[100],
+                        borderRadius: BorderRadius.circular(12),
+                        border: isSelected
+                            ? Border.all(color: selectedColor.withOpacity(0.3), width: 0.5)
+                            : null,
+                      ),
+                      child: Text(
+                        count.toString(),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isSelected 
+                              ? selectedColor 
+                              : Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         );
-      }).toList(),
+      },
     );
   }
 }

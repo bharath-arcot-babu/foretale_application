@@ -15,5 +15,10 @@ class EmbeddingECS {
     static const String containerName = 'container-embed-documents';
     static const String appPath = '/opt/python/embed_documents/app.py';
     static const String pythonPath = 'python3.12';
-  
+}
+
+class WebSocketECSForQueryGeneration {
+  static const String healthCheck = 'http://alb-fastapi-agent-423791108.us-east-1.elb.amazonaws.com/health';
+  static const String restApi = 'http://alb-fastapi-agent-423791108.us-east-1.elb.amazonaws.com/agent';
+  static const String webSocket = 'ws://alb-fastapi-agent-423791108.us-east-1.elb.amazonaws.com/ws';
 }

@@ -31,7 +31,6 @@ class TestsListView extends StatefulWidget {
 }
 
 class _TestsListViewState extends State<TestsListView> {
-  final String _currentFileName = "test_config_lv";
   late final TestsModel testsModel;
   String selectedCategory = "All";
   late UserDetailsModel userModel;

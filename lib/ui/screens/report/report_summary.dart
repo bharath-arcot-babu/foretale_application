@@ -155,7 +155,7 @@ Widget buildTestSummaryTable() {
               ],
             ),
           );
-        }).toList(),
+        }),
       ],
     ),
   );

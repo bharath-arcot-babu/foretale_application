@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:foretale_application/config_ecs.dart';
 import 'package:foretale_application/config_s3.dart';
 import 'package:foretale_application/core/services/handling_crud.dart';
+import 'package:foretale_application/core/services/websocket_service.dart';
 import 'package:foretale_application/models/abstracts/chat_driving_model.dart';
 import 'package:foretale_application/models/inquiry_response_model.dart';
 import 'package:foretale_application/models/project_details_model.dart';
@@ -398,5 +400,22 @@ class ResultModel with ChangeNotifier implements ChatDrivingModel {
   @override
   String buildStoragePath({required String projectId, required String responseId}) {
     return '${S3Config.baseResponseQuestionAttachmentPath}$projectId/$selectedId/$responseId';
+  }
+
+  @override
+  Future<void> sendMessage(BuildContext context, String message, WebSocketService webSocketService) async {
+    //placeholder for now
+  }
+
+  @override
+  String getDrivingModelName(BuildContext context) => 'Feedback';
+
+  @override
+  String getWebSocketUrl(BuildContext context) => WebSocketECSForQueryGeneration.webSocket;
+
+  @override
+  Future<int> updateConfig(BuildContext context, String aiSummary, String keyTables, String keyColumns, String keyCriteria, String keyJoins, String keyAmbiguities, String fullState, String initialState, String config, String configExecStatus, String configExecMessage) {
+    // TODO: implement updateConfig
+    throw UnimplementedError();
   }
 }

@@ -6,7 +6,6 @@ class TestConfigParser {
   /// Parses test configuration JSON and extracts the formatted SQL query
   /// Handles both normal config structure and error-containing config structure
   static String parseFormattedSql(String configJson) {
-
     String cleanedJson = configJson.replaceAll('{\n', '{').replaceAll('\n}', '}');
     if (configJson.isEmpty) {
       return "";
@@ -18,7 +17,6 @@ class TestConfigParser {
       return configMap["formatted_sql"] ?? "";
       
     } catch (e) {
-      print("Error parsing test config: $e");
       return "";
     }
   }

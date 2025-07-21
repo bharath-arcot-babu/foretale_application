@@ -31,7 +31,6 @@ class S3Service {
                 size: file.size,
               );
       } catch (e) {
-        print("Error in create AWS file object: $e");
         throw Exception("Failed to create AWS file object: $e");
       }
 
@@ -42,11 +41,9 @@ class S3Service {
           path: StoragePath.fromString('$storagePath/${file.name}'),
         ).result;
       } catch (e) {
-        print("Error in uploadFile: $e");
         throw Exception("Failed to upload file to S3: $e");
       }
     } catch (e) {
-      print("Error in uploadFile: $e");
       throw Exception("Failed to upload file ${file.name}: $e");
     }
   }
@@ -89,7 +86,6 @@ class S3Service {
       path: StoragePath.fromString('$storagePath/$filename'),
     ).result;
 
-    print('✅ Uploaded $filename to S3');
   }
 
 }

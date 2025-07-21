@@ -15,25 +15,87 @@ class CategoryListWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.all(5),
-              child: Text(
-                "Categories",
-                style: TextStyles.topicText(context),
-              ),
-            ),
+            // Modern header
+            _buildHeader(context),
+            // Category list
             Expanded(
-                child: SelectableAnimatedList<String>(
-              items: categories,
-              selectedItem: selectedCategory,
-              getLabel: (cat) => cat,
-              getCount: (cat) => cat == 'All' ? model.getTestsList.length : model.getTestsList.where((t) => t.testCategory == cat).length,
-              onItemSelected: onCategorySelected,
-              selectedColor: AppColors.primaryColor,
-            )),
+              child: _buildCategoryList(categories, selectedCategory, onCategorySelected, model),
+            ),
           ],
         );
       },
+    );
+  }
+
+  static Widget _buildHeader(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding:const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.category_rounded,
+              color: AppColors.primaryColor,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              "Categories",
+              style: TextStyles.topicText(context).copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.primaryColor,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static Widget _buildCategoryList(
+    List<String> categories,
+    String selectedCategory,
+    Function(String) onCategorySelected,
+    TestsModel model,
+  ) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: SelectableAnimatedList<String>(
+          items: categories,
+          selectedItem: selectedCategory,
+          getLabel: (cat) => cat,
+          getCount: (cat) => cat == 'All' 
+              ? model.getTestsList.length 
+              : model.getTestsList.where((t) => t.testCategory == cat).length,
+          onItemSelected: onCategorySelected,
+          selectedColor: AppColors.primaryColor,
+        ),
+      ),
     );
   }
 } 

@@ -36,37 +36,55 @@ class CustomTextField extends StatelessWidget {
           labelText: label,
           labelStyle: TextStyles.inputMainTextStyle(context),
           filled: true,
-          fillColor: Colors.transparent, // Light background for the text field
+          fillColor: Colors.transparent,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8), // Rounded corners
+            borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(
-              color: FillColors.tertiaryColor, // Border color
-              width: 0.8, // Border width
-              
+              color: FillColors.tertiaryColor,
+              width: 0.5, // Very thin border
             ),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(
-              color:
-                  BorderColors.secondaryColor, // Highlight color when focused
-              width: 1.5,
+              color: BorderColors.secondaryColor,
+              width: 1.0, // Thin focused border
             ),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(
-              color:
-                  BorderColors.secondaryColor, // Border color when not focused
-              width: 0.8,
+              color: FillColors.tertiaryColor,
+              width: 0.5, // Very thin enabled border
+            ),
+          ),
+          disabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(
+              color: FillColors.tertiaryColor,
+              width: 0.3, // Even thinner for disabled state
+            ),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(
+              color: Colors.red,
+              width: 0.5, // Thin error border
+            ),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(
+              color: Colors.red,
+              width: 1.0, // Thin focused error border
             ),
           ),
           contentPadding: const EdgeInsets.symmetric(
-              vertical: 10, horizontal: 12), // Reduced padding
-          hintText: '', // Dynamic hint text
+              vertical: 16, horizontal: 16), // Increased padding for modern look
+          hintText: '',
           hintStyle: TextStyles.inputHintTextStyle(context),
         ),
-        validator: validator, // Assign the validator function
+        validator: validator,
         onChanged: onChanged);
   }
 }

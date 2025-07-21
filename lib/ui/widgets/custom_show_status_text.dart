@@ -10,7 +10,7 @@ class StatusBadge extends StatelessWidget {
   final double borderRadius;
   final double fontSize;
 
-  StatusBadge({
+  const StatusBadge({
     super.key,
     required this.text,
     this.backgroundColor = const Color(0x0D6750A4),

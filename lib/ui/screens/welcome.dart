@@ -16,6 +16,7 @@ import 'package:foretale_application/ui/widgets/custom_text_field.dart';
 import 'package:foretale_application/ui/widgets/custom_container.dart';
 import 'package:foretale_application/ui/widgets/custom_loading_indicator.dart';
 import 'package:provider/provider.dart';
+import 'package:foretale_application/ui/widgets/custom_chip.dart';
 
 class WelcomePage extends StatefulWidget {
   const WelcomePage({super.key});
@@ -117,7 +118,7 @@ class _WelcomePageState extends State<WelcomePage> {
 
   Widget _buildSearchBar(ProjectDetailsModel model) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(20),
       child: CustomTextField(
         controller: _searchController,
         label: "Search...",
@@ -131,93 +132,43 @@ class _WelcomePageState extends State<WelcomePage> {
   }
 
   Widget _buildProjectCard(BuildContext context, ProjectDetails project) {
-    final isSelected = project.activeProjectId ==
-        Provider.of<ProjectDetailsModel>(context).getActiveProjectId;
+    final isSelected = project.activeProjectId == Provider.of<ProjectDetailsModel>(context).getActiveProjectId;
 
     return Hero(
       tag: 'project-${project.activeProjectId}',
       child: Material(
         type: MaterialType.transparency,
         child: FadeAnimator(
-          child: ModernContainer(
-            //backgroundColor: isSelected ? AppColors.primaryColor.withOpacity(0.4) : Colors.white,
-            elevation: isSelected ? 2 : 1,
-            borderRadius: 16,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () => _onProjectSelection(context, project),
-              child: Container(
-                padding: const EdgeInsets.all(24.0),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: isSelected ? AppColors.primaryColor : Colors.transparent,
-                    width: 1.5,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
+          child: InkWell(
+            onTap: () => _onProjectSelection(context, project),
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.blue.shade50 : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isSelected 
+                      ? Colors.blue.shade200 
+                      : Colors.grey.shade200,
+                  width: 1.0,
                 ),
-                child: Column(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            project.name,
-                            style: TextStyles.titleText(context).copyWith(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade800,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: isSelected ? AppColors.primaryColor.withOpacity(0.1) : Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            size: 14,
-                            color: isSelected ? AppColors.primaryColor : Colors.grey.shade400,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16.0),
-                    Text(
-                      project.organization,
-                      style: TextStyles.subtitleText(context).copyWith(
-                        color: Colors.grey.shade600,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 20.0),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        _buildInfoChip(
-                          Icons.business_outlined,
-                          project.industry,
-                          isSelected: isSelected,
-                        ),
-                        _buildInfoChip(
-                          Icons.category_outlined,
-                          project.projectType,
-                          isSelected: isSelected,
-                        ),
-                        _buildInfoChip(
-                          Icons.calendar_today_outlined,
-                          "Started: ${project.createdDate.toString()}",
-                          iconSize: 12,
-                          isSelected: isSelected,
-                        ),
-                      ],
-                    ),
+                    _buildLeftSideOfCard(context, project, isSelected),
+                    const SizedBox(width: 20),
+                    _buildRightSideOfCard(context, project, isSelected),
                   ],
                 ),
               ),
@@ -228,38 +179,94 @@ class _WelcomePageState extends State<WelcomePage> {
     );
   }
 
-  Widget _buildInfoChip(IconData icon, String text, {double iconSize = 14, bool isSelected = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: isSelected ? AppColors.primaryColor.withOpacity(0.3) : Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isSelected ? AppColors.primaryColor : Colors.grey.shade200,
-          width: 1,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+  Widget _buildLeftSideOfCard(BuildContext context, ProjectDetails project, bool isSelected) {
+    return Expanded(
+      flex: 8,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon,
-            size: iconSize,
-            color: isSelected ? AppColors.primaryColor.withOpacity(0.3) : Colors.grey.shade600,
-          ),
-          const SizedBox(width: 6),
+          // Project name
           Text(
-            text,
-            style: TextStyles.gridText(context).copyWith(
-              color: isSelected ? Colors.black : Colors.grey.shade600,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
+            project.name,
+            style: TextStyles.subjectText(context).copyWith(
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.2,
             ),
+          ),
+          const SizedBox(height: 12),
+          // Organization name
+          Text(
+            project.organization,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyles.gridText(context).copyWith(
+              color: Colors.grey.shade600,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Project metadata chips with modern styling
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              CustomChip(
+                label: project.industry, 
+                backgroundColor: Colors.blue.shade100, 
+                textColor: Colors.blue.shade700
+              ),
+              CustomChip(
+                label: project.projectType, 
+                backgroundColor: Colors.green.shade100, 
+                textColor: Colors.green.shade700
+              ),
+              CustomChip(
+                label: "Started: ${project.createdDate.toString()}", 
+                backgroundColor: Colors.orange.shade100, 
+                textColor: Colors.orange.shade700
+              ),
+            ],
           ),
         ],
       ),
     );
   }
+
+  Widget _buildRightSideOfCard(BuildContext context, ProjectDetails project, bool isSelected) {
+    return Expanded(
+      flex: 1,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+
+              if (isSelected)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.blue.shade200,
+                      width: 0.5,
+                    ),
+                  ),
+                  child: Text(
+                    "Active",
+                    style: TextStyles.gridText(context).copyWith(
+                      color: Colors.blue.shade700,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+        ],
+      ),
+    );
+  }
+
+
 
   Widget _buildEmptyState() {
     return Center(
@@ -313,99 +320,171 @@ class _WelcomePageState extends State<WelcomePage> {
 
   Widget _buildNewProjectSection() {
     return Container(
-      padding: const EdgeInsets.all(32),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.grey.shade200,
+          width: 1.0,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
-        children: [
-          Text(
-            "Start a New Project",
-            style: TextStyles.titleText(context).copyWith(
-              fontSize: 22,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade800,
-            ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => _showCreateProjectDialog(context),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.folder_open_rounded,
+                    size: 20,
+                    color: AppColors.primaryColor,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      "Start a New Project",
+                      style: TextStyles.subjectText(context).copyWith(
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryColor.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "Create",
+                          style: TextStyles.gridText(context).copyWith(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                "Create a new forensic analytics project",
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyles.gridText(context).copyWith(
+                  color: Colors.grey.shade600,
+                  height: 1.4,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            "Create a new forensic analytics project",
-            textAlign: TextAlign.center,
-            style: TextStyles.subtitleText(context).copyWith(
-              color: Colors.grey.shade600,
-              fontSize: 14,
-            ),
-          ),
-          const SizedBox(height: 24),
-          CustomElevatedButton(
-            width: MediaQuery.of(context).size.width * 0.8,
-            height: 48,
-            text: "Create New Project",
-            textSize: 14,
-            onPressed: () => _showCreateProjectDialog(context),
-          ),
-        ],
+        ),
       ),
     );
   }
 
+
+
   Widget _buildResourcesSection() {
     return Container(
-      padding: const EdgeInsets.all(32),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.grey.shade200,
+          width: 1.0,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
-        children: [
-          Text(
-            "Learn More",
-            style: TextStyles.titleText(context).copyWith(
-              fontSize: 22,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade800,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.lightbulb_outline_rounded,
+                  size: 20,
+                  color: AppColors.primaryColor,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    "Learn More",
+                    style: TextStyles.subjectText(context).copyWith(
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            "Explore our resources to get started",
-            textAlign: TextAlign.center,
-            style: TextStyles.subtitleText(context).copyWith(
-              color: Colors.grey.shade600,
-              fontSize: 14,
+            const SizedBox(height: 12),
+            Text(
+              "Explore our resources to get started",
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyles.gridText(context).copyWith(
+                color: Colors.grey.shade600,
+                height: 1.4,
+              ),
             ),
-          ),
-          const SizedBox(height: 20),
-          const ResourceCard(
-            title: "Documentation",
-            url: "https://foretale-revolutionizing-x5v0nb0.gamma.site/",
-          ),
-          const SizedBox(height: 12),
-          const ResourceCard(
-            title: "Tutorials",
-            url: "https://foretale-revolutionizing-x5v0nb0.gamma.site/",
-          ),
-          const SizedBox(height: 12),
-          const ResourceCard(
-            title: "Support",
-            url: "https://foretale-revolutionizing-x5v0nb0.gamma.site/",
-          ),
-        ],
+            const SizedBox(height: 16),
+            const ResourceCard(
+              title: "Documentation",
+              url: "https://foretale-revolutionizing-x5v0nb0.gamma.site/",
+            ),
+            const SizedBox(height: 12),
+            const ResourceCard(
+              title: "Tutorials",
+              url: "https://foretale-revolutionizing-x5v0nb0.gamma.site/",
+            ),
+            const SizedBox(height: 12),
+            const ResourceCard(
+              title: "Support",
+              url: "https://foretale-revolutionizing-x5v0nb0.gamma.site/",
+            ),
+          ],
+        ),
       ),
     );
   }

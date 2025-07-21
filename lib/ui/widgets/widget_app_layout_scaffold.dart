@@ -26,10 +26,12 @@ class _CustomGeneralScaffoldState extends State<CustomGeneralScaffold> {
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
-        toolbarHeight: MediaQuery.of(context).size.height * 0.05,
+        toolbarHeight: 48, // Reduced height for minimalistic look
         backgroundColor: AppBarColors.appBarBackgroundColor,
+        elevation: 0, // Remove shadow for cleaner look
         iconTheme: const IconThemeData(
           color: AppColors.backgroundColor,
+          size: 20, // Smaller icon size
         ),
         title: Row(
           children: [
@@ -65,7 +67,7 @@ class _CustomGeneralScaffoldState extends State<CustomGeneralScaffold> {
             },
           ),
           const SizedBox(
-            width: 20,
+            width: 12, // Reduced spacing
           ),
           iconBuilder(const Icon(Icons.person)),
         ],
@@ -76,11 +78,16 @@ class _CustomGeneralScaffoldState extends State<CustomGeneralScaffold> {
 
   Widget iconBuilder(Icon icon) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 6), // Reduced padding
       child: IconButton(
         icon: icon,
         color: AppBarColors.appBarIconColor,
         highlightColor: AppBarColors.appBarHighlightIconColor,
+        padding: EdgeInsets.zero, // Remove internal padding
+        constraints: const BoxConstraints(
+          minWidth: 32,
+          minHeight: 32,
+        ), // Smaller button size
         onPressed: () {
           // Action for the icon
         },

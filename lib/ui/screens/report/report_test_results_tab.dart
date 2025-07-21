@@ -161,7 +161,7 @@ class ReportTestResultsTab extends StatelessWidget {
                 fontSize: 12,
               ),
             ),
-          )).toList(),
+          )),
         ],
       ),
     );

@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
 import 'package:foretale_application/models/inquiry_response_model.dart';
+import 'package:foretale_application/ui/screens/test_case/test_actions_service.dart';
 import 'package:foretale_application/ui/widgets/chat/chat_screen.dart';
 import 'package:foretale_application/ui/widgets/custom_icon_button.dart';
 import 'package:foretale_application/ui/widgets/custom_loading_indicator.dart';
@@ -90,8 +91,8 @@ class _TestConfigPageState extends State<TestConfigPage> {
                                   controller: _searchController,
                                   label: "Search tests...",
                                   isEnabled: true,
-                                  onChanged: (value) =>
-                                      testsModel.filterData(value.trim()),
+                                  onChanged: (value) async =>
+                                      await testsModel.filterData(value.trim()),
                                 ),
                               ),
                               const SizedBox(width: 16),
@@ -157,38 +158,35 @@ class _TestConfigPageState extends State<TestConfigPage> {
                     return selectedTestId > 0 
                     ? Expanded(
                         flex: 2,
-                        child: CustomContainer(
-                          title: "Details / Configuration",
-                          child: Selector<TestsModel, int>(
-                            selector: (context, model) => model.getSelectedTestId,
-                            builder: (context, selectedTestId, __) {
-                              if (selectedTestId <= 0) {
-                                return Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.select_all,
-                                        size: 48,
-                                        color: AppColors.primaryColor.withOpacity(0.5),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        'Select a test to view details',
-                                        style: TextStyle(
-                                          color: AppColors.primaryColor.withOpacity(0.7),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }
-                              return ChatScreen(
-                                drivingModel: testsModel,
-                                isChatEnabled: true,
-                              );
-                            },
-                          ),
+                        child: Column(
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: Selector<TestsModel, Test>(
+                                selector: (context, model) => model.getSelectedTest,
+                                builder: (context, selectedTest, __) {
+                                  return TestActionsService.showSqlQueryDialog(context, selectedTest);
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Expanded(
+                              flex: 2,
+                              child: CustomContainer(
+                                title: "Details / Configuration",
+                                child: Selector<TestsModel, int>(
+                                  selector: (context, model) => model.getSelectedTestId,
+                                  builder: (context, selectedTestId, __) {
+                                    return ChatScreen(
+                                      key: ValueKey('test_config_$selectedTestId'),
+                                      drivingModel: testsModel,
+                                      isChatEnabled: true,
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ) : const SizedBox.shrink();
                   },

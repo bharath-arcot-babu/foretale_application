@@ -1,5 +1,7 @@
 //core
 import 'package:flutter/material.dart';
+import 'package:foretale_application/config_ecs.dart';
+import 'package:foretale_application/core/services/websocket_service.dart';
 import 'package:foretale_application/models/inquiry_response_model.dart';
 import 'package:foretale_application/config_s3.dart';
 import 'package:provider/provider.dart';
@@ -31,6 +33,7 @@ class Test {
   String technicalDescription;
   String analysisTableName;
   bool markAsCompleted;
+  String testRunProgram;
 
   Test({
     this.testId = 0,
@@ -52,6 +55,7 @@ class Test {
     this.technicalDescription = '',
     this.analysisTableName = '',
     this.markAsCompleted = false,
+    this.testRunProgram = '',
   });
 
   factory Test.fromJson(Map<String, dynamic> map) {
@@ -76,6 +80,7 @@ class Test {
       technicalDescription: map['technical_description'] ?? '',
       analysisTableName: map['analysis_table_name'] ?? '',
       markAsCompleted: bool.tryParse(map['mark_as_completed']) ?? false,
+      testRunProgram: map['run_program'] ?? '',
     );
   }
 }
@@ -125,15 +130,16 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
     notifyListeners();
   }
 
-  void filterData(String query) {
+  Future<void> filterData(String query) async {
     String lowerCaseQuery = query.trim().toLowerCase();
 
     if (query.isEmpty) {
       filteredTestsList = List.from(testsList);
     } else {
-      filteredTestsList = filteredTestsList.where((test) {
+      filteredTestsList = testsList.where((test) {
         return test.testName.toLowerCase().contains(lowerCaseQuery) ||
             test.testDescription.toLowerCase().contains(lowerCaseQuery) ||
+            test.testCategory.toLowerCase().contains(lowerCaseQuery) ||
             test.testRunType.toLowerCase().contains(lowerCaseQuery) ||
             test.testCriticality.toLowerCase().contains(lowerCaseQuery);
       }).toList();
@@ -417,4 +423,73 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
 
   @override
   int getSelectedId(BuildContext context) => selectedId;
+
+  @override
+  String getDrivingModelName(BuildContext context) => 'Test';
+
+  @override
+  String getWebSocketUrl(BuildContext context) => WebSocketECSForQueryGeneration.webSocket;
+
+  @override
+  Future<void> sendMessage(BuildContext context, String message, WebSocketService webSocketService) async {
+    var inquiryResponseModel = Provider.of<InquiryResponseModel>(context, listen: false);
+    var projectModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+    var userModel = Provider.of<UserDetailsModel>(context, listen: false);
+    var test = getSelectedTest;
+
+    webSocketService.send({
+            "test_case": test.testName,
+            "test_description": test.technicalDescription,
+            "past_user_responses": inquiryResponseModel.getSortedResponseTexts.join("\n"),
+            "schema_name": test.relevantSchemaName,
+            "project_id": projectModel.getActiveProjectId,
+            "test_id": test.testId.toString(),
+            "last_updated_by": userModel.getUserMachineId,
+            "default_config": test.config,
+            "select_clause": test.selectClause,
+            "financial_impact_statement": "",
+            "last_response": message
+        });
+  }
+
+  @override
+  Future<int> updateConfig(BuildContext context, String aiSummary, String keyTables, String keyColumns, String keyCriteria, String keyJoins, String keyAmbiguities, String fullState, String initialState, String config, String configExecStatus, String configExecMessage) async {
+    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
+
+    final params = {
+      'project_id': projectDetailsModel.getActiveProjectId,
+      'test_id': getSelectedTestId,
+      'ai_summary': aiSummary,
+      'ai_key_tables': keyTables,
+      'ai_key_columns': keyColumns,
+      'ai_key_criteria': keyCriteria,
+      'ai_join_hints': keyJoins,
+      'ai_ambiguities': keyAmbiguities,
+      'ai_full_state': fullState,
+      'config': config,
+      'initial_state': initialState,
+      'config_execution_status': configExecStatus,
+      'config_execution_message': configExecMessage,
+      'last_updated_by': userDetailsModel.getUserMachineId,
+    };
+
+    int updatedId = await _crudService.updateRecord(
+      context,
+      'dbo.sproc_update_project_test_config',
+      params,
+    );
+
+    if(updatedId > 0){
+      var index = testsList.indexWhere((q) => q.testId == getSelectedTestId);
+      if (index != -1) {
+        testsList[index].config = config;
+        testsList[index].testConfigGenerationStatus = 'Completed';
+      }
+
+      notifyListeners();
+    }
+
+    return updatedId;
+  }
 }

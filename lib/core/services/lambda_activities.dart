@@ -39,7 +39,7 @@ class LambdaHelper {
       throw Exception('Request timed out. Please try again.');
     } on http.ClientException catch (e) {
       throw Exception('Network error: Please check your internet connection and try again.');
-    } catch (e, stackTrace) {
+    } catch (e) {
       throw Exception('Error calling Lambda: $e');
     }
   }

@@ -53,8 +53,6 @@ class DatabaseApiService {
 
     final response = await http.get(uri, headers: {"Accept": "application/json"});
 
-    print(response);
-
     return _handleResponse(response);
   }
 

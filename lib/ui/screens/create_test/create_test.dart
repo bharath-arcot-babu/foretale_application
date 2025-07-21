@@ -47,6 +47,10 @@ class _CreateTestState extends State<CreateTest>  with SingleTickerProviderState
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _technicalDescriptionController = TextEditingController();
   final TextEditingController _financialImpactController = TextEditingController();
+  final TextEditingController _estimatedImpactScenariosController = TextEditingController();
+  final TextEditingController _financialImpactProxyMetricsController = TextEditingController();
+  final TextEditingController _financialImpactIndustryBenchmarksController = TextEditingController();
+  final TextEditingController _qualitativeImpactFramingController = TextEditingController();
 
   // Dropdown values
   String? _selectedRunType;
@@ -158,6 +162,10 @@ class _CreateTestState extends State<CreateTest>  with SingleTickerProviderState
                                 descriptionController: _descriptionController,
                                 technicalDescriptionController: _technicalDescriptionController,
                                 financialImpactController: _financialImpactController,
+                                estimatedImpactScenariosController: _estimatedImpactScenariosController,
+                                financialImpactProxyMetricsController: _financialImpactProxyMetricsController,
+                                financialImpactIndustryBenchmarksController: _financialImpactIndustryBenchmarksController,
+                                qualitativeImpactFramingController: _qualitativeImpactFramingController,
                               ),
                             ),
                             const SizedBox(height: 25),
@@ -168,7 +176,10 @@ class _CreateTestState extends State<CreateTest>  with SingleTickerProviderState
                                 descriptionController: _descriptionController,
                                 technicalDescriptionController: _technicalDescriptionController,
                                 financialImpactController: _financialImpactController,
-                                
+                                estimatedImpactScenariosController: _estimatedImpactScenariosController,
+                                financialImpactProxyMetricsController: _financialImpactProxyMetricsController,
+                                financialImpactIndustryBenchmarksController: _financialImpactIndustryBenchmarksController,
+                                qualitativeImpactFramingController: _qualitativeImpactFramingController,
                                 onDescriptionChanged: (value) {
                                   // Handle description change
                                 },

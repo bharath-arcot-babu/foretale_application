@@ -48,7 +48,7 @@ Widget buildRecommendations() {
             rec["icon"] as IconData,
             rec["color"] as Color,
           ),
-        )).toList(),
+        )),
       ],
     ),
   );

@@ -15,6 +15,10 @@ class BasicInformationSection extends StatefulWidget {
   final TextEditingController descriptionController;
   final TextEditingController technicalDescriptionController;
   final TextEditingController financialImpactController;
+  final TextEditingController estimatedImpactScenariosController;
+  final TextEditingController financialImpactProxyMetricsController;
+  final TextEditingController financialImpactIndustryBenchmarksController;
+  final TextEditingController qualitativeImpactFramingController;
 
   const BasicInformationSection({
     super.key,
@@ -25,6 +29,10 @@ class BasicInformationSection extends StatefulWidget {
     required this.descriptionController,
     required this.technicalDescriptionController,
     required this.financialImpactController,
+    required this.estimatedImpactScenariosController,
+    required this.financialImpactProxyMetricsController,
+    required this.financialImpactIndustryBenchmarksController,
+    required this.qualitativeImpactFramingController,
   });
 
   @override
@@ -150,12 +158,13 @@ class _BasicInformationSectionState extends State<BasicInformationSection> {
       
     final modelOuput = await LLMService().callLLMGeneralPurpose(prompt: callingPrompt, maxTokens: 2000);
 
-    print("modelOuput: $modelOuput");
-    
     widget.nameController.text = modelOuput['rewritten_test_name'] ?? widget.nameController.text;
     widget.descriptionController.text = modelOuput['business_description'] ?? widget.descriptionController.text;
     widget.technicalDescriptionController.text = modelOuput['technical_description'] ?? widget.technicalDescriptionController.text;
-    widget.financialImpactController.text = modelOuput['financial_impact_formula'] ?? widget.financialImpactController.text;
-    
+    widget.financialImpactController.text = modelOuput['financial_impact'] ?? widget.financialImpactController.text;
+    widget.estimatedImpactScenariosController.text = modelOuput['impact_estimation_scenario'] ?? widget.estimatedImpactScenariosController.text;
+    widget.financialImpactProxyMetricsController.text = modelOuput['proxy_metrics'] ?? widget.financialImpactProxyMetricsController.text;
+    widget.financialImpactIndustryBenchmarksController.text = modelOuput['benchmarks_or_industry_references'] ?? widget.financialImpactIndustryBenchmarksController.text;
+    widget.qualitativeImpactFramingController.text = modelOuput['qualitative_impact_framing'] ?? widget.qualitativeImpactFramingController.text;
   }
 } 

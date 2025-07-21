@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:foretale_application/core/constants/colors/app_colors.dart';
 import 'package:foretale_application/models/tests_model.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:foretale_application/ui/widgets/animation/animated_checkbox.dart';
 import 'package:foretale_application/ui/widgets/animation/custom_animator.dart';
 import 'package:foretale_application/ui/widgets/custom_chip.dart';
 import 'package:foretale_application/ui/widgets/custom_container.dart';
-import 'package:foretale_application/ui/widgets/custom_loading_indicator.dart';
 import 'package:foretale_application/ui/widgets/custom_show_status_text.dart';
-import 'package:foretale_application/ui/widgets/custom_ai_magic_button.dart';
 import 'package:foretale_application/ui/widgets/custom_icon_button.dart';
 import 'package:foretale_application/ui/screens/test_case/test_actions_service.dart';
 import 'package:foretale_application/ui/screens/test_case/test_selection_service.dart';
@@ -32,19 +29,33 @@ class TestCardWidgets {
               final isSelected = (testsModel.getSelectedTestId == test.testId);
               return InkWell(
                 onTap: () => onTestTap(test),
-                borderRadius: BorderRadius.circular(12),
-                child: ModernContainer(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(8),
-                  backgroundColor: isSelected ? Colors.blue.shade50 : Colors.white,
-                  borderRadius: 12,
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.blue.shade50 : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isSelected 
+                          ? Colors.blue.shade200 
+                          : Colors.grey.shade200,
+                      width: 1.0,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
                   child: Padding(
-                    padding: const EdgeInsets.all(5),
+                    padding: const EdgeInsets.all(20),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildLeftSideOfCard(context, test, onTestSelection),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 20),
                         _buildRightSideOfCard(context, test, pollingController),
                       ],
                     ),
@@ -75,32 +86,39 @@ class TestCardWidgets {
                 isSelected: test.isSelected,
                 onTap: () => TestSelectionService.handleTestSelection(context, test),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
               Expanded(
                 child: Text(
                   test.testName,
-                  style: TextStyles.subjectText(context),
+                  style: TextStyles.subjectText(context).copyWith(
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.2,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           // Test description
           Text(
             test.testDescription,
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
-            style: TextStyles.gridText(context),
+            style: TextStyles.gridText(context).copyWith(
+              color: Colors.grey.shade600,
+              height: 1.4,
+            ),
           ),
           const SizedBox(height: 16),
-          // Test metadata chips
+          // Test metadata chips with modern styling
           Wrap(
             spacing: 8,
             runSpacing: 6,
             children: [
-              CustomChip(label: test.testCategory ?? ''),
-              CustomChip(label: test.testRunType ?? ''),
-              CustomChip(label: test.testCriticality ?? ''),
+              CustomChip(label: test.testCategory, backgroundColor: Colors.blue.shade100, textColor: Colors.blue.shade700),
+              CustomChip(label: test.testRunType, backgroundColor: Colors.green.shade100, textColor: Colors.green.shade700),
+              CustomChip(label: test.testCriticality, backgroundColor: Colors.orange.shade100, textColor: Colors.orange.shade700),
+              CustomChip(label: test.testRunProgram, backgroundColor: Colors.red.shade100, textColor: Colors.red.shade700),
             ],
           ),
         ],
@@ -115,112 +133,117 @@ class TestCardWidgets {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          _buildScriptGenerationWidget(context, test, pollingController),
-          const SizedBox(height: 12),
-          _buildScriptExecutionWidget(context, test),
-          const SizedBox(height: 12),
           _buildShowResultsWidget(context, test),
         ],
       ),
     );
   }
 
-  static Widget _buildScriptGenerationWidget(BuildContext context, Test test, PollingController? pollingController) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // AI Magic button
-        AiMagicIconButton(
-          onPressed: () async {
-            await TestActionsService.aiMagicGenerateQuery(context, test, pollingController: pollingController);
-          },
-          tooltip: 'AI Magic - Generate query',
-          iconSize: 18.0,
-        ),
-        const SizedBox(height: 5),
-        // Status indicators
-        if (test.testConfigGenerationStatus == "Started")
-          LinearLoadingIndicator(
-            isLoading: true,
-            color: AppColors.primaryColor,
-            backgroundColor: Colors.grey[300]!,
-            loadingText: test.testConfigGenerationStatus ?? '',
-            textStyle: TextStyles.tinySupplementalInfo(context),
-            width: 30,
-            height: 3,
-          ),
-        if (test.testConfigGenerationStatus != null && test.testConfigGenerationStatus != "Started")
-          StatusBadge(
-            text: test.testConfigGenerationStatus ?? '',
-          ),
-      ],
-    );
-  }
-
-  static Widget _buildScriptExecutionWidget(BuildContext context, Test test) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // SQL Query button
-        CustomIconButton(
-          icon: Icons.query_stats,
-          onPressed: () => TestActionsService.showSqlQueryDialog(context, test),
-          tooltip: 'Show SQL query',
-          isProcessing: false,
-          iconSize: 18.0,
-        ),
-        const SizedBox(height: 8),
-        // Status indicator
-        if (test.testConfigExecutionStatus == "Completed")
-          StatusBadge(
-            text: test.testConfigExecutionStatus ?? '',
-          ),
-      ],
-    );
-  }
-
   static Widget _buildShowResultsWidget(BuildContext context, Test test) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // Results button
-        CustomIconButton(
-          icon: Icons.flag,
-          onPressed: () => TestActionsService.showFlaggedTransactionsDialog(context, test),
-          tooltip: 'Show flagged transactions',
-          isProcessing: false,
-          iconSize: 18.0,
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.grey.shade200,
+          width: 0.5,
         ),
-        const SizedBox(height: 8),
-        // Status indicator
-        if (test.testConfigExecutionStatus == "Completed")
-          StatusBadge(
-            text: "Results",
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Results button with custom icon button
+          CustomIconButton(
+            icon: Icons.flag,
+            onPressed: () => TestActionsService.showFlaggedTransactionsDialog(context, test),
+            tooltip: 'Show flagged transactions',
+            isProcessing: false,
+            iconSize: 18.0,
+            backgroundColor: Colors.white,
+            iconColor: Colors.grey.shade700,
+            padding: 8.0,
           ),
-      ],
+          const SizedBox(height: 8),
+          // Status indicator with modern design
+          if (test.testConfigExecutionStatus == "Completed")
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.green.shade200,
+                  width: 0.5,
+                ),
+              ),
+              child: Text(
+                "Results",
+                style: TextStyle(
+                  color: Colors.green.shade700,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
   static Widget buildNoTestsFound(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          Text(
-            "No tests found in this category",
-            style: TextStyles.subjectText(context).copyWith(
-              color: Colors.grey[600],
-            ),
+      child: Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.grey.shade200,
+            width: 0.5,
           ),
-        ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.grey.shade300,
+                  width: 0.5,
+                ),
+              ),
+              child: Icon(
+                Icons.search_off, 
+                size: 32, 
+                color: Colors.grey.shade400,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              "No tests found in this category",
+              style: TextStyles.subjectText(context).copyWith(
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Try selecting a different category or create a new test",
+              style: TextStyle(
+                color: Colors.grey.shade500,
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }

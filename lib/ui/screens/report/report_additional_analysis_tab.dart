@@ -152,7 +152,7 @@ class ReportAdditionalAnalysisTab extends StatelessWidget {
                 fontSize: 12,
               ),
             ),
-          )).toList(),
+          )),
         ],
       ),
     );

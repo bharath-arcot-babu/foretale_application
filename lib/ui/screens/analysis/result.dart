@@ -245,9 +245,12 @@ class _ResultScreenState extends State<ResultScreen> {
       child: Selector<ResultModel, int>(
         selector: (context, model) => model.getSelectedId(context),
         builder: (context, selectedId, __) {
-          return ChatScreen(
-            drivingModel: resultModel,
-            isChatEnabled: selectedId > 0,
+          return Expanded(
+            child: ChatScreen(
+              key: ValueKey('result_${selectedId}'),
+              drivingModel: resultModel,
+              isChatEnabled: selectedId > 0,
+            ),
           );
         },
       ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:foretale_application/ui/widgets/chat/websocket_progress_indicator.dart';
+
 
 class InputArea extends StatelessWidget {
   final TextEditingController controller;
@@ -16,6 +18,9 @@ class InputArea extends StatelessWidget {
   final double iconSize;
   final FilePickerResult? filePickerResult;
   final Function(PlatformFile)? onRemoveFile;
+  final String? websocketProgress; // New parameter for websocket progress
+  final bool isWebsocketProcessing; // New parameter for processing state
+  final Map<String, dynamic>? websocketData; // New parameter for detailed progress data
 
   const InputArea({
     super.key,
@@ -32,6 +37,9 @@ class InputArea extends StatelessWidget {
     this.iconSize = 20.0,
     this.filePickerResult,
     this.onRemoveFile,
+    this.websocketProgress, // New parameter
+    this.isWebsocketProcessing = false, // New parameter
+    this.websocketData, // New parameter
   });
 
   IconData _getFileIcon(String fileName) {
@@ -113,6 +121,21 @@ class InputArea extends StatelessWidget {
     );
   }
 
+  Widget _buildWebsocketProgress(BuildContext context) {
+    if (!isWebsocketProcessing && websocketProgress == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: WebSocketProgressIndicator(
+        currentStep: websocketProgress,
+        isProcessing: isWebsocketProcessing,
+        progressData: websocketData,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -136,6 +159,7 @@ class InputArea extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildFilePreview(),
+          _buildWebsocketProgress(context), // Add websocket progress here
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
