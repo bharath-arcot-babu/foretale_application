@@ -17,8 +17,32 @@ class EmbeddingECS {
     static const String pythonPath = 'python3.12';
 }
 
-class WebSocketECSForQueryGeneration {
+class StreamingForQueryGeneration {
   static const String healthCheck = 'http://alb-fastapi-agent-423791108.us-east-1.elb.amazonaws.com/health';
   static const String restApi = 'http://alb-fastapi-agent-423791108.us-east-1.elb.amazonaws.com/agent';
-  static const String webSocket = 'ws://alb-fastapi-agent-423791108.us-east-1.elb.amazonaws.com/ws';
+  static const String streaming = 'ws://alb-fastapi-agent-423791108.us-east-1.elb.amazonaws.com/wsqg';
+}
+
+class HttpStreamingForFinancialImpact {
+  static const String healthCheck = 'http://alb-fastapi-agent-423791108.us-east-1.elb.amazonaws.com/health';
+  static const String restApi = 'http://alb-fastapi-agent-423791108.us-east-1.elb.amazonaws.com/agent';
+  static const String streaming = 'http://alb-fastapi-agent-423791108.us-east-1.elb.amazonaws.com/strmfi';
+}
+
+class HttpStreamingForQuestionAnswering {
+  static const String healthCheck = 'http://alb-fastapi-agent-423791108.us-east-1.elb.amazonaws.com/health';
+  static const String restApi = 'http://alb-fastapi-agent-423791108.us-east-1.elb.amazonaws.com/agent';
+  static const String streaming = 'http://alb-fastapi-agent-423791108.us-east-1.elb.amazonaws.com/strmqa';
+}
+
+class HttpNonStreamingForFinancialImpact {
+  static const String healthCheck = 'http://alb-fastapi-agent-423791108.us-east-1.elb.amazonaws.com/nonstreaming/health';
+  static const String restApi = 'http://alb-fastapi-agent-423791108.us-east-1.elb.amazonaws.com/nonstreaming/';
+  static const String nonStreamingFi = 'http://alb-fastapi-agent-423791108.us-east-1.elb.amazonaws.com/nonstreaming/fi';
+}
+
+class HttpNonStreamingForQa {
+  static const String healthCheck = 'http://alb-fastapi-agent-423791108.us-east-1.elb.amazonaws.com/nonstreaming/health';
+  static const String restApi = 'http://alb-fastapi-agent-423791108.us-east-1.elb.amazonaws.com/nonstreaming/';
+  static const String nonStreamingQa = 'http://alb-fastapi-agent-423791108.us-east-1.elb.amazonaws.com/nonstreaming/qa';
 }

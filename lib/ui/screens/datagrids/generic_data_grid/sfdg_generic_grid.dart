@@ -10,17 +10,7 @@ import 'package:foretale_application/ui/screens/datagrids/generic_data_grid/gene
 import 'package:foretale_application/ui/screens/datagrids/generic_data_grid/column_width_calculator.dart';
 import 'package:foretale_application/ui/screens/datagrids/generic_data_grid/row_highlight_manager.dart';
 import 'package:foretale_application/ui/themes/datagrid_theme.dart';
-
-enum GenericGridCellType {
-  text,
-  number,
-  badge,
-  avatar,
-  action,
-  checkbox,
-  dropdown,
-  date,
-}
+import 'package:foretale_application/models/result_model.dart';
 
 class GenericDataGrid extends StatefulWidget {
   final List<GenericGridColumn> columns;
@@ -112,15 +102,29 @@ class GenericDataGridState extends State<GenericDataGrid> {
           pageSize: widget.pageSize,
         );
     
-    // Initialize checkboxes after the build is complete
+    // Initialize managers after the build is complete
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.checkboxInitializationColumns != null && widget.checkboxInitializationColumns!.isNotEmpty) {
-        dataSource.initializeCheckboxesFromColumns(widget.checkboxInitializationColumns!);
-      }
-      if (widget.dropdownInitializationColumns != null && widget.dropdownInitializationColumns!.isNotEmpty) {
-        dataSource.initializeDropdownsFromColumns(widget.dropdownInitializationColumns!);
-      }
+      _initializeManagers();
     });
+  }
+
+  void _initializeManagers() {
+    _initializeCheckboxes();
+    _initializeDropdowns();
+  }
+
+  void _initializeCheckboxes() {
+    final checkboxColumns = widget.checkboxInitializationColumns;
+    if (checkboxColumns?.isNotEmpty == true) {
+      dataSource.initializeCheckboxesFromColumns(checkboxColumns!);
+    }
+  }
+
+  void _initializeDropdowns() {
+    final dropdownColumns = widget.dropdownInitializationColumns;
+    if (dropdownColumns?.isNotEmpty == true) {
+      dataSource.initializeDropdownsFromColumns(dropdownColumns!);
+    }
   }
 
   @override
@@ -128,24 +132,42 @@ class GenericDataGridState extends State<GenericDataGrid> {
     super.didUpdateWidget(oldWidget);
     
     // Check if data has changed or firstColumnName has changed
-    if (widget.data != oldWidget.data || widget.firstColumnName != oldWidget.firstColumnName) {
-      dataSource.data = widget.data;
-      // Update column definitions with new order
-      dataSource.updateColumnDefinitions(_getOrderedColumns());
-      // Update the checkbox manager with new data and reinitialize selections
-      if (widget.checkboxInitializationColumns != null && widget.checkboxInitializationColumns!.isNotEmpty) {
-        dataSource.updateCheckboxData(widget.data, widget.checkboxInitializationColumns!);
-      } else {
-        dataSource.updateCheckboxData(widget.data);
-      }
-      
-      // Update the dropdown manager with new data and reinitialize selections
-      if (widget.dropdownInitializationColumns != null && widget.dropdownInitializationColumns!.isNotEmpty) {
-        dataSource.updateDropdownData(widget.data, widget.dropdownInitializationColumns!);
-      } else {
-        dataSource.updateDropdownData(widget.data);
-      }
-      dataSource.buildDataGridRows();
+    if (_hasDataChanged(oldWidget) || widget.firstColumnName != oldWidget.firstColumnName) {
+      _updateDataSource();
+    }
+  }
+
+  bool _hasDataChanged(GenericDataGrid oldWidget) {
+    return widget.data != oldWidget.data;
+  }
+
+  void _updateDataSource() {
+    dataSource.data = widget.data;
+    dataSource.updateColumnDefinitions(_getOrderedColumns());
+    _updateManagers();
+    dataSource.buildDataGridRows();
+  }
+
+  void _updateManagers() {
+    _updateCheckboxManager();
+    _updateDropdownManager();
+  }
+
+  void _updateCheckboxManager() {
+    final checkboxColumns = widget.checkboxInitializationColumns;
+    if (checkboxColumns?.isNotEmpty == true) {
+      dataSource.updateCheckboxData(widget.data, checkboxColumns!);
+    } else {
+      dataSource.updateCheckboxData(widget.data);
+    }
+  }
+
+  void _updateDropdownManager() {
+    final dropdownColumns = widget.dropdownInitializationColumns;
+    if (dropdownColumns?.isNotEmpty == true) {
+      dataSource.updateDropdownData(widget.data, dropdownColumns!);
+    } else {
+      dataSource.updateDropdownData(widget.data);
     }
   }
 
@@ -210,43 +232,14 @@ class GenericDataGridState extends State<GenericDataGrid> {
     return _rowHighlightManager.isRowHighlighted(rowIndex);
   }
 
-  // Pagination control methods
-  void nextPage() {
-    if (widget.enablePagination && dataSource.hasNextPage) {
-      setState(() {
-        dataSource.nextPage();
-      });
-    }
-  }
 
-  void previousPage() {
-    if (widget.enablePagination && dataSource.hasPreviousPage) {
-      setState(() {
-        dataSource.previousPage();
-      });
-    }
-  }
-
-  void goToPage(int page) {
-    if (widget.enablePagination) {
-      setState(() {
-        dataSource.goToPage(page);
-      });
-    }
-  }
-
-  void setPageSize(int pageSize) {
-    if (widget.enablePagination) {
-      setState(() {
-        dataSource.updatePageSize(pageSize);
-      });
-    }
-  }
 
   int get currentPage => dataSource.currentPageNumber;
   int get totalPages => dataSource.totalPages;
   bool get hasNextPage => dataSource.hasNextPage;
   bool get hasPreviousPage => dataSource.hasPreviousPage;
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -337,30 +330,28 @@ class GenericDataGridState extends State<GenericDataGrid> {
     final orderedColumns = _getOrderedColumns();
     
     return orderedColumns.map((col) {
-      // Handle checkbox column header
-      if (col.cellType == GenericGridCellType.checkbox) {
-        // Check if this checkbox column should show checkbox in header
-        final showHeaderCheckbox = widget.checkboxHeaderSettings?[col.columnName] ?? true;
-        
-        if (showHeaderCheckbox) {
-          // Show checkbox in header
-          return col.toGridColumn(
-            headerWidget: AnimatedBuilder(
-              animation: dataSource.multiCheckboxManager!,
-              builder: (context, child) {
-                return dataSource.multiCheckboxManager!.buildHeaderCheckbox(col.columnName);
-              },
-            ),
-          );
-        } else {
-          // Show header name instead of checkbox
-          return col.toGridColumn();
-        }
+      if (col.cellType == CustomCellType.checkbox) {
+        return _buildCheckboxColumn(col);
       }
-      
-      // For other columns, use default behavior
       return col.toGridColumn();
     }).toList();
+  }
+
+  GridColumn _buildCheckboxColumn(GenericGridColumn col) {
+    final showHeaderCheckbox = widget.checkboxHeaderSettings?[col.columnName] ?? true;
+    
+    if (showHeaderCheckbox) {
+      return col.toGridColumn(
+        headerWidget: AnimatedBuilder(
+          animation: dataSource.multiCheckboxManager!,
+          builder: (context, child) {
+            return dataSource.multiCheckboxManager!.buildHeaderCheckbox(col.columnName);
+          },
+        ),
+      );
+    }
+    
+    return col.toGridColumn();
   }
 
   void updateData(List<Map<String, dynamic>> newData) {
@@ -368,25 +359,16 @@ class GenericDataGridState extends State<GenericDataGrid> {
       if (widget.enablePagination) {
         dataSource.updateAllData(newData);
       } else {
-        dataSource.data = newData;
-        // Update the checkbox manager with new data and reinitialize selections
-        if (widget.checkboxInitializationColumns != null && widget.checkboxInitializationColumns!.isNotEmpty) {
-          dataSource.updateCheckboxData(newData, widget.checkboxInitializationColumns!);
-        } else {
-          dataSource.updateCheckboxData(newData);
-        }
-        
-        // Update the dropdown manager with new data and reinitialize selections
-        if (widget.dropdownInitializationColumns != null && widget.dropdownInitializationColumns!.isNotEmpty) {
-          dataSource.updateDropdownData(newData, widget.dropdownInitializationColumns!);
-        } else {
-          dataSource.updateDropdownData(newData);
-        }
-        dataSource.buildDataGridRows();
+        _updateNonPaginatedData(newData);
       }
-      // Update column definitions with current order
       dataSource.updateColumnDefinitions(_getOrderedColumns());
     });
+  }
+
+  void _updateNonPaginatedData(List<Map<String, dynamic>> newData) {
+    dataSource.data = newData;
+    _updateManagers();
+    dataSource.buildDataGridRows();
   }
 
   Widget _buildPaginationControls() {
@@ -401,88 +383,108 @@ class GenericDataGridState extends State<GenericDataGrid> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Page info
-          Text(
-            'Page ${dataSource.currentPageNumber} of ${dataSource.totalPages}',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey.shade700,
-            ),
-          ),
-          
-          // Pagination controls
-          Row(
-            children: [
-              // Previous page button
-              IconButton(
-                onPressed: dataSource.hasPreviousPage ? () {
-                  setState(() {
-                    dataSource.previousPage();
-                  });
-                } : null,
-                icon: Icon(
-                  Icons.chevron_left,
-                  color: dataSource.hasPreviousPage ? AppColors.primaryColor : Colors.grey.shade400,
-                ),
-              ),
-              
-              // Page size selector
-              if (widget.showPageSizeSelector) ...[
-                Text(
-                  'Show: ',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey.shade700,
-                  ),
-                ),
-                DropdownButton<int>(
-                  value: widget.pageSize,
-                  items: widget.pageSizes.map((size) {
-                    return DropdownMenuItem<int>(
-                      value: size,
-                      child: Text(
-                        '$size',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (newSize) {
-                    if (newSize != null) {
-                      setState(() {
-                        // Update page size in data source
-                        dataSource.updatePageSize(newSize);
-                      });
-                    }
-                  },
-                ),
-                const SizedBox(width: 16),
-              ],
-              
-              // Next page button
-              IconButton(
-                onPressed: dataSource.hasNextPage ? () {
-                  setState(() {
-                    dataSource.nextPage();
-                  });
-                } : null,
-                icon: Icon(
-                  Icons.chevron_right,
-                  color: dataSource.hasNextPage ? AppColors.primaryColor : Colors.grey.shade400,
-                ),
-              ),
-            ],
-          ),
+          _buildPageInfo(),
+          _buildPaginationButtons(),
         ],
       ),
     );
   }
 
+  Widget _buildPageInfo() {
+    return Text(
+      'Page ${dataSource.currentPageNumber} of ${dataSource.totalPages}',
+      style: GoogleFonts.poppins(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: Colors.grey.shade700,
+      ),
+    );
+  }
+
+  Widget _buildPaginationButtons() {
+    return Row(
+      children: [
+        _buildPreviousButton(),
+        if (widget.showPageSizeSelector) ...[
+          _buildPageSizeSelector(),
+          const SizedBox(width: 16),
+        ],
+        _buildNextButton(),
+      ],
+    );
+  }
+
+  Widget _buildPreviousButton() {
+    return IconButton(
+      onPressed: dataSource.hasPreviousPage ? () {
+        setState(() {
+          dataSource.previousPage();
+        });
+      } : null,
+      icon: Icon(
+        Icons.chevron_left,
+        color: dataSource.hasPreviousPage ? AppColors.primaryColor : Colors.grey.shade400,
+      ),
+    );
+  }
+
+  Widget _buildNextButton() {
+    return IconButton(
+      onPressed: dataSource.hasNextPage ? () {
+        setState(() {
+          dataSource.nextPage();
+        });
+      } : null,
+      icon: Icon(
+        Icons.chevron_right,
+        color: dataSource.hasNextPage ? AppColors.primaryColor : Colors.grey.shade400,
+      ),
+    );
+  }
+
+  Widget _buildPageSizeSelector() {
+    return Row(
+      children: [
+        Text(
+          'Show: ',
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey.shade700,
+          ),
+        ),
+        DropdownButton<int>(
+          value: widget.pageSize,
+          items: _buildPageSizeItems(),
+          onChanged: _onPageSizeChanged,
+        ),
+      ],
+    );
+  }
+
+  List<DropdownMenuItem<int>> _buildPageSizeItems() {
+    return widget.pageSizes.map((size) {
+      return DropdownMenuItem<int>(
+        value: size,
+        child: Text(
+          '$size',
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey.shade700,
+          ),
+        ),
+      );
+    }).toList();
+  }
+
+  void _onPageSizeChanged(int? newSize) {
+    if (newSize != null) {
+      setState(() {
+        dataSource.updatePageSize(newSize);
+      });
+    }
+  }
 }
 
 class GenericGridColumn {
@@ -492,17 +494,17 @@ class GenericGridColumn {
   final bool allowSorting;
   final bool allowFiltering;
   final bool visible;
-  final GenericGridCellType cellType;
+  final CustomCellType cellType;
   final TextAlign textAlign;
 
-  const GenericGridColumn({
+  GenericGridColumn({
     required this.columnName,
     required this.label,
     this.width,
     this.allowSorting = true,
     this.allowFiltering = true,
     this.visible = true,
-    this.cellType = GenericGridCellType.text,
+    this.cellType = CustomCellType.text,
     this.textAlign = TextAlign.start,
   });
 
@@ -517,8 +519,8 @@ class GenericGridColumn {
     return GridColumn(
       columnName: columnName,
       width: calculatedWidth,
-      allowSorting: cellType == GenericGridCellType.checkbox ? false : allowSorting,
-      allowFiltering: cellType == GenericGridCellType.checkbox ? false : allowFiltering,
+      allowSorting: cellType == CustomCellType.checkbox ? false : allowSorting,
+      allowFiltering: cellType == CustomCellType.checkbox ? false : allowFiltering,
       visible: visible,
       columnWidthMode: ColumnWidthMode.fitByCellValue,
       label: headerWidget ?? Container(
@@ -573,47 +575,69 @@ class GenericDataSource<T> extends DataGridSource {
     this.enablePagination = false,
     this.pageSize = 10,
   }) {
-    // Initialize pagination data
+    _initializePaginationData();
+    _initializeManagers(checkboxCallbacks, dropdownCallbacks, dropdownOptions);
+    _initializeCellBuilder();
+    _initializeRowHighlightManager(rowHighlightManager);
+    buildDataGridRows();
+  }
+
+  void _initializePaginationData() {
     allData = List.from(data);
-    
-    // Initialize checkbox manager if callbacks are provided
-    if (checkboxCallbacks != null && checkboxCallbacks.isNotEmpty) {
+  }
+
+  void _initializeManagers(
+    Map<String, void Function(Set<int> selectedRows)>? checkboxCallbacks,
+    Map<String, void Function(Map<int, String> selectedValues)>? dropdownCallbacks,
+    Map<String, List<String>>? dropdownOptions,
+  ) {
+    _initializeCheckboxManager(checkboxCallbacks);
+    _initializeDropdownManager(dropdownCallbacks, dropdownOptions);
+  }
+
+  void _initializeCheckboxManager(Map<String, void Function(Set<int> selectedRows)>? checkboxCallbacks) {
+    if (checkboxCallbacks?.isNotEmpty == true) {
       multiCheckboxManager = MultiCheckboxManager<T>(
         data: enablePagination ? _getCurrentPageData() : data,
-        callbacks: checkboxCallbacks,
+        callbacks: checkboxCallbacks!,
       );
     } else {
       multiCheckboxManager = null;
     }
-    
-    // Initialize dropdown manager if callbacks are provided
-    if (dropdownCallbacks != null && dropdownCallbacks.isNotEmpty) {
+  }
+
+  void _initializeDropdownManager(
+    Map<String, void Function(Map<int, String> selectedValues)>? dropdownCallbacks,
+    Map<String, List<String>>? dropdownOptions,
+  ) {
+    if (dropdownCallbacks?.isNotEmpty == true) {
       multiDropdownManager = MultiDropdownManager<T>(
         data: enablePagination ? _getCurrentPageData() : data,
         dropdownOptions: dropdownOptions,
-        callbacks: dropdownCallbacks,
+        callbacks: dropdownCallbacks!,
       );
     } else {
       multiDropdownManager = null;
     }
-    
+  }
+
+  void _initializeCellBuilder() {
     cellBuilder = GenericGridCellBuilder(
       context: context,
       multiCheckboxManager: multiCheckboxManager,
       multiDropdownManager: multiDropdownManager,
     );
-    
+  }
+
+  void _initializeRowHighlightManager(RowHighlightManager? rowHighlightManager) {
     this.rowHighlightManager = rowHighlightManager;
     
-    // Listen to row highlight changes to rebuild rows
     if (rowHighlightManager != null) {
       _rowHighlightListener = () {
         notifyListeners();
       };
       rowHighlightManager.addListener(_rowHighlightListener!);
     }
-    
-    buildDataGridRows();
   }
   
   /// Initialize checkboxes based on a column's value
@@ -773,32 +797,34 @@ class GenericDataSource<T> extends DataGridSource {
       final itemMap = itemToMap(item);
       
       final cells = columnDefinitions.map<DataGridCell>((col) {
-        if (col.cellType == GenericGridCellType.checkbox) {
-          if (multiCheckboxManager != null) {
-            return DataGridCell(
-              columnName: col.columnName,
-              value: multiCheckboxManager!.getCheckboxValue(col.columnName, entry.key),
-            );
-          }
-        } else if (col.cellType == GenericGridCellType.dropdown) {
-          if (multiDropdownManager != null) {
-            return DataGridCell(
-              columnName: col.columnName,
-              value: multiDropdownManager!.getDropdownValue(col.columnName, entry.key),
-            );
-          }
-        }
-        return DataGridCell(
-          columnName: col.columnName,
-          value: itemMap[col.columnName],
-        );
+        return _createDataGridCell(col, entry.key, itemMap);
       }).toList();
       
       return DataGridRow(cells: cells);
     }).toList();
     
-    // Notify the DataGrid that the data has changed
     notifyListeners();
+  }
+
+  DataGridCell _createDataGridCell(GenericGridColumn col, int rowIndex, Map<String, dynamic> itemMap) {
+    if (col.cellType == CustomCellType.checkbox && multiCheckboxManager != null) {
+      return DataGridCell(
+        columnName: col.columnName,
+        value: multiCheckboxManager!.getCheckboxValue(col.columnName, rowIndex),
+      );
+    }
+    
+    if (col.cellType == CustomCellType.dropdown && multiDropdownManager != null) {
+      return DataGridCell(
+        columnName: col.columnName,
+        value: multiDropdownManager!.getDropdownValue(col.columnName, rowIndex),
+      );
+    }
+    
+    return DataGridCell(
+      columnName: col.columnName,
+      value: itemMap[col.columnName],
+    );
   }
 
   @override

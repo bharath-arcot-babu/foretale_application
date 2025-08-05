@@ -6,14 +6,12 @@ import 'package:foretale_application/models/project_details_model.dart';
 //screen
 import 'package:foretale_application/ui/screens/create_project/create_project.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
-import 'package:foretale_application/ui/widgets/custom_elevated_button.dart';
 import 'package:foretale_application/ui/widgets/custom_enclosure.dart';
 import 'package:foretale_application/ui/widgets/custom_resource_card.dart';
 import 'package:foretale_application/core/utils/message_helper.dart';
 import 'package:foretale_application/ui/widgets/animation/custom_animator.dart';
 import 'package:foretale_application/ui/widgets/animation/animated_switcher.dart';
 import 'package:foretale_application/ui/widgets/custom_text_field.dart';
-import 'package:foretale_application/ui/widgets/custom_container.dart';
 import 'package:foretale_application/ui/widgets/custom_loading_indicator.dart';
 import 'package:provider/provider.dart';
 import 'package:foretale_application/ui/widgets/custom_chip.dart';
@@ -53,67 +51,55 @@ class _WelcomePageState extends State<WelcomePage> {
               loadingText: "Loading projects...",
             ),
           )
-        : Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white,
-                  Colors.blue.shade50.withOpacity(0.3),
-                ],
-              ),
-            ),
-            child: Padding(
-              padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.02),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: CustomContainer(
-                      title: "Your Projects",
-                      child: Consumer<ProjectDetailsModel>(
-                        builder: (context, model, child) {
-                          List<ProjectDetails> projects = model.getFilteredProjectsList;
-                          return Column(
-                            children: [
-                              _buildSearchBar(model),
-                              Expanded(
-                                child: projects.isEmpty
-                                    ? _buildEmptyState()
-                                    : CustomAnimatedSwitcher(
-                                        child: ListView.builder(
-                                          key: ValueKey<String>(_searchQuery),
-                                          itemCount: projects.length,
-                                          itemBuilder: (context, index) {
-                                            ProjectDetails project = projects[index];
-                                            return _buildProjectCard(context, project);
-                                          },
-                                        ),
-                                      ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
+        : Padding(
+          padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.02),
+          child: Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: CustomContainer(
+                  title: "Choose a project",
+                  child: Consumer<ProjectDetailsModel>(
+                    builder: (context, model, child) {
+                      List<ProjectDetails> projects = model.getFilteredProjectsList;
+                      return Column(
+                        children: [
+                          _buildSearchBar(model),
+                          Expanded(
+                            child: projects.isEmpty
+                                ? _buildEmptyState()
+                                : CustomAnimatedSwitcher(
+                                    child: ListView.builder(
+                                      key: ValueKey<String>(_searchQuery),
+                                      itemCount: projects.length,
+                                      itemBuilder: (context, index) {
+                                        ProjectDetails project = projects[index];
+                                        return _buildProjectCard(context, project);
+                                      },
+                                    ),
+                                  ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.04),
-                  Expanded(
-                    flex: 2,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        _buildNewProjectSection(),
-                        const SizedBox(height: 20),
-                        _buildResourcesSection(),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          );
+              SizedBox(width: MediaQuery.of(context).size.width * 0.04),
+              Expanded(
+                flex: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _buildNewProjectSection(),
+                    const SizedBox(height: 20),
+                    _buildResourcesSection(),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
   }
 
   Widget _buildSearchBar(ProjectDetailsModel model) {
@@ -136,31 +122,26 @@ class _WelcomePageState extends State<WelcomePage> {
 
     return Hero(
       tag: 'project-${project.activeProjectId}',
-      child: Material(
-        type: MaterialType.transparency,
-        child: FadeAnimator(
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? Theme.of(context).cardColor : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: () => _onProjectSelection(context, project),
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              decoration: BoxDecoration(
-                color: isSelected ? Colors.blue.shade50 : Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isSelected 
-                      ? Colors.blue.shade200 
-                      : Colors.grey.shade200,
-                  width: 1.0,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
+            child: FadeAnimator(
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Row(
@@ -189,6 +170,7 @@ class _WelcomePageState extends State<WelcomePage> {
           Text(
             project.name,
             style: TextStyles.subjectText(context).copyWith(
+              color: AppColors.primaryColor,
               fontWeight: FontWeight.w600,
               letterSpacing: -0.2,
             ),
@@ -212,18 +194,21 @@ class _WelcomePageState extends State<WelcomePage> {
             children: [
               CustomChip(
                 label: project.industry, 
-                backgroundColor: Colors.blue.shade100, 
-                textColor: Colors.blue.shade700
+                backgroundColor: Colors.grey.shade200, 
+                textColor: Colors.grey.shade700,
+                border: Border.all(color: Colors.grey.shade300, width: 0.5),
               ),
               CustomChip(
                 label: project.projectType, 
-                backgroundColor: Colors.green.shade100, 
-                textColor: Colors.green.shade700
+                backgroundColor: Colors.grey.shade200, 
+                textColor: Colors.grey.shade700,
+                border: Border.all(color: Colors.grey.shade300, width: 0.5),
               ),
               CustomChip(
                 label: "Started: ${project.createdDate.toString()}", 
-                backgroundColor: Colors.orange.shade100, 
-                textColor: Colors.orange.shade700
+                backgroundColor: Colors.grey.shade200, 
+                textColor: Colors.grey.shade700,
+                border: Border.all(color: Colors.grey.shade300, width: 0.5),
               ),
             ],
           ),
@@ -239,28 +224,16 @@ class _WelcomePageState extends State<WelcomePage> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-
-              if (isSelected)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.blue.shade200,
-                      width: 0.5,
-                    ),
-                  ),
-                  child: Text(
-                    "Active",
-                    style: TextStyles.gridText(context).copyWith(
-                      color: Colors.blue.shade700,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
+          if (isSelected)
+            CustomChip(
+              label: "Active", 
+              backgroundColor: AppColors.primaryColor, 
+              textColor: Colors.white,
+              border: Border.all(
+                color: Colors.white,
+                width: 1,
+              ),
+            ),
         ],
       ),
     );
@@ -346,7 +319,7 @@ class _WelcomePageState extends State<WelcomePage> {
             children: [
               Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.folder_open_rounded,
                     size: 20,
                     color: AppColors.primaryColor,
@@ -387,7 +360,7 @@ class _WelcomePageState extends State<WelcomePage> {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        Icon(
+                        const Icon(
                           Icons.arrow_forward_rounded,
                           size: 16,
                           color: Colors.white,
@@ -399,7 +372,7 @@ class _WelcomePageState extends State<WelcomePage> {
               ),
               const SizedBox(height: 12),
               Text(
-                "Create a new forensic analytics project",
+                "Create a new R&A project",
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyles.gridText(context).copyWith(
@@ -441,7 +414,7 @@ class _WelcomePageState extends State<WelcomePage> {
           children: [
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.lightbulb_outline_rounded,
                   size: 20,
                   color: AppColors.primaryColor,

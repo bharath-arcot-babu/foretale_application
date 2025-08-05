@@ -35,11 +35,10 @@ class _AppLayoutState extends State<AppLayout> {
   final String _display3 = "Data Upload";
   final String _display4 = "Test Library";
   final String _display5 = "Result & Review";
-  final String _display6 = "Review & Approval";
-  final String _display7 = "Report";
-  final String _display8 = "Settings";
-  final String _display9 = "Help & Support";
-  final String _display10 = "Logout";
+  final String _display6 = "Risk Report";
+  final String _display7 = "Settings";
+  final String _display8 = "Help & Support";
+  final String _display9 = "Logout";
 
   @override
   void initState() {
@@ -65,12 +64,11 @@ class _AppLayoutState extends State<AppLayout> {
                 _buildTile(_display3, Icons.cloud_upload),
                 _buildTile(_display4, Icons.map),
                 _buildTile(_display5, Icons.analytics),
-                _buildTile(_display6, Icons.rate_review),
-                _buildTile(_display7, Icons.report),
+                _buildTile(_display6, Icons.note),
                 const Spacer(), // Push the next tiles to the bottom
-                _buildTile(_display8, Icons.settings),
-                _buildTile(_display9, Icons.gavel),
-                _buildTile(_display10, Icons.logout),
+                _buildTile(_display7, Icons.settings),
+                _buildTile(_display8, Icons.gavel),
+                _buildTile(_display9, Icons.logout),
               ],
             ),
           ),
@@ -115,8 +113,6 @@ class _AppLayoutState extends State<AppLayout> {
     } else if (_selectedScreen == _display5) {
       return const ReviewPage();
     } else if (_selectedScreen == _display6) {
-      return const CreateTest(isNew: true);
-    } else if (_selectedScreen == _display7) {
       return const RiskReportPage();
     }
     return const Placeholder();

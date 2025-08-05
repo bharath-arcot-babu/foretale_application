@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:foretale_application/ui/widgets/chat/websocket_progress_indicator.dart';
+import 'package:foretale_application/core/constants/colors/app_colors.dart';
 
 
 class InputArea extends StatelessWidget {
   final TextEditingController controller;
   final bool isChatEnabled;
   final VoidCallback? onFilePick;
+  final VoidCallback? onInsertMessage;
   final VoidCallback? onSendMessage;
   final String hintText;
   final IconData attachmentIcon;
@@ -21,12 +23,14 @@ class InputArea extends StatelessWidget {
   final String? websocketProgress; // New parameter for websocket progress
   final bool isWebsocketProcessing; // New parameter for processing state
   final Map<String, dynamic>? websocketData; // New parameter for detailed progress data
+  final bool isRunQueryGeneration;
 
   const InputArea({
     super.key,
     required this.controller,
     required this.isChatEnabled,
     required this.onFilePick,
+    required this.onInsertMessage,
     required this.onSendMessage,
     this.hintText = "Type your message...",
     this.attachmentIcon = Icons.attach_file_rounded,
@@ -40,6 +44,7 @@ class InputArea extends StatelessWidget {
     this.websocketProgress, // New parameter
     this.isWebsocketProcessing = false, // New parameter
     this.websocketData, // New parameter
+    this.isRunQueryGeneration = false,
   });
 
   IconData _getFileIcon(String fileName) {
@@ -77,7 +82,7 @@ class InputArea extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 4),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.1),
+                color: AppColors.backgroundColor,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -86,14 +91,14 @@ class InputArea extends StatelessWidget {
                   Icon(
                     _getFileIcon(file.name),
                     size: 18,
-                    color: Colors.black87,
+                    color: TextColors.primaryTextColor,
                   ),
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(
                       file.name,
                       style: TextStyles.responseTextFileInfo(context).copyWith(
-                        color: Colors.black87,
+                        color: TextColors.primaryTextColor,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -102,13 +107,13 @@ class InputArea extends StatelessWidget {
                   Text(
                     "(${(file.size / 1024).round()} KB)",
                     style: TextStyles.responseTextFileInfo(context).copyWith(
-                      color: Colors.black87,
+                      color: TextColors.primaryTextColor,
                     ),
                   ),
                   const SizedBox(width: 8),
                   IconButton(
                     icon: const Icon(Icons.close, size: 16),
-                    color: Colors.black87,
+                    color: TextColors.primaryTextColor,
                     onPressed: () => onRemoveFile?.call(file),
                     tooltip: "Remove file",
                   ),
@@ -138,14 +143,12 @@ class InputArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Container(
       padding: EdgeInsets.symmetric(
           horizontal: paddingHorizontal, vertical: paddingVertical),
       margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surfaceColor,
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
           BoxShadow(
@@ -159,7 +162,8 @@ class InputArea extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildFilePreview(),
-          _buildWebsocketProgress(context), // Add websocket progress here
+          if(!isRunQueryGeneration)
+            _buildWebsocketProgress(context), // Add websocket progress here
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -167,8 +171,8 @@ class InputArea extends StatelessWidget {
                 icon: Icon(
                   attachmentIcon,
                   color: isChatEnabled
-                      ? theme.colorScheme.primary
-                      : theme.disabledColor,
+                      ? AppColors.primaryColor
+                      : ButtonColors.disabledButtonColor,
                 ),
                 onPressed: isChatEnabled ? onFilePick : null,
                 tooltip: "Attach File",
@@ -194,11 +198,12 @@ class InputArea extends StatelessWidget {
               const SizedBox(width: 12),
               Material(
                 color: isChatEnabled
-                    ? theme.colorScheme.primary
-                    : theme.disabledColor,
+                    ? AppColors.primaryColor
+                    : ButtonColors.disabledButtonColor,
                 borderRadius: BorderRadius.circular(20),
                 child: InkWell(
-                  onTap: isChatEnabled ? onSendMessage : null,
+                  onTap: isChatEnabled ? onInsertMessage : null,
+                  onDoubleTap: isChatEnabled ? onSendMessage : null,
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
                     padding: const EdgeInsets.all(10),

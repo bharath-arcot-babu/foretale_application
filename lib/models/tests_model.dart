@@ -1,7 +1,8 @@
 //core
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:foretale_application/config_ecs.dart';
-import 'package:foretale_application/core/services/websocket_service.dart';
 import 'package:foretale_application/models/inquiry_response_model.dart';
 import 'package:foretale_application/config_s3.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +13,7 @@ import 'package:foretale_application/models/user_details_model.dart';
 import 'package:foretale_application/models/abstracts/chat_driving_model.dart';
 //utils
 import 'package:foretale_application/core/services/handling_crud.dart';
+import 'package:foretale_application/core/services/websocket_service.dart';
 
 class Test {
   int testId;
@@ -34,6 +36,16 @@ class Test {
   String analysisTableName;
   bool markAsCompleted;
   String testRunProgram;
+  String aiSummary;
+  String aiKeyTables;
+  String aiKeyColumns;
+  String aiKeyCriteria;
+  String aiAmbiguities;
+  String aiResolvedJoins;
+  String aiFormattedSqlQuery;
+  String module;
+  String testConfigExecutionMessage;
+  String testConfigGenerationMessage;
 
   Test({
     this.testId = 0,
@@ -56,6 +68,16 @@ class Test {
     this.analysisTableName = '',
     this.markAsCompleted = false,
     this.testRunProgram = '',
+    this.aiSummary = '',
+    this.aiKeyTables = '',
+    this.aiKeyColumns = '',
+    this.aiKeyCriteria = '',
+    this.aiAmbiguities = '',
+    this.aiResolvedJoins = '',
+    this.aiFormattedSqlQuery = '',
+    this.module = '',
+    this.testConfigExecutionMessage = '',
+    this.testConfigGenerationMessage = '',
   });
 
   factory Test.fromJson(Map<String, dynamic> map) {
@@ -81,6 +103,44 @@ class Test {
       analysisTableName: map['analysis_table_name'] ?? '',
       markAsCompleted: bool.tryParse(map['mark_as_completed']) ?? false,
       testRunProgram: map['run_program'] ?? '',
+      aiSummary: map['ai_summary'] ?? '',
+      aiKeyTables: map['ai_key_tables'] ?? '',
+      aiKeyColumns: map['ai_key_columns'] ?? '',
+      aiKeyCriteria: map['ai_key_criteria'] ?? '',
+      aiAmbiguities: map['ai_ambiguities'] ?? '',
+      aiResolvedJoins: map['ai_join_hints'] ?? '',
+      module: map['module'] ?? '',
+      testConfigExecutionMessage: map['config_execution_message'] ?? '',
+      testConfigGenerationMessage: map['config_generation_message'] ?? '',
+    );
+  }
+}
+
+class TestExecutionStatus {
+  int testExecutionLogId;
+  int projectId;
+  int testId;
+  int projectTestId;
+  String status;
+  String message;
+
+  TestExecutionStatus({
+    this.testExecutionLogId = 0,
+    this.projectId = 0,
+    this.testId = 0,
+    this.projectTestId = 0,
+    this.status = '',
+    this.message = '',
+  });
+
+  factory TestExecutionStatus.fromJson(Map<String, dynamic> map) {
+    return TestExecutionStatus(
+      testExecutionLogId: map['execution_id'] ?? 0,
+      projectId: map['project_id'] ?? 0,
+      testId: map['test_id'] ?? 0,
+      projectTestId: map['project_test_id'] ?? 0,
+      status: map['config_execution_status'] ?? '',
+      message: map['config_execution_message'] ?? '',
     );
   }
 }
@@ -108,13 +168,7 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
     notifyListeners();
   }
   
-  Future<void> updateTestConfigGenerationStatus(int testId, String testConfigGenerationStatus) async {
-    var index = testsList.indexWhere((q) => q.testId == testId);
-    if (index != -1) {
-      testsList[index].testConfigGenerationStatus = testConfigGenerationStatus;
-    }
-    notifyListeners();
-  }
+
 
   void updateSortColumn(String sortColumnName) {
     if (_currentSortColumn == sortColumnName) {
@@ -192,8 +246,8 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
       'test_code': test.testCode,
       'test_name': test.testName,
       'config': test.config,
-      'status': 'Started',
-      'message': 'Test execution started',
+      'status': 'Running',
+      'message': 'Test execution running',
       'created_by': userDetailsModel.getUserMachineId,
     };
 
@@ -207,21 +261,51 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
     return insertedId;
   }
 
-  Future<int> executeTest(BuildContext context, int executionLogId) async {
+  Future<void> updateTestConfigGenerationStatus(int testId, String testConfigGenerationStatus) async {
+    var index = testsList.indexWhere((q) => q.testId == testId);
+    if (index != -1) {
+      testsList[index].testConfigGenerationStatus = testConfigGenerationStatus;
+    }
+    notifyListeners();
+  }
+
+  Future<void> updateTestExecutionStatusToRunning(BuildContext context, Test test) async {
+    var index = testsList.indexWhere((q) => q.testId == test.testId);
+
+    if (index != -1) {
+      testsList[index].testConfigExecutionStatus = 'Running';
+      testsList[index].testConfigExecutionMessage = 'Test execution running';
+
+      test.testConfigExecutionStatus = testsList[index].testConfigExecutionStatus;
+      test.testConfigExecutionMessage = testsList[index].testConfigExecutionMessage;
+    }
+
+    notifyListeners();
+  }
+
+  Future<void> executeTest(BuildContext context,Test test) async {
     var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
+    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
 
     final params = {
-      'execution_id': executionLogId,
-      'executed_by': userDetailsModel.getUserMachineId
+      'project_id': projectDetailsModel.getActiveProjectId,
+      'test_id': test.testId,
+      'project_test_id': test.projectTestId,
+      'test_code': test.testCode,
+      'test_name': test.testName,
+      'config': test.config,
+      'status': 'Running',
+      'message': 'Test execution running',
+      'created_by': userDetailsModel.getUserMachineId,
     };
 
-    int updatedId = await _crudService.updateRecord(
+    unawaited(_crudService.updateRecord(
       context,
       'dbo.sproc_execute_config_sql',
       params,
-    );
-
-    return updatedId;
+    ).catchError((e){
+      debugPrint("Error executing test: $e");
+    }));
   }
 
   Future<int> updateTestExecutionLog(
@@ -357,45 +441,40 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
     notifyListeners();
   }
 
-  Future<int> createNewTest(
-      BuildContext context, 
-      String testName,
-      String testDescription,
-      String testTechnicalDescription,
-      String industryName,
-      String topicName,
-      String subtopicName,
-      String testRunType,
-      String testRunProgram,
-      String testCategory,
-      String testModule,
-      String testCriticality) async {
-    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
+  Future<void> fetchTestExecutionStatus(BuildContext context) async {
     var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
 
+    String commaSeparatedRunningTestIds = 
+      testsList
+      .where((test) => test.testConfigExecutionStatus == 'Running')
+      .map((test) => test.testId.toString())
+      .join(',');
+
+    if(commaSeparatedRunningTestIds.isEmpty){
+      return;
+    }
+    
     final params = {
       'project_id': projectDetailsModel.getActiveProjectId,
-      'name': testName,
-      'description': testDescription,
-      'technical_description': testTechnicalDescription,
-      'industry_name': industryName,
-      'topic_name': topicName,
-      'sub_topic_name': subtopicName,
-      'created_by': userDetailsModel.getUserMachineId,
-      'run_type': testRunType,
-      'run_program': testRunProgram,
-      'category': testCategory,
-      'module': testModule,
-      'criticality': testCriticality,
+      'test_id_list': commaSeparatedRunningTestIds,
     };
 
-    int insertedId = await _crudService.addRecord(
+    List<TestExecutionStatus> executionStatusList = await _crudService.getRecords<TestExecutionStatus>(
       context,
-      'dbo.sproc_insert_test',
+      'dbo.sproc_get_test_status_by_project',
       params,
+      (json) => TestExecutionStatus.fromJson(json),
     );
 
-    return insertedId;
+    for (var executionStatus in executionStatusList) {
+      var index = testsList.indexWhere((q) => q.testId == executionStatus.testId);
+      if (index != -1) {
+        testsList[index].testConfigExecutionStatus = executionStatus.status;
+        testsList[index].testConfigExecutionMessage = executionStatus.message;
+      }
+    }
+
+    notifyListeners();
   }
 
   @override
@@ -428,16 +507,18 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
   String getDrivingModelName(BuildContext context) => 'Test';
 
   @override
-  String getWebSocketUrl(BuildContext context) => WebSocketECSForQueryGeneration.webSocket;
+  String getWebSocketUrl(BuildContext context) => StreamingForQueryGeneration.streaming;
 
   @override
-  Future<void> sendMessage(BuildContext context, String message, WebSocketService webSocketService) async {
+  Future<void> sendMessage(BuildContext context, String message, WebSocketService? webSocketService) async {
+    if (webSocketService == null) return;
+    
     var inquiryResponseModel = Provider.of<InquiryResponseModel>(context, listen: false);
     var projectModel = Provider.of<ProjectDetailsModel>(context, listen: false);
     var userModel = Provider.of<UserDetailsModel>(context, listen: false);
     var test = getSelectedTest;
 
-    webSocketService.send({
+    await webSocketService.send({
             "test_case": test.testName,
             "test_description": test.technicalDescription,
             "past_user_responses": inquiryResponseModel.getSortedResponseTexts.join("\n"),
@@ -453,28 +534,61 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
   }
 
   @override
-  Future<int> updateConfig(BuildContext context, String aiSummary, String keyTables, String keyColumns, String keyCriteria, String keyJoins, String keyAmbiguities, String fullState, String initialState, String config, String configExecStatus, String configExecMessage) async {
+  Future<int> updateConfig(BuildContext context, Map<dynamic, dynamic> parsedData, {bool finalUpdate = false})async{
     var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
     var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
+    
 
+    final finalState = parsedData['data'] is Map ? Map<String, dynamic>.from(parsedData['data']) : {};
+    int updatedId = 0;
+
+    var test = getSelectedTest;
+    test.aiSummary = finalState['summary']?.toString() ?? '';
+    test.aiKeyTables = finalState['key_tables'] is List 
+        ? finalState['resolved_tables'].toString() 
+        : finalState['resolved_tables']?.toString() ?? '';
+    test.aiKeyColumns = finalState['key_columns'] is List 
+        ? finalState['resolved_columns'].toString() 
+        : finalState['resolved_columns']?.toString() ?? '';
+    test.aiKeyCriteria = finalState['key_criteria'] is List
+        ? finalState['key_criteria'].toString() 
+        : finalState['key_criteria']?.toString() ?? '';
+    test.aiAmbiguities = finalState['ambiguities'] is List 
+        ? finalState['ambiguities'].toString() 
+        : finalState['ambiguities']?.toString() ?? '';
+    test.aiResolvedJoins = finalState['resolved_joins'] is List 
+        ? finalState['key_join_hints'].toString() 
+        : finalState['key_join_hints']?.toString() ?? '';
+    test.aiFormattedSqlQuery = finalState['formatted_sql_query'] is Map 
+        ? finalState['formatted_sql_query']['formatted_sql']?.toString() ?? ''
+        : finalState['formatted_sql_query']?.toString() ?? '';
+
+    if(finalState['type'] == 'error'){
+      test.testConfigGenerationStatus = 'Failed';
+      test.testConfigGenerationMessage = finalState['message']?.toString() ?? '';
+    } else {
+      test.testConfigGenerationStatus = 'Completed';
+      test.testConfigGenerationMessage = 'Processing completed successfully.';
+    }
+    
     final params = {
       'project_id': projectDetailsModel.getActiveProjectId,
       'test_id': getSelectedTestId,
-      'ai_summary': aiSummary,
-      'ai_key_tables': keyTables,
-      'ai_key_columns': keyColumns,
-      'ai_key_criteria': keyCriteria,
-      'ai_join_hints': keyJoins,
-      'ai_ambiguities': keyAmbiguities,
-      'ai_full_state': fullState,
-      'config': config,
-      'initial_state': initialState,
-      'config_execution_status': configExecStatus,
-      'config_execution_message': configExecMessage,
+      'ai_summary': test.aiSummary,
+      'ai_key_tables': test.aiKeyTables,
+      'ai_key_columns': test.aiKeyColumns,
+      'ai_key_criteria': test.aiKeyCriteria,
+      'ai_join_hints': test.aiResolvedJoins,
+      'ai_ambiguities': test.aiAmbiguities,
+      'ai_full_state': "",
+      'config': test.aiFormattedSqlQuery,
+      'initial_state': "",
+      'config_generation_status': test.testConfigGenerationStatus,
+      'config_generation_message': test.testConfigGenerationMessage,
       'last_updated_by': userDetailsModel.getUserMachineId,
     };
 
-    int updatedId = await _crudService.updateRecord(
+    updatedId = await _crudService.updateRecord(
       context,
       'dbo.sproc_update_project_test_config',
       params,
@@ -483,7 +597,7 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
     if(updatedId > 0){
       var index = testsList.indexWhere((q) => q.testId == getSelectedTestId);
       if (index != -1) {
-        testsList[index].config = config;
+        testsList[index].config = test.aiFormattedSqlQuery;
         testsList[index].testConfigGenerationStatus = 'Completed';
       }
 

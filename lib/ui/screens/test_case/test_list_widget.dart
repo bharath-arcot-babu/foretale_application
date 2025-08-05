@@ -8,9 +8,8 @@ import 'package:foretale_application/ui/widgets/custom_container.dart';
 import 'package:provider/provider.dart';
 import 'package:foretale_application/models/tests_model.dart';
 import 'package:foretale_application/ui/screens/test_case/test_card_widgets.dart';
-import 'package:foretale_application/ui/screens/test_case/category_list_widget.dart';
-import 'package:foretale_application/ui/screens/test_case/test_actions_service.dart';
-import 'package:foretale_application/ui/screens/test_case/test_selection_service.dart';
+
+import 'package:foretale_application/ui/screens/test_case/test_service.dart';
 
 class TestsListView extends StatefulWidget {
   const TestsListView({super.key});
@@ -26,7 +25,6 @@ class _TestsListViewState extends State<TestsListView> {
   late InquiryResponseModel inquiryResponseModel;
   late UserDetailsModel userModel;
   late ProjectDetailsModel projectModel;
-  late PollingController pollingController;
 
   @override
   void initState() {
@@ -35,13 +33,11 @@ class _TestsListViewState extends State<TestsListView> {
     inquiryResponseModel = Provider.of<InquiryResponseModel>(context, listen: false);
     userModel = Provider.of<UserDetailsModel>(context, listen: false);
     projectModel = Provider.of<ProjectDetailsModel>(context, listen: false);
-    pollingController = PollingController();
     inquiryResponseModel.responseList.clear();
   }
 
   @override
   void dispose() {
-    pollingController.dispose();
     super.dispose();
   }
 
@@ -51,7 +47,7 @@ class _TestsListViewState extends State<TestsListView> {
       children: [
         ModernContainer(
           width: 220,
-          child: CategoryListWidget.buildCategoryList(
+          child: TestCardWidgets.buildCategoryList(
             selectedCategory,
             (cat) => setState(() => selectedCategory = cat),
           ),
@@ -77,7 +73,6 @@ class _TestsListViewState extends State<TestsListView> {
                             test,
                             _onTestTap,
                             _onTestSelection,
-                            pollingController: pollingController,
                           );
                         },
                       ),
@@ -109,7 +104,7 @@ class _TestsListViewState extends State<TestsListView> {
 
   Future<void> _onTestSelection(Test test) async {
     try{
-      await TestSelectionService.handleTestSelection(context, test);
+      await TestService.handleTestSelection(context, test);
       setState(() {}); // refresh UI if needed
     } catch (e, error_stack_trace) {
       SnackbarMessage.showErrorMessage(context, 

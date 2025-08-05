@@ -48,8 +48,8 @@ class AvatarWithSpacer extends StatelessWidget {
       avatarWidget = Container(
         width: avatarSize,
         height: avatarSize,
-        decoration: BoxDecoration(
-          color: Colors.orange.shade700,
+        decoration: const BoxDecoration(
+          color: Colors.transparent,
           shape: BoxShape.circle,
         ),
         alignment: Alignment.center,

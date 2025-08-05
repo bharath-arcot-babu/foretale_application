@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foretale_application/models/result_model.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
 import 'package:foretale_application/ui/screens/datagrids/generic_data_grid/multi_checkbox_manager.dart';
@@ -25,28 +26,31 @@ class GenericGridCellBuilder {
   ) {
     Widget cellWidget;
     switch (columnDef.cellType) {
-      case GenericGridCellType.checkbox:
+      case CustomCellType.checkbox:
         cellWidget = _buildCheckboxCell(value, columnDef, rowIndex);
         break;
-      case GenericGridCellType.dropdown:
+      case CustomCellType.dropdown:
         cellWidget = _buildDropdownCell(value, columnDef, rowIndex);
         break;
-      case GenericGridCellType.number:
+      case CustomCellType.number:
         cellWidget = _buildNumberCell(value);
         break;
-      case GenericGridCellType.badge:
+      case CustomCellType.badge:
         cellWidget = _buildBadgeCell(value);
         break;
-      case GenericGridCellType.avatar:
+      case CustomCellType.avatar:
         cellWidget = _buildAvatarCell(value);
         break;
-      case GenericGridCellType.action:
+      case CustomCellType.action:
         cellWidget = _buildActionCell();
         break;
-      case GenericGridCellType.date:
+      case CustomCellType.date:
         cellWidget = _buildDateCell(value);
         break;
-      case GenericGridCellType.text:
+      case CustomCellType.categorical:
+        cellWidget = _buildCategoricalCell(value);
+        break;
+      case CustomCellType.text:
       default:
         cellWidget = _buildTextCell(value);
         break;
@@ -54,7 +58,7 @@ class GenericGridCellBuilder {
 
     // Use different padding for dropdown cells to ensure full visibility
     EdgeInsets padding;
-    if (columnDef.cellType == GenericGridCellType.dropdown) {
+    if (columnDef.cellType == CustomCellType.dropdown) {
       padding = const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0);
     } else {
       padding = const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0);
@@ -228,6 +232,28 @@ class GenericGridCellBuilder {
           padding: const EdgeInsets.all(4),
         ),
       ],
+    );
+  }
+
+  Widget _buildCategoricalCell(dynamic value) {
+    if (value == null) return const SizedBox.shrink();
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.blue.shade200, width: 1),
+      ),
+      child: Text(
+        '$value',
+        style: GoogleFonts.inter(
+          fontSize: 12,
+          color: Colors.blue.shade700,
+          fontWeight: FontWeight.w500,
+        ),
+        overflow: TextOverflow.ellipsis,
+      ),
     );
   }
 

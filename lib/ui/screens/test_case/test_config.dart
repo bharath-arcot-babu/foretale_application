@@ -3,8 +3,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
 import 'package:foretale_application/models/inquiry_response_model.dart';
-import 'package:foretale_application/ui/screens/test_case/test_actions_service.dart';
-import 'package:foretale_application/ui/widgets/chat/chat_screen.dart';
+import 'package:foretale_application/ui/screens/create_test/create_test.dart';
+import 'package:foretale_application/ui/screens/test_case/test_service.dart';
+import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:foretale_application/ui/widgets/custom_icon_button.dart';
 import 'package:foretale_application/ui/widgets/custom_loading_indicator.dart';
 import 'package:provider/provider.dart';
@@ -13,11 +14,11 @@ import 'package:foretale_application/models/project_details_model.dart';
 import 'package:foretale_application/models/tests_model.dart';
 import 'package:foretale_application/models/user_details_model.dart';
 //listviews
-import 'package:foretale_application/ui/screens/test_case/test_config_lv.dart';
 //widgets
 import 'package:foretale_application/ui/widgets/custom_enclosure.dart';
 import 'package:foretale_application/ui/widgets/custom_text_field.dart';
 import 'package:foretale_application/core/utils/message_helper.dart';
+import 'package:foretale_application/core/mixins/polling_mixin.dart';
 //llms
 
 class TestConfigPage extends StatefulWidget {
@@ -27,10 +28,13 @@ class TestConfigPage extends StatefulWidget {
   State<TestConfigPage> createState() => _TestConfigPageState();
 }
 
+class TestConfigPollingController extends ChangeNotifier with PollingMixin {}
+
 class _TestConfigPageState extends State<TestConfigPage> {
   final String _currentFileName = "test_config.dart";
-  bool isPageLoading = false;
+  bool _isPageLoading = false;
   String loadText = 'Loading...';
+
 
   final TextEditingController _searchController = TextEditingController();
   FilePickerResult? filePickerResult;
@@ -39,6 +43,8 @@ class _TestConfigPageState extends State<TestConfigPage> {
   late UserDetailsModel userDetailsModel;
   late ProjectDetailsModel projectDetailsModel;
   late InquiryResponseModel inquiryResponseModel;
+  bool _isCodeEditorMaximized = false;
+  late TestConfigPollingController _pollingController;
 
   @override
   void initState() {
@@ -47,28 +53,37 @@ class _TestConfigPageState extends State<TestConfigPage> {
     userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
     projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
     inquiryResponseModel = Provider.of<InquiryResponseModel>(context, listen: false);
+    _pollingController = TestConfigPollingController();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // Set loading state after the first frame is built
-      await inquiryResponseModel.setIsPageLoading(false);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {     
+      if (mounted) {
+        setState(() {
+          _isPageLoading = true;
+          loadText = "Loading test cases...";
+        });
+      }
       
-      setState(() {
-        isPageLoading = true;
-        loadText = "Loading test cases...";
-      });
       await _loadPage();
-      setState(() {
-        isPageLoading = false;
-      });
+      
+      if (mounted) {
+        setState(() {
+          _isPageLoading = false;
+        });
+        
+        //check if there are any running tests
+        _pollingController.setPollingInterval(const Duration(seconds: 30));
+        _pollingController.startPolling(context, _fetchTestExecutionStatus);
+        
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return isPageLoading
+    return _isPageLoading
         ? Center(
             child: LinearLoadingIndicator(
-            isLoading: isPageLoading,
+            isLoading: _isPageLoading,
             width: 200,
             height: 6,
             color: AppColors.primaryColor,
@@ -108,8 +123,7 @@ class _TestConfigPageState extends State<TestConfigPage> {
                               CustomIconButton(
                                 icon: Icons.add,
                                 onPressed: () {
-                                  _searchController.clear();
-                                  testsModel.filterData('');
+                                  _showCreateTestDialog(context);
                                 },
                                 tooltip: 'Add a new test',
                               ),
@@ -143,7 +157,7 @@ class _TestConfigPageState extends State<TestConfigPage> {
                                   ),
                                 );
                               }
-                              return const TestsListView();
+                              return TestService.showTestList(context);
                             },
                           ),
                         ),
@@ -165,11 +179,12 @@ class _TestConfigPageState extends State<TestConfigPage> {
                               child: Selector<TestsModel, Test>(
                                 selector: (context, model) => model.getSelectedTest,
                                 builder: (context, selectedTest, __) {
-                                  return TestActionsService.showSqlQueryDialog(context, selectedTest);
+                                  return TestService.showSqlQueryDialog(context, selectedTest, _toggleCodeEditorMaximized);
                                 },
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 24),
+                            if (!_isCodeEditorMaximized)
                             Expanded(
                               flex: 2,
                               child: CustomContainer(
@@ -177,11 +192,7 @@ class _TestConfigPageState extends State<TestConfigPage> {
                                 child: Selector<TestsModel, int>(
                                   selector: (context, model) => model.getSelectedTestId,
                                   builder: (context, selectedTestId, __) {
-                                    return ChatScreen(
-                                      key: ValueKey('test_config_$selectedTestId'),
-                                      drivingModel: testsModel,
-                                      isChatEnabled: true,
-                                    );
+                                    return TestService.showChatScreen(context, testsModel.getSelectedTest);
                                   },
                                 ),
                               ),
@@ -196,6 +207,34 @@ class _TestConfigPageState extends State<TestConfigPage> {
             );
   }
 
+  void _toggleCodeEditorMaximized() {
+    setState(() {
+      _isCodeEditorMaximized = !_isCodeEditorMaximized;
+    });
+  }
+
+  void _showCreateTestDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.backgroundColor,
+        content: const CreateTest(
+          isNew: true,
+        ),
+        actionsAlignment: MainAxisAlignment.end,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              "Close",
+              style: TextStyles.footerLinkTextSmall(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _loadPage() async {
     try {
       //callMistral("what is your context length?");
@@ -204,6 +243,10 @@ class _TestConfigPageState extends State<TestConfigPage> {
       if (testsModel.getSelectedTestId > 0) {
         await _loadResponses();
       }
+
+      //use exisitng polling mechanism to fetch test execution status
+      
+
     } catch (e, error_stack_trace) {
       SnackbarMessage.showErrorMessage(context, e.toString(),
           logError: true,
@@ -217,5 +260,17 @@ class _TestConfigPageState extends State<TestConfigPage> {
 
   Future<void> _loadResponses() async {
     await inquiryResponseModel.fetchResponsesByReference(context, testsModel.getSelectedTestId, 'test');
+  }
+
+  Future<void> _fetchTestExecutionStatus(BuildContext context) async {
+    print("fetchTestExecutionStatus");
+    await testsModel.fetchTestExecutionStatus(context);
+  }
+
+  @override
+  void dispose() {
+    _pollingController.stopPolling();
+    _pollingController.dispose();
+    super.dispose();
   }
 }

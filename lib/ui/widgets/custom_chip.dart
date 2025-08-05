@@ -8,6 +8,7 @@ class CustomChip extends StatelessWidget {
   final IconData? leadingIcon;
   final double height;
   final bool useShadow;
+  final Border? border;
 
   const CustomChip({
     super.key,
@@ -18,6 +19,7 @@ class CustomChip extends StatelessWidget {
     this.leadingIcon,
     this.height = 28,
     this.useShadow = true,
+    this.border,
   });
 
   @override
@@ -32,6 +34,7 @@ class CustomChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(height / 2),
+        border: border,
         boxShadow: useShadow ? [
           BoxShadow(
             color: theme.shadowColor.withOpacity(0.08),

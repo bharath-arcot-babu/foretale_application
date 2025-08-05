@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
-import 'package:foretale_application/ui/screens/datagrids/generic_data_grid/sfdg_generic_grid.dart';
+import 'package:foretale_application/models/result_model.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -9,7 +9,7 @@ import 'dart:math';
 class ColumnStats {
   final String columnName;
   final String columnLabel;
-  final GenericGridCellType cellType;
+  final CustomCellType cellType;
   final int nullCount;
   final int nonNullCount;
   final int uniqueValues;
@@ -76,7 +76,7 @@ class ColumnStats {
 }
 
 class DataStatisticsPanel extends StatefulWidget {
-  final List<GenericGridColumn> columns;
+  final List<TableColumn> columns;
   final List<Map<String, dynamic>> data;
 
   const DataStatisticsPanel({
@@ -150,14 +150,18 @@ class _DataStatisticsPanelState extends State<DataStatisticsPanel> {
 
     // Single pass through columns to count types
     for (var column in widget.columns) {
-      switch (column.cellType) {
-        case GenericGridCellType.number:
+      final cellType = _mapDataTypeToCellType(column.dataType);
+      switch (cellType) {
+        case CustomCellType.number:
           numericColumns++;
           break;
-        case GenericGridCellType.badge:
+        case CustomCellType.badge:
           badgeColumns++;
           break;
-        case GenericGridCellType.text:
+        case CustomCellType.categorical:
+          badgeColumns++; // Treat categorical as badge for counting purposes
+          break;
+        case CustomCellType.text:
         default:
           textColumns++;
           break;
@@ -200,6 +204,8 @@ class _DataStatisticsPanelState extends State<DataStatisticsPanel> {
       List<DateTime> dateValues = [];
       List<int> stringLengths = [];
 
+      final cellType = _mapDataTypeToCellType(column.dataType);
+
       // Single pass through data for this column
       for (var row in widget.data) {
         final value = row[column.columnName];
@@ -213,7 +219,7 @@ class _DataStatisticsPanelState extends State<DataStatisticsPanel> {
           // Collect data type specific values
           _collectDataTypeValues(
             value,
-            column.cellType,
+            cellType,
             numericValues,
             dateValues,
             stringLengths,
@@ -232,8 +238,8 @@ class _DataStatisticsPanelState extends State<DataStatisticsPanel> {
 
       columnStats.add(ColumnStats(
         columnName: column.columnName,
-        columnLabel: column.label,
-        cellType: column.cellType,
+        columnLabel: column.columnLabel,
+        cellType: cellType,
         nullCount: nullCount,
         nonNullCount: nonNullCount,
         uniqueValues: uniqueValues.length,
@@ -255,9 +261,30 @@ class _DataStatisticsPanelState extends State<DataStatisticsPanel> {
     return columnStats;
   }
 
+  CustomCellType _mapDataTypeToCellType(String dataType) {
+    final lowerDataType = dataType.toLowerCase();
+    
+    if (lowerDataType.contains('int') || 
+        lowerDataType.contains('decimal') || 
+        lowerDataType.contains('float') || 
+        lowerDataType.contains('numeric') ||
+        lowerDataType.contains('money')) {
+      return CustomCellType.number;
+    } else if (lowerDataType.contains('date') || 
+               lowerDataType.contains('datetime') || 
+               lowerDataType.contains('timestamp')) {
+      return CustomCellType.date;
+    } else if (lowerDataType.contains('bit') || 
+               lowerDataType.contains('bool')) {
+      return CustomCellType.badge;
+    } else {
+      return CustomCellType.text;
+    }
+  }
+
   void _collectDataTypeValues(
     dynamic value,
-    GenericGridCellType cellType,
+    CustomCellType cellType,
     List<double> numericValues,
     List<DateTime> dateValues,
     List<int> stringLengths,
@@ -265,13 +292,13 @@ class _DataStatisticsPanelState extends State<DataStatisticsPanel> {
     final stringValue = value.toString();
     
     switch (cellType) {
-      case GenericGridCellType.number:
+      case CustomCellType.number:
         final numericValue = _parseNumericValue(stringValue);
         if (numericValue != null) {
           numericValues.add(numericValue);
         }
         break;
-      case GenericGridCellType.text:
+      case CustomCellType.text:
         // Check if it's a date
         final dateValue = _parseDateValue(stringValue);
         if (dateValue != null) {
@@ -280,6 +307,10 @@ class _DataStatisticsPanelState extends State<DataStatisticsPanel> {
           // Treat as string
           stringLengths.add(stringValue.length);
         }
+        break;
+      case CustomCellType.categorical:
+        // Treat categorical as string
+        stringLengths.add(stringValue.length);
         break;
       default:
         // For other types, treat as string
@@ -600,35 +631,34 @@ class _ColumnStatCard extends StatelessWidget {
     );
   }
 
-  IconData _getCellTypeIcon(GenericGridCellType cellType) {
+  IconData _getCellTypeIcon(CustomCellType cellType) {
     switch (cellType) {
-      case GenericGridCellType.number:
+      case CustomCellType.number:
         return Icons.trending_up;
-      case GenericGridCellType.badge:
+      case CustomCellType.badge:
         return Icons.label;
-      case GenericGridCellType.text:
+      case CustomCellType.categorical:
+        return Icons.category;
+      case CustomCellType.text:
       default:
         return Icons.text_fields;
     }
   }
 
-  Color _getCellTypeColor(GenericGridCellType cellType) {
+  Color _getCellTypeColor(CustomCellType cellType) {
     switch (cellType) {
-      case GenericGridCellType.number:
+      case CustomCellType.number:
         return Colors.green;
-      case GenericGridCellType.badge:
+      case CustomCellType.badge:
         return Colors.purple;
-      case GenericGridCellType.text:
+      case CustomCellType.categorical:
+        return Colors.blue;
+      case CustomCellType.text:
       default:
         return Colors.orange;
     }
   }
 
-  bool _hasDataTypeSpecificStats(ColumnStats stats) {
-    return stats.minValue != null || 
-           stats.minDate != null || 
-           stats.minLength != null;
-  }
 }
 
 // Optimized compact metric widget
@@ -677,14 +707,16 @@ class _CompactDataTypeStats extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     switch (stats.cellType) {
-      case GenericGridCellType.number:
+      case CustomCellType.number:
         return _buildNumericStats(context);
-      case GenericGridCellType.text:
+      case CustomCellType.text:
         if (stats.minDate != null) {
           return _buildDateStats(context);
         } else {
           return _buildStringStats(context);
         }
+      case CustomCellType.categorical:
+        return _buildStringStats(context);
       default:
         return _buildStringStats(context);
     }

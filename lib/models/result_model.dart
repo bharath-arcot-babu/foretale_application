@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:foretale_application/config_ecs.dart';
 import 'package:foretale_application/config_s3.dart';
 import 'package:foretale_application/core/services/handling_crud.dart';
 import 'package:foretale_application/core/services/websocket_service.dart';
@@ -11,6 +10,18 @@ import 'package:foretale_application/models/user_details_model.dart';
 import 'package:foretale_application/ui/screens/datagrids/generic_data_grid/sfdg_generic_grid.dart';
 import 'package:provider/provider.dart';
 
+enum CustomCellType {
+  text,
+  number,
+  badge,
+  avatar,
+  action,
+  checkbox,
+  dropdown,
+  date,
+  categorical,
+}
+
 class TableColumn{
   final String tableName;
   final String columnName;
@@ -19,6 +30,7 @@ class TableColumn{
   final String dataType;
   final String cellType;
   final bool isVisible;
+  final bool isFeedbackColumn;
 
   TableColumn({
     this.tableName = '',
@@ -28,6 +40,7 @@ class TableColumn{
     this.dataType = '',
     this.cellType = '',
     this.isVisible = false,
+    this.isFeedbackColumn = false,
   });
 
   factory TableColumn.fromJson(Map<String, dynamic> json) {
@@ -39,6 +52,7 @@ class TableColumn{
       dataType: json['data_type'] ?? '',
       cellType: json['cell_type'] ?? '',
       isVisible: json['is_visible'] ?? false,
+      isFeedbackColumn: json['is_feedback_column'] ?? false,
     );
   }
 
@@ -50,6 +64,8 @@ class TableColumn{
       'column_description': columnDescription,
       'data_type': dataType,
       'cell_type': cellType,
+      'is_visible': isVisible,
+      'is_feedback_column': isFeedbackColumn,
     };
   }
 }
@@ -103,10 +119,10 @@ class FeedbackData{
 
 class ResultModel with ChangeNotifier implements ChatDrivingModel {
   final CRUD _crudService = CRUD();
-  List<TableColumn> tableColumnsList = [];
   List<Map<String, dynamic>> tableData = [];
   List<Map<String, dynamic>> filteredTableData = [];
   List<FeedbackData> feedbackData = [];
+  List<TableColumn> tableColumnsList = [];
   List<GenericGridColumn> genericGridColumns = [];
   int selectedFeedbackId = 0;
 
@@ -131,8 +147,8 @@ class ResultModel with ChangeNotifier implements ChatDrivingModel {
       genericGridColumns.add(GenericGridColumn(
         columnName: element.columnName,
         label: element.columnLabel,
-        cellType: GenericGridCellType.values.byName(element.cellType),
-        visible: element.isVisible,
+        cellType: CustomCellType.values.byName(element.cellType),
+        visible: element.isVisible ,
         allowSorting: (element.cellType == 'dropdown' || element.cellType == 'checkbox') ? false : true,
         allowFiltering: (element.cellType == 'dropdown' || element.cellType == 'checkbox') ? false : true,
       ));
@@ -403,19 +419,19 @@ class ResultModel with ChangeNotifier implements ChatDrivingModel {
   }
 
   @override
-  Future<void> sendMessage(BuildContext context, String message, WebSocketService webSocketService) async {
-    //placeholder for now
+  Future<void> sendMessage(BuildContext context, String message, WebSocketService? webSocketService) async {
+    // Not implemented for result model
+    return;
   }
 
   @override
   String getDrivingModelName(BuildContext context) => 'Feedback';
 
   @override
-  String getWebSocketUrl(BuildContext context) => WebSocketECSForQueryGeneration.webSocket;
+  String getWebSocketUrl(BuildContext context) => 'ws://alb-fastapi-agent-423791108.us-east-1.elb.amazonaws.com/wsqg';
 
   @override
-  Future<int> updateConfig(BuildContext context, String aiSummary, String keyTables, String keyColumns, String keyCriteria, String keyJoins, String keyAmbiguities, String fullState, String initialState, String config, String configExecStatus, String configExecMessage) {
-    // TODO: implement updateConfig
-    throw UnimplementedError();
+  Future<int> updateConfig(BuildContext context, Map<dynamic, dynamic> fullState, {bool finalUpdate = false}) async{
+    return 0;
   }
 }

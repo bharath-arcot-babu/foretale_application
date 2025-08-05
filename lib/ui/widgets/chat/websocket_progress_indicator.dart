@@ -1,108 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
-import 'dart:convert';
+import 'package:foretale_application/ui/widgets/custom_icon_button.dart';
 
 class WebSocketProgressIndicator extends StatelessWidget {
   final String? currentStep;
   final bool isProcessing;
-  final String? errorMessage;
   final Map<String, dynamic>? progressData;
 
   const WebSocketProgressIndicator({
     super.key,
     this.currentStep,
     this.isProcessing = false,
-    this.errorMessage,
     this.progressData,
   });
 
-  /// Parse JSON websocket message to extract step information
-  static String? parseWebSocketMessage(String message) {
-    try {
-      final Map<String, dynamic> data = jsonDecode(message);
-      
-      if (data['type'] == 'progress' && data['step'] != null) {
-        return data['step'] as String;
-      } else if (data['type'] == 'error' && data['message'] != null) {
-        return 'Error: ${data['message']}';
-      } else if (data['type'] == 'complete') {
-        return '[[DONE]]';
-      }
-    } catch (e) {
-      // If JSON parsing fails, try legacy format
-      if (message.startsWith("[[PROGRESS]]")) {
-        return message.substring(12);
-      } else if (message.startsWith("[[ERROR]]")) {
-        return "Error: ${message.substring(9)}";
-      } else if (message.startsWith("[[DONE]]")) {
-        return "[[DONE]]";
-      }
-    }
-    return null;
-  }
-
-  /// Parse JSON websocket message to extract detailed progress information
-  static Map<String, dynamic>? parseDetailedWebSocketMessage(String message) {
-    try {
-      final Map<String, dynamic> data = jsonDecode(message);
-      
-      if (data['type'] == 'progress' && data['step'] != null) {
-        return {
-          'step': data['step'] as String,
-          'status': data['status'] as String? ?? 'processing',
-          'message': data['message'] as String? ?? '',
-          'data': data['data'] as Map<String, dynamic>? ?? {},
-        };
-      } else if (data['type'] == 'error') {
-        String errorMessage = 'An error occurred';
-        if (data['error'] != null) {
-          errorMessage = data['error'] as String;
-        } else if (data['message'] != null) {
-          errorMessage = data['message'] as String;
-        }
-        return {
-          'step': '[[ERROR]]',
-          'status': 'error',
-          'message': errorMessage,
-          'data': data,
-        };
-      } else if (data['type'] == 'complete') {
-        return {
-          'step': '[[DONE]]',
-          'status': 'completed',
-          'message': data['message'] as String? ?? 'Processing completed successfully',
-          'data': data['final_state'] is Map ? Map<String, dynamic>.from(data['final_state']) : {},
-        };
-      }
-    } catch (e) {
-      // If JSON parsing fails, try legacy format
-      if (message.startsWith("[[PROGRESS]]")) {
-        return {
-          'step': message.substring(12),
-          'status': 'processing',
-          'message': '',
-          'data': {},
-        };
-      } else if (message.startsWith("[[ERROR]]")) {
-        return {
-          'step': 'error',
-          'status': 'error',
-          'message': message.substring(9),
-          'data': {'error': message.substring(9)},
-        };
-      } else if (message.startsWith("[[DONE]]")) {
-        return {
-          'step': '[[DONE]]',
-          'status': 'completed',
-          'message': 'Processing completed successfully',
-          'data': {},
-        };
-      }
-    }
-    return null;
-  }
-
-  static final Map<String, Map<String, dynamic>> _stepConfigs = {
+  static const Map<String, Map<String, dynamic>> _stepConfigs = {
     'test_case_summarizer': {
       'title': 'Summarizing Test Case',
       'icon': Icons.description,
@@ -168,80 +80,59 @@ class WebSocketProgressIndicator extends StatelessWidget {
     'sql_query_formatter',
   ];
 
-  int _getCurrentStepIndex() {
-    if (currentStep == null) return -1;
-    return _stepOrder.indexOf(currentStep!);
-  }
+  int get _currentStepIndex => 
+      currentStep == null ? -1 : _stepOrder.indexOf(currentStep!);
+
+  double get _progress => 
+      _currentStepIndex >= 0 ? (_currentStepIndex + 1) / _stepOrder.length : 0.0;
 
   bool _isStepCompleted(String step) {
-    final currentIndex = _getCurrentStepIndex();
     final stepIndex = _stepOrder.indexOf(step);
-    return stepIndex < currentIndex;
-  }
-
-  bool _isStepActive(String step) {
-    return currentStep == step;
+    return stepIndex < _currentStepIndex;
   }
 
   Widget _buildStepIcon(String step, bool isCompleted, bool isActive) {
     final config = _stepConfigs[step]!;
     final icon = config['icon'] as IconData;
     
+    Color backgroundColor;
+    Color iconColor;
+    IconData displayIcon;
+    
     if (isCompleted) {
-      return Container(
-        width: 24,
-        height: 24,
-        decoration: const BoxDecoration(
-          color: Colors.green,
-          shape: BoxShape.circle,
-        ),
-        child: const Icon(
-          Icons.check,
-          size: 16,
-          color: Colors.white,
-        ),
-      );
+      backgroundColor = Colors.green;
+      iconColor = Colors.white;
+      displayIcon = Icons.check;
     } else if (isActive) {
-      return Container(
-        width: 24,
-        height: 24,
-        decoration: const BoxDecoration(
-          color: Colors.blue,
-          shape: BoxShape.circle,
-        ),
-        child: Icon(
-          icon,
-          size: 16,
-          color: Colors.white,
-        ),
-      );
+      backgroundColor = Colors.blue;
+      iconColor = Colors.white;
+      displayIcon = icon;
     } else {
-      return Container(
-        width: 24,
-        height: 24,
-        decoration: BoxDecoration(
-          color: Colors.grey.withOpacity(0.3),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(
-          icon,
-          size: 16,
-          color: Colors.grey,
-        ),
-      );
+      backgroundColor = Colors.grey.withOpacity(0.3);
+      iconColor = Colors.grey;
+      displayIcon = icon;
     }
+
+    return Container(
+      width: 24,
+      height: 24,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        shape: BoxShape.circle,
+      ),
+      child: Icon(
+        displayIcon,
+        size: 16,
+        color: iconColor,
+      ),
+    );
   }
 
-  Widget _buildStepItem(BuildContext context, String step, bool isCompleted, bool isActive, bool isLast) {
+  Widget _buildStepItem(BuildContext context, String step, int index) {
     final config = _stepConfigs[step]!;
-    final title = config['title'] as String;
-    final description = config['description'] as String;
-    
-    // Get detailed message if available
-    String? detailedMessage;
-    if (isActive && progressData != null && progressData!['message'] != null) {
-      detailedMessage = progressData!['message'] as String;
-    }
+    final isCompleted = _isStepCompleted(step);
+    final isActive = currentStep == step;
+    final isLast = index == _stepOrder.length - 1;
 
     return Row(
       children: [
@@ -252,23 +143,15 @@ class WebSocketProgressIndicator extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                title,
+                config['title'] as String,
                 style: TextStyles.smallSupplementalInfo(context).copyWith(
                   fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
                   color: isActive ? Colors.blue : Colors.grey,
                 ),
               ),
-              if (isActive && detailedMessage != null && detailedMessage.isNotEmpty)
+              if (isActive)
                 Text(
-                  detailedMessage,
-                  style: TextStyles.tinySupplementalInfo(context).copyWith(
-                    color: Colors.blue.withOpacity(0.7),
-                    fontStyle: FontStyle.italic,
-                  ),
-                )
-              else if (isActive)
-                Text(
-                  description,
+                  config['description'] as String,
                   style: TextStyles.tinySupplementalInfo(context).copyWith(
                     color: Colors.blue.withOpacity(0.7),
                     fontStyle: FontStyle.italic,
@@ -287,52 +170,20 @@ class WebSocketProgressIndicator extends StatelessWidget {
     );
   }
 
-  Widget _buildProgressBar() {
-    if (currentStep == null) return const SizedBox.shrink();
-    
-    final currentIndex = _getCurrentStepIndex();
-    final totalSteps = _stepOrder.length;
-    final progress = currentIndex >= 0 ? (currentIndex + 1) / totalSteps : 0.0;
-
-    return Container(
-      height: 4,
-      decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(2),
-      ),
-      child: FractionallySizedBox(
-        alignment: Alignment.centerLeft,
-        widthFactor: progress,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.blue,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorState(BuildContext context) {
-    String displayMessage = errorMessage ?? 'An error occurred during processing';
-    
-    // If we have detailed error data, try to extract more information
-    if (progressData != null && progressData!['data'] != null) {
-      final data = progressData!['data'] as Map<String, dynamic>;
-      if (data['error'] != null) {
-        displayMessage = data['error'] as String;
-      } else if (data['message'] != null) {
-        displayMessage = data['message'] as String;
-      }
-    }
-
+  Widget _buildStatusContainer(
+    BuildContext context, {
+    required Color color,
+    required IconData icon,
+    required String title,
+    String? subtitle,
+  }) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.red.withOpacity(0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: Colors.red.withOpacity(0.3),
+          color: color.withOpacity(0.3),
           width: 1,
         ),
       ),
@@ -341,63 +192,28 @@ class WebSocketProgressIndicator extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.error_outline,
-                size: 16,
-                color: Colors.red,
-              ),
+              Icon(icon, size: 16, color: color),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Processing Error',
+                  title,
                   style: TextStyles.smallSupplementalInfo(context).copyWith(
-                    color: Colors.red,
+                    color: color,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            displayMessage,
-            style: TextStyles.tinySupplementalInfo(context).copyWith(
-              color: Colors.red.withOpacity(0.8),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCompletedState(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.green.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: Colors.green.withOpacity(0.3),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.check_circle_outline,
-            size: 16,
-            color: Colors.green,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'Processing completed successfully',
-              style: TextStyles.smallSupplementalInfo(context).copyWith(
-                color: Colors.green,
-                fontWeight: FontWeight.w600,
+          if (subtitle != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: TextStyles.tinySupplementalInfo(context).copyWith(
+                color: color.withOpacity(0.8),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -405,21 +221,40 @@ class WebSocketProgressIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!isProcessing && currentStep == null && errorMessage == null) {
+    if (!isProcessing && currentStep == null) {
       return const SizedBox.shrink();
     }
 
-    // Show error state
-    if (errorMessage != null) {
-      return _buildErrorState(context);
+    // Error state
+    if (progressData != null && progressData!['type'] == 'error') {
+      String errorMessage = 'An error occurred during processing';
+      if (progressData!['data'] != null) {
+        final data = progressData!['data'] as Map<String, dynamic>;
+        if (data['type'] == 'error') {
+          errorMessage = data.toString();
+        }
+      }
+      
+      return _buildStatusContainer(
+        context,
+        color: Colors.red,
+        icon: Icons.error_outline,
+        title: 'An Error Occurred',
+        subtitle: errorMessage,
+      );
     }
 
-    // Show completed state
+    // Completed state
     if (currentStep == '[[DONE]]') {
-      return _buildCompletedState(context);
+      return _buildStatusContainer(
+        context,
+        color: Colors.green,
+        icon: Icons.check_circle_outline,
+        title: 'AI request completed.',
+      );
     }
 
-    // Show processing state
+    // Processing state
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -433,18 +268,22 @@ class WebSocketProgressIndicator extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with progress bar
+          // Header
           Row(
             children: [
-              const Icon(
-                Icons.sync,
-                size: 16,
-                color: Colors.blue,
+              CustomIconButton(
+                icon: Icons.sync,
+                onPressed: () {},
+                iconSize: 16,
+                iconColor: Colors.blue,
+                backgroundColor: Colors.blue.withOpacity(0.1),
+                padding: 8,
+                isProcessing: isProcessing,
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Processing AI Request',
+                  'Configuring test case...',
                   style: TextStyles.smallSupplementalInfo(context).copyWith(
                     color: Colors.blue,
                     fontWeight: FontWeight.w600,
@@ -454,22 +293,34 @@ class WebSocketProgressIndicator extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          _buildProgressBar(),
+          
+          // Progress bar
+          Container(
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(2),
+            ),
+            child: FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: _progress,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+          ),
           const SizedBox(height: 12),
           
           // Steps
-          ...(_stepOrder.asMap().entries.map((entry) {
-            final index = entry.key;
-            final step = entry.value;
-            final isCompleted = _isStepCompleted(step);
-            final isActive = _isStepActive(step);
-            final isLast = index == _stepOrder.length - 1;
-            
-            return Padding(
+          ...(_stepOrder.asMap().entries.map((entry) => 
+            Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: _buildStepItem(context, step, isCompleted, isActive, isLast),
-            );
-          }).toList()),
+              child: _buildStepItem(context, entry.value, entry.key),
+            ),
+          )),
         ],
       ),
     );

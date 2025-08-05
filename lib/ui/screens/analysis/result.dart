@@ -5,6 +5,7 @@ import 'package:foretale_application/core/utils/message_helper.dart';
 import 'package:foretale_application/models/inquiry_response_model.dart';
 import 'package:foretale_application/models/result_model.dart';
 import 'package:foretale_application/models/tests_model.dart';
+import 'package:foretale_application/models/user_details_model.dart';
 import 'package:foretale_application/ui/screens/datagrids/generic_data_grid/sfdg_generic_grid.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:foretale_application/ui/widgets/chat/chat_screen.dart';
@@ -28,13 +29,17 @@ class _ResultScreenState extends State<ResultScreen> {
   bool isPageLoading = false;
   String loadText = 'Loading results...';
   final String _currentFileName = "result.dart";
+
   final GlobalKey<GenericDataGridState> gridKey = GlobalKey<GenericDataGridState>();
+
   bool showFlaggedTransactions = false;
   bool isUpdatingCheckboxes = false;
+  bool isLoadingResponses = false;
+
   late InquiryResponseModel inquiryResponseModel;
   late ResultModel resultModel;
-  bool isLoadingResponses = false;
   late TestsModel testsModel;
+  late UserDetailsModel userDetailsModel;
 
   @override
   void initState() {
@@ -42,16 +47,22 @@ class _ResultScreenState extends State<ResultScreen> {
     inquiryResponseModel = Provider.of<InquiryResponseModel>(context, listen: false);
     resultModel = Provider.of<ResultModel>(context, listen: false);
     testsModel = Provider.of<TestsModel>(context, listen: false);
+    userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
       setState(() {
         isPageLoading = true;
         loadText = "Loading...";
       });
+
       await _loadPage();
-      setState(() {
-        isPageLoading = false;
-      });
+
+      if (mounted) {
+        setState(() {
+          isPageLoading = false;
+        });
+      }
     });
   }
 
@@ -63,16 +74,17 @@ class _ResultScreenState extends State<ResultScreen> {
   Future<void> _loadPage() async {
     if (!mounted) return;
     try {
-      final resultModel = Provider.of<ResultModel>(context, listen: false);
       await resultModel.updateDataGrid(context, widget.test);
     } catch (e, error_stack_trace) {
-      SnackbarMessage.showErrorMessage(context, e.toString(),
-          logError: true,
-          errorMessage: e.toString(),
-          errorStackTrace: error_stack_trace.toString(),
-          errorSource: _currentFileName,
-          severityLevel: 'Critical',
-          requestPath: "_loadPage");
+      if (mounted) {
+        SnackbarMessage.showErrorMessage(context, e.toString(),
+            logError: true,
+            errorMessage: e.toString(),
+            errorStackTrace: error_stack_trace.toString(),
+            errorSource: _currentFileName,
+            severityLevel: 'Critical',
+            requestPath: "_loadPage");
+      }
     }
   }
 
@@ -177,7 +189,10 @@ class _ResultScreenState extends State<ResultScreen> {
                       SingleChildScrollView(
                         padding: const EdgeInsets.all(16),
                         child: DataStatisticsPanel(
-                          columns: resultModel.genericGridColumns.where((column) => column.visible).toList(),
+                          columns: resultModel
+                                  .tableColumnsList
+                                  .where((column) => !column.isFeedbackColumn)
+                                  .toList(),
                           data: resultModel.tableData,
                         ),
                       ),
@@ -228,6 +243,7 @@ class _ResultScreenState extends State<ResultScreen> {
               child: _buildFlaggedTransactionsLeftSection(context, resultModel, data, columns),
             ),
             const SizedBox(width: 5),
+            if(resultModel.getSelectedId(context) > 0)
             Expanded(
               flex: 3,
               child: _buildFlaggedTransactionsRightSection(context, resultModel, data, columns),
@@ -247,9 +263,10 @@ class _ResultScreenState extends State<ResultScreen> {
         builder: (context, selectedId, __) {
           return Expanded(
             child: ChatScreen(
-              key: ValueKey('result_${selectedId}'),
+              key: ValueKey('result_$selectedId'),
               drivingModel: resultModel,
               isChatEnabled: selectedId > 0,
+              userId: userDetailsModel.getUserMachineId ?? "",
             ),
           );
         },
@@ -358,9 +375,14 @@ class _ResultScreenState extends State<ResultScreen> {
 
   Future<void> _onDropdownChanged(String columnName, Map<int, String> selectedValues) async{    
     try{
+      if (!mounted) return;
       final currentData = resultModel.filteredTableData;
 
-      selectedValues.forEach((rowIndex, selectedValue) async {
+      for (var entry in selectedValues.entries) {
+        if (!mounted) return;
+        final rowIndex = entry.key;
+        final selectedValue = entry.value;
+        
         if (rowIndex < currentData.length) {
           final rowData = currentData[rowIndex];    
           if(columnName == 'feedback_status'){
@@ -385,18 +407,22 @@ class _ResultScreenState extends State<ResultScreen> {
               selectedValue
             );
           }
-          await resultModel.updateDataGrid(context, widget.test);
-          gridKey.currentState?.updateData(resultModel.filteredTableData);
+          if (mounted) {
+            await resultModel.updateDataGrid(context, widget.test);
+            gridKey.currentState?.updateData(resultModel.filteredTableData);
+          }
         }
-      });
+      }
     } catch (e, error_stack_trace) {
-      SnackbarMessage.showErrorMessage(context, e.toString(),
-        logError: true,
-        errorMessage: e.toString(),
-        errorStackTrace: error_stack_trace.toString(),
-        errorSource: _currentFileName,
-        severityLevel: 'Critical',
-        requestPath: "_onDropdownChanged");
+      if (mounted) {
+        SnackbarMessage.showErrorMessage(context, e.toString(),
+          logError: true,
+          errorMessage: e.toString(),
+          errorStackTrace: error_stack_trace.toString(),
+          errorSource: _currentFileName,
+          severityLevel: 'Critical',
+          requestPath: "_onDropdownChanged");
+      }
     }
   }
 
@@ -407,30 +433,39 @@ class _ResultScreenState extends State<ResultScreen> {
 
       // Use Future.microtask to ensure this runs after the current build phase
       Future.microtask(() async {
+        if (!mounted) return;
         await inquiryResponseModel.setIsPageLoading(true);
         if (feedbackId != null && isSelected == true) {
           resultModel.updateSelectedFeedback(feedbackId as int);
-          inquiryResponseModel.fetchResponsesByReference(context, feedbackId, 'feedback');
-
+          if (mounted) {
+            inquiryResponseModel.fetchResponsesByReference(context, feedbackId, 'feedback');
+          }
         } else {
           resultModel.updateSelectedFeedback(0);
-          inquiryResponseModel.fetchResponsesByReference(context, 0, 'feedback');
+          if (mounted) {
+            inquiryResponseModel.fetchResponsesByReference(context, 0, 'feedback');
+          }
         }
-        await inquiryResponseModel.setIsPageLoading(false);
+        if (mounted) {
+          await inquiryResponseModel.setIsPageLoading(false);
+        }
       });
     } catch (e, error_stack_trace) {
-      SnackbarMessage.showErrorMessage(context, e.toString(),
-        logError: true,
-        errorMessage: e.toString(),
-        errorStackTrace: error_stack_trace.toString(),
-        errorSource: _currentFileName,
-        severityLevel: 'Critical',
-        requestPath: "_onRowTap");
+      if (mounted) {
+        SnackbarMessage.showErrorMessage(context, e.toString(),
+          logError: true,
+          errorMessage: e.toString(),
+          errorStackTrace: error_stack_trace.toString(),
+          errorSource: _currentFileName,
+          severityLevel: 'Critical',
+          requestPath: "_onRowTap");
+      }
     }
   }
 
   void _onSelectionChangedForIsSelected(Set<int> selectedIndices) async {
     try {
+        if (!mounted) return;
         setState(() {
           isUpdatingCheckboxes = true;
         });
@@ -441,25 +476,30 @@ class _ResultScreenState extends State<ResultScreen> {
         int index = -1;
 
         for(var existingItem in existingSelectedData){
+            if (!mounted) return;
             index = newSelectedData.indexWhere((item) => (item['hash_key'] == existingItem['hash_key']));
             if(index == -1 && existingItem['is_selected'] == true){
               await resultModel.deleteFlaggedTransaction(context, widget.test, [existingItem]);
             }
         }
 
-        if (selectedIndices.isNotEmpty) {
+        if (selectedIndices.isNotEmpty && mounted) {
           await resultModel.insertFlaggedTransaction(context, widget.test, newSelectedData);
         }
-        await resultModel.updateDataGrid(context, widget.test);
-        gridKey.currentState?.updateData(resultModel.filteredTableData);
+        if (mounted) {
+          await resultModel.updateDataGrid(context, widget.test);
+          gridKey.currentState?.updateData(resultModel.filteredTableData);
+        }
       } catch (e, error_stack_trace) {
-        SnackbarMessage.showErrorMessage(context, e.toString(),
-          logError: true,
-          errorMessage: e.toString(),
-          errorStackTrace: error_stack_trace.toString(),
-          errorSource: _currentFileName,
-          severityLevel: 'Critical',
-          requestPath: "_buildDataGridSection");
+        if (mounted) {
+          SnackbarMessage.showErrorMessage(context, e.toString(),
+            logError: true,
+            errorMessage: e.toString(),
+            errorStackTrace: error_stack_trace.toString(),
+            errorSource: _currentFileName,
+            severityLevel: 'Critical',
+            requestPath: "_buildDataGridSection");
+        }
       } finally {
         if (mounted) {
           setState(() {
@@ -471,20 +511,25 @@ class _ResultScreenState extends State<ResultScreen> {
 
   void _onSelectionChangedForIsFinal(Set<int> selectedIndices) async {
     try{
+      if (!mounted) return;
       final newSelectedData = gridKey.currentState?.getSelectedData('is_final') ?? [];
-      if(newSelectedData.isNotEmpty){
+      if(newSelectedData.isNotEmpty && mounted){
         await resultModel.updateIsFinal(context, widget.test, newSelectedData, !newSelectedData.first['is_final']);
-        await resultModel.updateDataGrid(context, widget.test);
-        gridKey.currentState?.updateData(resultModel.filteredTableData);
+        if (mounted) {
+          await resultModel.updateDataGrid(context, widget.test);
+          gridKey.currentState?.updateData(resultModel.filteredTableData);
+        }
       }
     } catch (e, error_stack_trace) {
-      SnackbarMessage.showErrorMessage(context, e.toString(),
-        logError: true,
-        errorMessage: e.toString(),
-        errorStackTrace: error_stack_trace.toString(),
-        errorSource: _currentFileName,
-        severityLevel: 'Critical',
-        requestPath: "_onSelectionChangedForIsFinal");
+      if (mounted) {
+        SnackbarMessage.showErrorMessage(context, e.toString(),
+          logError: true,
+          errorMessage: e.toString(),
+          errorStackTrace: error_stack_trace.toString(),
+          errorSource: _currentFileName,
+          severityLevel: 'Critical',
+          requestPath: "_onSelectionChangedForIsFinal");
+      }
     }
   }
 }

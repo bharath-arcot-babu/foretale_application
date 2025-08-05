@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:foretale_application/core/services/llms/api/llm_api.dart';
-import 'package:foretale_application/core/services/llms/prompts/test_config_prompt.dart';
+import 'package:foretale_application/config_ecs.dart';
+import 'package:foretale_application/core/services/http_nonstreaming_service.dart';
 import 'package:foretale_application/core/utils/message_helper.dart';
+import 'package:foretale_application/models/create_test_model.dart';
 import 'package:foretale_application/models/topic_list_model.dart';
 import 'package:foretale_application/ui/widgets/custom_text_field.dart';
 import 'package:foretale_application/ui/widgets/custom_future_dropdown.dart';
 import 'package:foretale_application/ui/widgets/custom_ai_magic_button.dart';
+import 'package:provider/provider.dart';
 
 class BasicInformationSection extends StatefulWidget {
   final TextEditingController industryController;
@@ -14,11 +16,7 @@ class BasicInformationSection extends StatefulWidget {
   final TextEditingController nameController;
   final TextEditingController descriptionController;
   final TextEditingController technicalDescriptionController;
-  final TextEditingController financialImpactController;
-  final TextEditingController estimatedImpactScenariosController;
-  final TextEditingController financialImpactProxyMetricsController;
-  final TextEditingController financialImpactIndustryBenchmarksController;
-  final TextEditingController qualitativeImpactFramingController;
+  final TextEditingController potentialImpactController;
 
   const BasicInformationSection({
     super.key,
@@ -28,11 +26,7 @@ class BasicInformationSection extends StatefulWidget {
     required this.nameController,
     required this.descriptionController,
     required this.technicalDescriptionController,
-    required this.financialImpactController,
-    required this.estimatedImpactScenariosController,
-    required this.financialImpactProxyMetricsController,
-    required this.financialImpactIndustryBenchmarksController,
-    required this.qualitativeImpactFramingController,
+    required this.potentialImpactController,
   });
 
   @override
@@ -40,6 +34,17 @@ class BasicInformationSection extends StatefulWidget {
 }
 
 class _BasicInformationSectionState extends State<BasicInformationSection> {
+  bool _isAiMagicProcessing = false;
+  late CreateTestModel createTestModel;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      createTestModel = Provider.of<CreateTestModel>(context, listen: false);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -90,6 +95,7 @@ class _BasicInformationSectionState extends State<BasicInformationSection> {
                 selectedItem: widget.topicController.text.isEmpty ? null : widget.topicController.text,
                 onChanged: (value) {
                   if (value != null) {
+                    createTestModel.setTopic(value);
                     widget.topicController.text = value;
                   }
                 },
@@ -111,16 +117,16 @@ class _BasicInformationSectionState extends State<BasicInformationSection> {
                   }
                   return null;
                 },
-                onChanged: (value) {
-                  // Project type is disabled, no change handler needed
+                onChanged: (value){
+                  createTestModel.setTestName(value);
                 },
               ),
             ),
             const SizedBox(width: 8),
             AiMagicIconButton(
-              onPressed: () {
+              onPressed: () async {
                 try{
-                  _handleAiMagicPressed(context);
+                  await _handleAiMagicPressed(context);
                 } catch (e) {
                   SnackbarMessage.showErrorMessage(
                     context, 
@@ -132,39 +138,155 @@ class _BasicInformationSectionState extends State<BasicInformationSection> {
                     severityLevel: 'Critical',
                     requestPath: "_handleAiMagicPressed",
                     );
+                } finally {
+                  setState(() {
+                    _isAiMagicProcessing = false;
+                  });
                 }
               },
-              tooltip: 'Generate test name with AI',
+              isProcessing: _isAiMagicProcessing,
+              tooltip: 'Generate test case with AI Magic',
             ),
           ],
+        ),
+        const SizedBox(height: 15),
+        CustomTextField(
+          controller: widget.descriptionController,
+          label: 'Description',
+          maxLines: 3,
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Description is required';
+            }
+            return null;
+          },
+          isEnabled: true,
+          onChanged: (value){
+            createTestModel.setTestDescription(value);
+          },
+        ),
+        const SizedBox(height: 15),
+        CustomTextField(
+          controller: widget.technicalDescriptionController,
+          label: 'Technical Description',
+          maxLines: 3,
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Technical description is required';
+            }
+            return null;
+          },
+          isEnabled: true,
+          onChanged: (value){
+            createTestModel.setTechnicalDescription(value);
+          },
+        ),
+        const SizedBox(height: 15),
+        CustomTextField(
+          controller: widget.potentialImpactController,
+          label: 'Potential Impact',
+          maxLines: 3,
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Potential impact is required';
+            }
+            return null;
+          },
+          isEnabled: true,
+          onChanged: (value){
+            createTestModel.setPotentialImpact(value);
+          },
         ),
       ],
     );
   }
 
-  void _handleAiMagicPressed(BuildContext context) async {
-    TestCasePrompts prompts = TestCasePrompts();
 
+
+  Future<void> _handleAiMagicPressed(BuildContext context) async {
     if (widget.projectTypeController.text.isEmpty || widget.topicController.text.isEmpty || widget.nameController.text.isEmpty) {
       SnackbarMessage.showErrorMessage(context, 'Please choose a project type, topic and enter a test name');
       return;
     }
 
-    String callingPrompt = prompts.generateDescriptions.buildPromptForTestConfig(
-      widget.projectTypeController.text, 
-      widget.topicController.text, 
-      widget.nameController.text
-      );
-      
-    final modelOuput = await LLMService().callLLMGeneralPurpose(prompt: callingPrompt, maxTokens: 2000);
+    setState(() {
+      _isAiMagicProcessing = true;
+    });
 
-    widget.nameController.text = modelOuput['rewritten_test_name'] ?? widget.nameController.text;
-    widget.descriptionController.text = modelOuput['business_description'] ?? widget.descriptionController.text;
-    widget.technicalDescriptionController.text = modelOuput['technical_description'] ?? widget.technicalDescriptionController.text;
-    widget.financialImpactController.text = modelOuput['financial_impact'] ?? widget.financialImpactController.text;
-    widget.estimatedImpactScenariosController.text = modelOuput['impact_estimation_scenario'] ?? widget.estimatedImpactScenariosController.text;
-    widget.financialImpactProxyMetricsController.text = modelOuput['proxy_metrics'] ?? widget.financialImpactProxyMetricsController.text;
-    widget.financialImpactIndustryBenchmarksController.text = modelOuput['benchmarks_or_industry_references'] ?? widget.financialImpactIndustryBenchmarksController.text;
-    widget.qualitativeImpactFramingController.text = modelOuput['qualitative_impact_framing'] ?? widget.qualitativeImpactFramingController.text;
+    // Create HTTP non-streaming service for AI magic generation
+    final nonStreamingService = HttpNonStreamingService(
+      HttpNonStreamingForFinancialImpact.nonStreamingFi, 
+      timeout: const Duration(seconds: 30));
+
+    // Build the test case text
+    String testCaseText = '''
+      Test case name: '${widget.nameController.text}'
+      Industry: '${widget.industryController.text}' 
+      Business Process: '${widget.projectTypeController.text}' 
+      Function:'${widget.topicController.text}' 
+    ''';
+
+    // Create the request body as a Map instead of JSON string
+    final Map<String, dynamic> requestBody = {
+      'test_case': testCaseText,
+      'test_description': widget.descriptionController.text,
+    };
+
+    // Send the data for AI magic generation
+    final response = await nonStreamingService.post('', body: requestBody);
+
+    if (response.isSuccess) {
+      // Handle successful response
+      // Parse the AI response using the utility method
+      final messageJson = response.parseAiResponse();
+
+      if (messageJson != null) {
+        // Update description if available
+        if (messageJson['impact_summary'] != null && messageJson['impact_summary'].toString().isNotEmpty) {
+          createTestModel.setTestDescription(messageJson['impact_summary'].toString());
+          widget.descriptionController.text = messageJson['impact_summary'].toString();
+        }
+
+        // Update technical description if available
+        if (messageJson['technical_description'] != null && messageJson['technical_description'].toString().isNotEmpty) {
+          createTestModel.setTechnicalDescription(messageJson['technical_description'].toString());
+          widget.technicalDescriptionController.text = messageJson['technical_description'].toString();
+        }
+
+        if(messageJson['chosen_metric_type'] != null && messageJson['chosen_metric_type'].toString().isNotEmpty) {
+          createTestModel.setChosenMetricType(messageJson['chosen_metric_type'].toString());
+        }
+
+        // Update potential impact if available
+        if (messageJson['metric_details'] != null && messageJson['metric_details'].toString().isNotEmpty) {
+          createTestModel.setPotentialImpact(messageJson['metric_details'].toString());
+          widget.potentialImpactController.text =   messageJson['metric_details'].toString();
+        }
+
+        if(messageJson['business_risks'] != null && messageJson['business_risks'] is List) {
+          List<dynamic> risksList = messageJson['business_risks'] as List<dynamic>;
+          for(var risk in risksList) {
+            if (risk is String) {
+              createTestModel.addBusinessRisk(risk);
+            }
+          }
+        }
+
+        if(messageJson['recommended_actions'] != null && messageJson['recommended_actions'] is List) {
+          List<dynamic> actionsList = messageJson['recommended_actions'] as List<dynamic>;
+          for(var action in actionsList) {
+            if (action is String) {
+              createTestModel.addBusinessAction(action);
+            }
+          }
+        }
+
+      } else {
+        SnackbarMessage.showErrorMessage(context, 'Unable to parse AI response.');
+      }
+    } else {
+      // Handle error response
+      throw Exception("HTTP Error: ${response.error}");
+    }
   }
 } 

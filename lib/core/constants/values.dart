@@ -28,3 +28,7 @@ const List<String> projectScopeOptions = [
   'All available data',
   'Custom period'
 ];
+
+const List<String> runTypesList = ['ML', 'SQL', 'API'];
+const List<String> criticalityLevelsList = ['Low', 'Medium', 'High'];
+const List<String> runProgramsList = ['Semantic-Search', 'LLM', 'SQL', 'API', 'ML-Decision-Tree', 'ML-Random-Forest', 'ML-Gradient-Boosting', 'ML-XGBoost', 'ML-LightGBM', 'ML-CatBoost', 'ML-Neural-Network', 'ML-Support-Vector-Machine', 'ML-K-Nearest-Neighbors', 'ML-Naive-Bayes', 'ML-Decision-Tree', 'ML-Random-Forest', 'ML-Gradient-Boosting', 'ML-XGBoost', 'ML-LightGBM', 'ML-CatBoost', 'ML-Neural-Network', 'ML-Support-Vector-Machine', 'ML-K-Nearest-Neighbors', 'ML-Naive-Bayes'];

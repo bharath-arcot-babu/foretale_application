@@ -17,23 +17,17 @@ abstract class ChatDrivingModel {
 
   int getSelectedId(BuildContext context);
 
-  Future<void> sendMessage(BuildContext context, String message, WebSocketService webSocketService);
-
   String getDrivingModelName(BuildContext context);
 
   String getWebSocketUrl(BuildContext context);
 
-  Future<int> updateConfig(
-    BuildContext context, 
-    String aiSummary, 
-    String keyTables, 
-    String keyColumns, 
-    String keyCriteria,
-    String keyJoins,
-    String keyAmbiguities,
-    String fullState,
-    String initialState,
-    String config,
-    String configExecStatus,
-    String configExecMessage);
+  Future<void> sendMessage(BuildContext context, String message, WebSocketService? webSocketService) async {
+    // Default implementation - do nothing when WebSocket is not available
+    if (webSocketService == null) {
+      return;
+    }
+    // Subclasses should override this method to provide actual implementation
+  }
+
+  Future<int> updateConfig(BuildContext context, Map<dynamic, dynamic> fullState, {bool finalUpdate = false});
 }

@@ -9,13 +9,15 @@ class CRUD {
       var jsonResponse = await DatabaseApiService().insertRecord(storedProcedure, params);
       int insertedId = int.parse(jsonResponse['data'][0]['inserted_id'].toString());
 
-      if (insertedId > 0) {
+      return insertedId;
+
+      /*if (insertedId > 0) {
         return insertedId;
       } else {
         throw Exception('Failed to add record');
-      }
+      }*/
     } catch (e, error_stack_trace) {
-      _handleError(context, e, error_stack_trace, storedProcedure, 'insertRecord');
+      _handleError(context, e, error_stack_trace, storedProcedure, 'insertRecord', params);
       return 0;
     }
   }
@@ -25,13 +27,15 @@ class CRUD {
       var jsonResponse = await DatabaseApiService().updateRecord(storedProcedure, params);
       int updatedId = int.parse(jsonResponse['data'][0]['updated_id'].toString());
 
-      if (updatedId > 0) {
+      return updatedId;
+
+      /*if (updatedId > 0) {
         return updatedId;
       } else {
         throw Exception('Failed to update record');
-      }
+      }*/
     } catch (e, error_stack_trace) {
-      _handleError(context, e, error_stack_trace, storedProcedure, 'updateRecord');
+      _handleError(context, e, error_stack_trace, storedProcedure, 'updateRecord', params);
       return 0;
     }
   }
@@ -39,19 +43,17 @@ class CRUD {
   Future<int> deleteRecord(BuildContext context, String storedProcedure,
       Map<String, dynamic> params) async {
     try {
-      var jsonResponse =
-          await DatabaseApiService().deleteRecord(storedProcedure, params);
-      int deletedId =
-          int.parse(jsonResponse['data'][0]['deleted_id'].toString());
+      var jsonResponse = await DatabaseApiService().deleteRecord(storedProcedure, params);
+      int deletedId = int.parse(jsonResponse['data'][0]['deleted_id'].toString());
+      return deletedId;
 
-      if (deletedId > 0) {
+      /*if (deletedId > 0) {
         return deletedId;
       } else {
         throw Exception('Failed to delete record');
-      }
+      }*/
     } catch (e, error_stack_trace) {
-      _handleError(
-          context, e, error_stack_trace, storedProcedure, 'deleteRecord');
+      _handleError(context, e, error_stack_trace, storedProcedure, 'deleteRecord', params);
       return 0;
     }
   }
@@ -85,8 +87,7 @@ class CRUD {
         return [];
       }
     } catch (e, error_stack_trace) {
-      _handleError(
-          context, e, error_stack_trace, storedProcedure, 'readRecord');
+      _handleError(context, e, error_stack_trace, storedProcedure, 'readRecord', params);
       return [];
     }
   }
@@ -120,13 +121,13 @@ class CRUD {
         return [];
       }
     } catch (e, error_stack_trace) {
-      _handleError(context, e, error_stack_trace, storedProcedure, 'readJsonRecord');
+      _handleError(context, e, error_stack_trace, storedProcedure, 'readJsonRecord', params);
       return [];
     }
   }
 
   // Handle errors and show messages to users
-  void _handleError(BuildContext context, dynamic error, StackTrace stackTrace, String storedProcedure, String action) {
+  void _handleError(BuildContext context, dynamic error, StackTrace stackTrace, String storedProcedure, String action, Map<String, dynamic> params) {
 
     SnackbarMessage.showErrorMessage(
       context,
@@ -134,7 +135,7 @@ class CRUD {
       logError: true,
       errorMessage: error.toString(),
       errorStackTrace: stackTrace.toString(),
-      errorSource: storedProcedure,
+      errorSource: '$storedProcedure $params',
       severityLevel: 'Critical',
       requestPath: action,
     );

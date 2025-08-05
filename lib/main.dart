@@ -25,6 +25,7 @@ import 'package:foretale_application/models/question_model.dart';
 import 'package:foretale_application/models/team_contacts_model.dart';
 import 'package:foretale_application/models/tests_model.dart';
 import 'package:foretale_application/models/columns_model.dart';
+import 'package:foretale_application/models/create_test_model.dart';
 
 //entry
 void main() async {
@@ -107,6 +108,7 @@ class ForeTaleApp extends StatelessWidget {
           ChangeNotifierProvider(create: (_) => ColumnsModel()),
           ChangeNotifierProvider(create: (_) => DataQualityProfileModel()),
           ChangeNotifierProvider(create: (_) => ResultModel()),
+          ChangeNotifierProvider(create: (_) => CreateTestModel()),
         ],
         child: Authenticator(
             authenticatorBuilder: _authenticatorBuilder,

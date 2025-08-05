@@ -3,7 +3,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
 import 'package:foretale_application/models/inquiry_response_model.dart';
-import 'package:foretale_application/ui/screens/analysis/result.dart';
 import 'package:foretale_application/ui/widgets/custom_loading_indicator.dart';
 import 'package:provider/provider.dart';
 //model

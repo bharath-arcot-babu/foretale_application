@@ -54,15 +54,25 @@ class _UploadScreenWizardState extends State<UploadScreenWizard> with SingleTick
     uploadSummaryModel = Provider.of<UploadSummaryModel>(context, listen: false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      setState(() {
-        isPageLoading = true;
-        loadText = "Loading...";
-      });
-      await _loadPage();
-      setState(() {
-        isPageLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isPageLoading = true;
+          loadText = "Loading...";
+        });
+        await _loadPage();
+        if (mounted) {
+          setState(() {
+            isPageLoading = false;
+          });
+        }
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override

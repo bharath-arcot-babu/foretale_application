@@ -1,10 +1,11 @@
+import 'package:foretale_application/models/result_model.dart';
 import 'package:foretale_application/ui/screens/datagrids/generic_data_grid/sfdg_generic_grid.dart';
 
 class ColumnWidthCalculator {
   /// Calculates the optimal width for a column based on its label and cell type
   static double calculateOptimalWidth({
     required String label,
-    required GenericGridCellType cellType,
+    required CustomCellType cellType,
     double? customWidth,
   }) {
     // If custom width is provided, use it
@@ -20,25 +21,28 @@ class ColumnWidthCalculator {
     
     // Adjust based on cell type
     switch (cellType) {
-      case GenericGridCellType.checkbox:
+      case CustomCellType.checkbox:
         baseWidth = 60.0; // Fixed width for checkbox column
         break;
-      case GenericGridCellType.dropdown:
+      case CustomCellType.dropdown:
         baseWidth = 200.0; // Increased width for dropdown column to ensure full visibility
         break;
-      case GenericGridCellType.badge:
+      case CustomCellType.badge:
         baseWidth += 24.0; // Extra space for badge padding and border
         break;
-      case GenericGridCellType.avatar:
+      case CustomCellType.avatar:
         baseWidth = 64.0; // Fixed width for avatar with some margin
         break;
-      case GenericGridCellType.action:
+      case CustomCellType.action:
         baseWidth = 120.0; // Fixed width for action buttons (2 icons + spacing)
         break;
-      case GenericGridCellType.number:
+      case CustomCellType.number:
         baseWidth += 16.0; // Extra space for numbers and alignment
         break;
-      case GenericGridCellType.text:
+      case CustomCellType.categorical:
+        baseWidth += 20.0; // Extra space for categorical data
+        break;
+      case CustomCellType.text:
       default:
         // Add some buffer for text overflow
         baseWidth += 8.0;
@@ -96,7 +100,7 @@ class ColumnWidthCalculator {
   /// Calculates width based on content analysis (for dynamic content)
   static double calculateWidthFromContent({
     required List<String> content,
-    required GenericGridCellType cellType,
+    required CustomCellType cellType,
     double? minWidth,
     double? maxWidth,
   }) {
@@ -113,25 +117,28 @@ class ColumnWidthCalculator {
     
     // Apply cell type adjustments
     switch (cellType) {
-      case GenericGridCellType.checkbox:
+      case CustomCellType.checkbox:
         baseWidth = 60.0;
         break;
-      case GenericGridCellType.dropdown:
+      case CustomCellType.dropdown:
         baseWidth = 200.0;
         break;
-      case GenericGridCellType.badge:
+      case CustomCellType.badge:
         baseWidth += 24.0;
         break;
-      case GenericGridCellType.avatar:
+      case CustomCellType.avatar:
         baseWidth = 64.0;
         break;
-      case GenericGridCellType.action:
+      case CustomCellType.action:
         baseWidth = 120.0;
         break;
-      case GenericGridCellType.number:
+      case CustomCellType.number:
         baseWidth += 16.0;
         break;
-      case GenericGridCellType.text:
+      case CustomCellType.categorical:
+        baseWidth += 20.0;
+        break;
+      case CustomCellType.text:
       default:
         baseWidth += 8.0;
         break;

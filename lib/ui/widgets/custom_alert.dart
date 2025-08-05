@@ -12,6 +12,7 @@ Future<bool> showConfirmDialog({
 }) async {
   final result = await showDialog<bool>(
     context: context,
+    barrierDismissible: false, // Prevent dismissal by tapping outside
     builder: (context) => AlertDialog(
       contentPadding: const EdgeInsets.all(24),
       shape: RoundedRectangleBorder(
@@ -46,7 +47,9 @@ Future<bool> showConfirmDialog({
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
+          onPressed: () {
+            Navigator.of(context).pop(false);
+          },
           child: Text(
             cancelText,
             style: TextStyles.elevatedButtonTextStyle(context).copyWith(
@@ -55,7 +58,9 @@ Future<bool> showConfirmDialog({
           ),
         ),
         TextButton(
-          onPressed: () => Navigator.of(context).pop(true),
+          onPressed: () {
+            Navigator.of(context).pop(true);
+          },
           child: Text(
             confirmText,
             style: TextStyles.elevatedButtonTextStyle(context).copyWith(
@@ -66,5 +71,7 @@ Future<bool> showConfirmDialog({
       ],
     ),
   );
-  return result ?? false;
+  
+  final finalResult = result ?? false;
+  return finalResult;
 }

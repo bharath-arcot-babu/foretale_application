@@ -1,7 +1,7 @@
 //core
 import 'package:flutter/material.dart';
 import 'package:foretale_application/config_ecs.dart';
-import 'package:foretale_application/core/services/websocket_service.dart';
+
 import 'package:foretale_application/models/abstracts/chat_driving_model.dart';
 import 'package:foretale_application/models/inquiry_response_model.dart';
 import 'package:foretale_application/config_s3.dart';
@@ -12,6 +12,7 @@ import 'package:foretale_application/models/project_details_model.dart';
 import 'package:foretale_application/models/user_details_model.dart';
 //utils
 import 'package:foretale_application/core/services/handling_crud.dart';
+import 'package:foretale_application/core/services/websocket_service.dart';
 
 class InquiryQuestion {
   String questionText;
@@ -195,19 +196,19 @@ class InquiryQuestionModel with ChangeNotifier implements ChatDrivingModel {
   int getSelectedId(BuildContext context) => selectedId;
 
   @override
-  Future<void> sendMessage(BuildContext context, String message, WebSocketService webSocketService) async {
-    //placeholder for now
+  Future<void> sendMessage(BuildContext context, String message, WebSocketService? webSocketService) async {
+    // Not implemented for inquiry questions
+    return;
   }
 
   @override
   String getDrivingModelName(BuildContext context) => 'Question';
 
   @override
-  String getWebSocketUrl(BuildContext context) => WebSocketECSForQueryGeneration.webSocket;
+  String getWebSocketUrl(BuildContext context) => 'ws://alb-fastapi-agent-423791108.us-east-1.elb.amazonaws.com/wsqg';
 
   @override
-  Future<int> updateConfig(BuildContext context, String aiSummary, String keyTables, String keyColumns, String keyCriteria, String keyJoins, String keyAmbiguities, String fullState, String initialState, String config, String configExecStatus, String configExecMessage) {
-    // TODO: implement updateConfig
+  Future<int> updateConfig(BuildContext context, Map<dynamic, dynamic> fullState, {bool finalUpdate = false}) {
     throw UnimplementedError();
   }
 }

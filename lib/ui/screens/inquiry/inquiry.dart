@@ -1,5 +1,6 @@
 //core
 import 'package:flutter/material.dart';
+import 'package:foretale_application/models/user_details_model.dart';
 import 'package:foretale_application/ui/widgets/chat/chat_screen.dart';
 import 'package:foretale_application/ui/screens/inquiry/inquiry_questions_lv.dart';
 import 'package:foretale_application/ui/widgets/custom_enclosure.dart';
@@ -16,11 +17,13 @@ class InquiryPage extends StatefulWidget {
 class _InquiryPageState extends State<InquiryPage> {
   bool isChatEnabled = false;
   late InquiryQuestionModel inquiryQuestionModel;
+  late UserDetailsModel userDetailsModel;
 
   @override
   void initState() {
     super.initState();
     inquiryQuestionModel =  Provider.of<InquiryQuestionModel>(context, listen: false);
+    userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
   }
 
   @override
@@ -42,13 +45,12 @@ class _InquiryPageState extends State<InquiryPage> {
               child: Selector<InquiryQuestionModel, int>(
                 selector: (context, model) => model.getSelectedId(context),
                 builder: (context, selectedId, __) {
-                                      return Expanded(
-                      child: ChatScreen(
-                        key: ValueKey('inquiry_$selectedId'),
-                        drivingModel: inquiryQuestionModel,
-                        isChatEnabled: selectedId > 0,
-                      ),
-                    );
+                  return ChatScreen(
+                    key: ValueKey('inquiry_$selectedId'),
+                    drivingModel: inquiryQuestionModel,
+                    isChatEnabled: selectedId > 0,
+                    userId: userDetailsModel.getUserMachineId ?? "",
+                  );
                 },
               ),
             ),

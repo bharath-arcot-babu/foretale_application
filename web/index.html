@@ -31,6 +31,36 @@
 
   <title>foretale_application</title>
   <link rel="manifest" href="manifest.json">
+  
+  <!-- Fix for null type error in web environment -->
+  <script>
+    // Handle null type errors in DOM events
+    window.addEventListener('error', function(e) {
+      if (e.error && e.error.message && e.error.message.includes('null: type \'Null\' is not a subtype of type \'bool\'')) {
+        console.warn('Suppressed null type error in DOM event handling');
+        e.preventDefault();
+        return false;
+      }
+    });
+    
+    // Override keyboard event properties to handle null values
+    const originalGetProperty = Object.getOwnPropertyDescriptor(Event.prototype, 'shiftKey');
+    if (originalGetProperty) {
+      Object.defineProperty(Event.prototype, 'shiftKey', {
+        get: function() {
+          try {
+            return this._shiftKey || false;
+          } catch (e) {
+            return false;
+          }
+        },
+        set: function(value) {
+          this._shiftKey = value;
+        },
+        configurable: true
+      });
+    }
+  </script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>

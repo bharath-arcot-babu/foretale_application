@@ -10,6 +10,7 @@ import 'package:foretale_application/ui/widgets/custom_icon_button.dart';
 import 'package:foretale_application/core/utils/message_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:foretale_application/models/inquiry_response_model.dart';
+import 'package:foretale_application/core/constants/colors/app_colors.dart';
 
 class ChatBubble extends StatelessWidget {
   final bool isUser;
@@ -68,12 +69,12 @@ class ChatBubble extends StatelessWidget {
         decoration: BoxDecoration(
           color: isUser
               ? Colors.white.withOpacity(0.15)
-              : Colors.grey.withOpacity(0.08),
+              : AppColors.backgroundColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isUser
                 ? Colors.white.withOpacity(0.2)
-                : Colors.grey.withOpacity(0.2),
+                : BorderColors.tertiaryColor,
             width: 1,
           ),
         ),
@@ -85,13 +86,13 @@ class ChatBubble extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isUser
                     ? Colors.white.withOpacity(0.2)
-                    : Colors.grey.withOpacity(0.1),
+                    : AppColors.backgroundColor,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 _getFileIcon(attachment.fileName),
                 size: 16,
-                color: isUser ? Colors.white : Colors.black87,
+                color: isUser ? Colors.white : TextColors.primaryTextColor,
               ),
             ),
             const SizedBox(width: 12),
@@ -102,7 +103,7 @@ class ChatBubble extends StatelessWidget {
                   Text(
                     attachment.fileName,
                     style: TextStyles.responseTextFileInfo(context).copyWith(
-                      color: isUser ? Colors.white : Colors.black87,
+                      color: isUser ? Colors.white : TextColors.primaryTextColor,
                       fontWeight: FontWeight.w500,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -113,7 +114,7 @@ class ChatBubble extends StatelessWidget {
                     style: TextStyles.tinySupplementalInfo(context).copyWith(
                       color: isUser 
                           ? Colors.white.withOpacity(0.7)
-                          : Colors.black54,
+                          : TextColors.hintTextColor,
                     ),
                   ),
                 ],
@@ -124,12 +125,12 @@ class ChatBubble extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isUser
                     ? Colors.white.withOpacity(0.2)
-                    : Colors.grey.withOpacity(0.1),
+                    : AppColors.backgroundColor,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: IconButton(
                 icon: const Icon(Icons.download, size: 16),
-                color: isUser ? Colors.white : Colors.black87,
+                color: isUser ? Colors.white : TextColors.primaryTextColor,
                 padding: const EdgeInsets.all(8),
                 constraints: const BoxConstraints(
                   minWidth: 32,
@@ -191,10 +192,10 @@ class ChatBubble extends StatelessWidget {
           )
         : Container(
             decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.1),
+              color: AppColors.primaryColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.orange.withOpacity(0.3),
+                color: AppColors.primaryColor.withOpacity(0.3),
                 width: 1,
               ),
             ),
@@ -226,10 +227,10 @@ class ChatBubble extends StatelessWidget {
   Widget _buildDeleteButton(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.red.withOpacity(0.1),
+        color: ErrorColors.errorBackgroundColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.red.withOpacity(0.3),
+          color: ErrorColors.errorTextColor.withOpacity(0.3),
           width: 1,
         ),
       ),
@@ -310,8 +311,7 @@ class ChatBubble extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       child: Column(
-        crossAxisAlignment:
-            isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           // Action buttons row
           Row(
@@ -341,12 +341,12 @@ class ChatBubble extends StatelessWidget {
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              theme.colorScheme.primary,
-                              theme.colorScheme.primary.withOpacity(0.9),
+                              AppColors.primaryColor,
+                              AppColors.primaryColor.withOpacity(0.9),
                             ],
                           )
                         : null,
-                    color: isUser ? null : Colors.white,
+                    color: isUser ? null : AppColors.surfaceColor,
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(20),
                       topRight: const Radius.circular(20),
@@ -374,7 +374,7 @@ class ChatBubble extends StatelessWidget {
                     border: isUser
                         ? null
                         : Border.all(
-                            color: Colors.grey.withOpacity(0.1),
+                            color: BorderColors.tertiaryColor,
                             width: 1,
                           ),
                   ),
@@ -388,7 +388,7 @@ class ChatBubble extends StatelessWidget {
                         style: TextStyles.responseText(context).copyWith(
                           color: isUser
                               ? Colors.white
-                              : theme.colorScheme.onSurface,
+                              : TextColors.primaryTextColor,
                           height: 1.4,
                         ),
                       ),
@@ -408,7 +408,7 @@ class ChatBubble extends StatelessWidget {
             child: Text(
               responseDate,
               style: TextStyles.smallSupplementalInfo(context).copyWith(
-                color: Colors.grey.withOpacity(0.6),
+                color: TextColors.hintTextColor,
               ),
             ),
           ),
