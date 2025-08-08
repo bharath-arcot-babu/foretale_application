@@ -81,7 +81,7 @@ class TestService {
     final userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
     
     return ChatScreen(
-      key: ValueKey('test_config_${test.testId}'),
+      key: ValueKey('test_config_chat_${test.testId}'),
       drivingModel: testsModel,
       isChatEnabled: true,
       userId: userDetailsModel.getUserMachineId ?? "",

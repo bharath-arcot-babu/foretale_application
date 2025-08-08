@@ -14,10 +14,10 @@ class ColumnWidthCalculator {
     }
 
     // More accurate width calculation based on label length and font characteristics
-    double baseWidth = label.length * 9.5; // Better character width estimation for Inter font
+    double baseWidth = label.length * 8.5; // Increased character width for better header visibility
     
     // Add padding for the container
-    baseWidth += 64.0; // 16px padding on each side
+    baseWidth += 48.0; // Increased padding (12px on each side) for better header visibility
     
     // Adjust based on cell type
     switch (cellType) {
@@ -25,16 +25,10 @@ class ColumnWidthCalculator {
         baseWidth = 60.0; // Fixed width for checkbox column
         break;
       case CustomCellType.dropdown:
-        baseWidth = 200.0; // Increased width for dropdown column to ensure full visibility
+        baseWidth = 140.0; // Reduced width for dropdown column
         break;
-      case CustomCellType.badge:
-        baseWidth += 24.0; // Extra space for badge padding and border
-        break;
-      case CustomCellType.avatar:
-        baseWidth = 64.0; // Fixed width for avatar with some margin
-        break;
-      case CustomCellType.action:
-        baseWidth = 120.0; // Fixed width for action buttons (2 icons + spacing)
+      case CustomCellType.save:
+        baseWidth = 80.0; // Fixed width for save button
         break;
       case CustomCellType.number:
         baseWidth += 16.0; // Extra space for numbers and alignment
@@ -50,104 +44,6 @@ class ColumnWidthCalculator {
     }
     
     // Ensure minimum and maximum width constraints
-    return baseWidth.clamp(100.0, 400.0);
-  }
-
-  /// Calculates optimal widths for multiple columns, considering content distribution
-  static List<double> calculateOptimalWidthsForColumns({
-    required List<GenericGridColumn> columns,
-    required double availableWidth,
-  }) {
-    List<double> widths = [];
-    
-    // Calculate individual optimal widths
-    for (var column in columns) {
-      double optimalWidth = calculateOptimalWidth(
-        label: column.label,
-        cellType: column.cellType,
-        customWidth: column.width,
-      );
-      widths.add(optimalWidth);
-    }
-    
-    // Calculate total optimal width
-    double totalOptimalWidth = widths.fold(0.0, (sum, width) => sum + width);
-    
-    // If total optimal width fits within available width, use optimal widths
-    if (totalOptimalWidth <= availableWidth) {
-      return widths;
-    }
-    
-    // Otherwise, distribute available width proportionally
-    return _distributeWidthProportionally(widths, availableWidth);
-  }
-
-  /// Distributes available width proportionally among columns
-  static List<double> _distributeWidthProportionally(
-    List<double> optimalWidths,
-    double availableWidth,
-  ) {
-    double totalOptimalWidth = optimalWidths.fold(0.0, (sum, width) => sum + width);
-    double ratio = availableWidth / totalOptimalWidth;
-    
-    return optimalWidths.map((width) {
-      double distributedWidth = width * ratio;
-      // Ensure minimum width constraint
-      return distributedWidth.clamp(100.0, width);
-    }).toList();
-  }
-
-  /// Calculates width based on content analysis (for dynamic content)
-  static double calculateWidthFromContent({
-    required List<String> content,
-    required CustomCellType cellType,
-    double? minWidth,
-    double? maxWidth,
-  }) {
-    if (content.isEmpty) {
-      return minWidth ?? 100.0;
-    }
-
-    // Find the longest content item
-    String longestContent = content.reduce((a, b) => a.length > b.length ? a : b);
-    
-    // Calculate width based on content length
-    double baseWidth = longestContent.length * 9.5;
-    baseWidth += 64.0; // Padding
-    
-    // Apply cell type adjustments
-    switch (cellType) {
-      case CustomCellType.checkbox:
-        baseWidth = 60.0;
-        break;
-      case CustomCellType.dropdown:
-        baseWidth = 200.0;
-        break;
-      case CustomCellType.badge:
-        baseWidth += 24.0;
-        break;
-      case CustomCellType.avatar:
-        baseWidth = 64.0;
-        break;
-      case CustomCellType.action:
-        baseWidth = 120.0;
-        break;
-      case CustomCellType.number:
-        baseWidth += 16.0;
-        break;
-      case CustomCellType.categorical:
-        baseWidth += 20.0;
-        break;
-      case CustomCellType.text:
-      default:
-        baseWidth += 8.0;
-        break;
-    }
-    
-    // Apply constraints
-    double minConstraint = minWidth ?? 100.0;
-    double maxConstraint = maxWidth ?? 400.0;
-    
-    return baseWidth.clamp(minConstraint, maxConstraint);
+    return baseWidth.clamp(100.0, 300.0);
   }
 } 

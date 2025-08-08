@@ -606,4 +606,10 @@ class TestsModel with ChangeNotifier implements ChatDrivingModel {
 
     return updatedId;
   }
+
+  @override
+  void clearResponses(BuildContext context) {
+    var inquiryResponseModel = Provider.of<InquiryResponseModel>(context, listen: false);
+    inquiryResponseModel.responseList = [];
+  }
 }

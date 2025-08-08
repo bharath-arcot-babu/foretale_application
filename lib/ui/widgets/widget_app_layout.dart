@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
 //utils
 import 'package:foretale_application/core/services/cognito_activities.dart';
-import 'package:foretale_application/ui/screens/create_test/create_test.dart';
 import 'package:foretale_application/ui/screens/report/report_wrap.dart';
 import 'package:foretale_application/ui/screens/review/review.dart';
 
@@ -111,7 +110,8 @@ class _AppLayoutState extends State<AppLayout> {
     } else if (_selectedScreen == _display4) {
       return const TestConfigPage();
     } else if (_selectedScreen == _display5) {
-      return const ReviewPage();
+      //return const ReviewPage();
+      return const Placeholder();
     } else if (_selectedScreen == _display6) {
       return const RiskReportPage();
     }

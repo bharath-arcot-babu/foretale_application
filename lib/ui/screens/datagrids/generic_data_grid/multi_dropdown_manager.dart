@@ -5,22 +5,22 @@ import 'package:foretale_application/ui/widgets/custom_dropdown_search.dart';
 class MultiDropdownManager<T> extends ChangeNotifier {
   final Map<String, Map<int, String>> _selectedValues = <String, Map<int, String>>{};
   final Map<String, List<String>> _dropdownOptions = <String, List<String>>{};
-  final Map<String, void Function(Map<int, String> selectedValues)> _callbacks = <String, void Function(Map<int, String> selectedValues)>{};
   List<T> _data;
   bool _isInitializing = false;
+  bool _isUpdating = false; // Add flag to prevent concurrent updates
 
-  MultiDropdownManager({
-    required List<T> data,
-    Map<String, List<String>>? dropdownOptions,
-    Map<String, void Function(Map<int, String> selectedValues)>? callbacks,
-  })  : _data = List<T>.from(data) {
+  MultiDropdownManager({required List<T> data, Map<String, List<String>>? dropdownOptions}) : _data = List<T>.from(data) {
     if (dropdownOptions != null) {
       _dropdownOptions.addAll(dropdownOptions);
     }
-    if (callbacks != null) {
-      _callbacks.addAll(callbacks);
-      // Initialize empty maps for each dropdown column
-      for (String columnName in callbacks.keys) {
+    // Initialize empty maps for each dropdown column
+    // This will be populated when columns are added
+  }
+
+  /// Initialize dropdown columns
+  void initializeColumns(Set<String> columnNames) {
+    for (String columnName in columnNames) {
+      if (!_selectedValues.containsKey(columnName)) {
         _selectedValues[columnName] = <int, String>{};
       }
     }
@@ -49,10 +49,15 @@ class MultiDropdownManager<T> extends ChangeNotifier {
 
   /// Initialize selections for a specific dropdown column based on a predicate function
   void initializeSelections(String columnName, String? Function(T item) getValue) {
+    if (_isUpdating) return; // Prevent concurrent updates
+    
     _isInitializing = true;
     _selectedValues[columnName] = <int, String>{};
-    for (int i = 0; i < _data.length; i++) {
-      final value = getValue(_data[i]);
+    
+    // Create a copy of data to avoid concurrent modification
+    final dataCopy = List<T>.from(_data);
+    for (int i = 0; i < dataCopy.length; i++) {
+      final value = getValue(dataCopy[i]);
       if (value != null) {
         _selectedValues[columnName]![i] = value;
       }
@@ -63,6 +68,8 @@ class MultiDropdownManager<T> extends ChangeNotifier {
 
   /// Set selection for a specific row in a specific dropdown column
   void setRowSelection(String columnName, int rowIndex, String? value) {
+    if (_isUpdating) return; // Prevent concurrent updates
+    
     if (!_selectedValues.containsKey(columnName)) {
       _selectedValues[columnName] = <int, String>{};
     }
@@ -77,42 +84,63 @@ class MultiDropdownManager<T> extends ChangeNotifier {
 
   /// Clear all selections for a specific dropdown column
   void clearSelection(String columnName) {
+    if (_isUpdating) return; // Prevent concurrent updates
+    
     _selectedValues[columnName]?.clear();
     _notifySelectionChanged(columnName);
   }
 
   /// Update data and clean invalid selections
   void updateData(List<T> newData, {Map<String, String? Function(T item)>? getValueMap}) {
-    _data = List<T>.from(newData);
+    if (_isUpdating) return; // Prevent concurrent updates
     
-    // Clear all selections when data changes
-    for (String columnName in _selectedValues.keys) {
-      _selectedValues[columnName]!.clear();
-    }
+    _isUpdating = true;
     
-    // Reinitialize selections if predicates are provided
-    if (getValueMap != null) {
-      for (String columnName in getValueMap.keys) {
-        if (!_selectedValues.containsKey(columnName)) {
-          _selectedValues[columnName] = <int, String>{};
-        }
-        final getValue = getValueMap[columnName]!;
-        for (int i = 0; i < _data.length; i++) {
-          final value = getValue(_data[i]);
-          if (value != null) {
-            _selectedValues[columnName]![i] = value;
+    try {
+      // Create a copy of the new data to avoid concurrent modification
+      _data = List<T>.from(newData);
+      
+      // Create a copy of selected values to work with
+      final selectedValuesCopy = Map<String, Map<int, String>>.from(_selectedValues);
+      
+      // Clear all selections when data changes
+      for (String columnName in selectedValuesCopy.keys) {
+        selectedValuesCopy[columnName]!.clear();
+      }
+      
+      // Reinitialize selections if predicates are provided
+      if (getValueMap != null) {
+        for (String columnName in getValueMap.keys) {
+          if (!selectedValuesCopy.containsKey(columnName)) {
+            selectedValuesCopy[columnName] = <int, String>{};
+          }
+          final getValue = getValueMap[columnName]!;
+          
+          // Use a copy of data for iteration
+          final dataCopy = List<T>.from(_data);
+          for (int i = 0; i < dataCopy.length; i++) {
+            final value = getValue(dataCopy[i]);
+            if (value != null) {
+              selectedValuesCopy[columnName]![i] = value;
+            }
           }
         }
       }
+      
+      // Update the actual selected values map
+      _selectedValues.clear();
+      _selectedValues.addAll(selectedValuesCopy);
+      
+    } finally {
+      _isUpdating = false;
+      // Only notify UI changes, don't trigger selection callbacks
+      notifyListeners();
     }
-    
-    // Only notify UI changes, don't trigger selection callbacks
-    notifyListeners();
   }
 
   void _notifySelectionChanged(String columnName) {
-    if (!_isInitializing) {
-      _callbacks[columnName]?.call(_selectedValues[columnName] ?? <int, String>{});
+    if (!_isInitializing && !_isUpdating) {
+      // No callbacks to notify
     }
     notifyListeners(); // Notify UI to rebuild
   }
@@ -129,10 +157,13 @@ class MultiDropdownManager<T> extends ChangeNotifier {
     
     return Material(
       color: Colors.transparent,
-      child: CustomDropdownSearch(
+      child: SizedBox(
+        height: 28, // Constrain height for datagrid cells
+        width: double.infinity, // Ensure full width usage
+        child: CustomDropdownSearch(
           items: options,
           title: "",
-          hintText: 'Select...',
+          hintText: 'Select',
           selectedItem: validSelectedValue,
           onChanged: (String? newValue) {
             setRowSelection(columnName, rowIndex, newValue);
@@ -140,7 +171,7 @@ class MultiDropdownManager<T> extends ChangeNotifier {
           isEnabled: true,
           showSearchBox: false,
         ),
-      
+      ),
     );
   }
 
@@ -150,5 +181,5 @@ class MultiDropdownManager<T> extends ChangeNotifier {
   }
 
   /// Get all dropdown column names
-  Set<String> get dropdownColumnNames => _callbacks.keys.toSet();
+  Set<String> get dropdownColumnNames => _dropdownOptions.keys.toSet();
 } 

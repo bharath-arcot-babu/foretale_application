@@ -48,9 +48,9 @@ class TestCardWidgets {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildLeftSideOfCard(context, test, onTestSelection),
+                        _buildLeftSideOfCard(context, test),
                         const SizedBox(width: 20),
-                        _buildRightSideOfCard(context, test),
+                        _buildRightSideOfCard(context, test, onTestTap),
                       ],
                     ),
                   ),
@@ -65,8 +65,7 @@ class TestCardWidgets {
 
   static Widget _buildLeftSideOfCard(
     BuildContext context,
-    Test test,
-    Function(Test) onTestSelection,
+    Test test
   ) {
     return Expanded(
       flex: 8,
@@ -121,20 +120,20 @@ class TestCardWidgets {
     );
   }
 
-  static Widget _buildRightSideOfCard(BuildContext context, Test test) {
+  static Widget _buildRightSideOfCard(BuildContext context, Test test, Function(Test) onTestTap) {
     return Expanded(
       flex: 1,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          _buildShowResultsWidget(context, test),
+          _buildShowResultsWidget(context, test, onTestTap),
         ],
       ),
     );
   }
 
-  static Widget _buildShowResultsWidget(BuildContext context, Test test) {
+  static Widget _buildShowResultsWidget(BuildContext context, Test test, Function(Test) onTestTap) {
     bool showResults = test.testConfigExecutionStatus == "Completed";
     return Container(
       padding: const EdgeInsets.all(12),
@@ -154,7 +153,12 @@ class TestCardWidgets {
           // Results button with custom icon button
           CustomIconButton(
             icon: Icons.flag,
-            onPressed: () => showResults ? TestService.showFlaggedTransactionsDialog(context, test) : null,
+            onPressed: () {
+              onTestTap(test);
+              if(showResults){
+                TestService.showFlaggedTransactionsDialog(context, test);
+              } 
+            },
             tooltip: showResults ? 'Show results' : test.testConfigExecutionMessage.replaceAll('<ERR_START>', '').replaceAll('<ERR_END>', ''),
             isProcessing: false,
             iconSize: 18.0,

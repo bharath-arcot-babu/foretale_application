@@ -5,7 +5,7 @@ import 'package:foretale_application/models/project_details_model.dart';
 import 'package:foretale_application/models/create_test_model.dart';
 import 'package:foretale_application/models/tests_model.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
-import 'package:foretale_application/ui/widgets/custom_one_line_info_card.dart';
+import 'package:foretale_application/ui/widgets/custom_info_card_one_line.dart';
 import 'package:foretale_application/ui/widgets/custom_elevated_button.dart';
 import 'package:foretale_application/ui/widgets/custom_collapsible_section.dart';
 import 'package:foretale_application/ui/widgets/custom_icon_button.dart';

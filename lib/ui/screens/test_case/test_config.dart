@@ -243,10 +243,6 @@ class _TestConfigPageState extends State<TestConfigPage> {
       if (testsModel.getSelectedTestId > 0) {
         await _loadResponses();
       }
-
-      //use exisitng polling mechanism to fetch test execution status
-      
-
     } catch (e, error_stack_trace) {
       SnackbarMessage.showErrorMessage(context, e.toString(),
           logError: true,
@@ -263,7 +259,6 @@ class _TestConfigPageState extends State<TestConfigPage> {
   }
 
   Future<void> _fetchTestExecutionStatus(BuildContext context) async {
-    print("fetchTestExecutionStatus");
     await testsModel.fetchTestExecutionStatus(context);
   }
 

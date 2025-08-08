@@ -6,7 +6,8 @@ import 'package:foretale_application/models/inquiry_response_model.dart';
 import 'package:foretale_application/models/result_model.dart';
 import 'package:foretale_application/models/tests_model.dart';
 import 'package:foretale_application/models/user_details_model.dart';
-import 'package:foretale_application/ui/screens/datagrids/generic_data_grid/sfdg_generic_grid.dart';
+import 'package:foretale_application/ui/screens/datagrids/generic_grid/custom_grid.dart';
+import 'package:foretale_application/ui/screens/datagrids/generic_grid/custom_grid_columns.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:foretale_application/ui/widgets/chat/chat_screen.dart';
 import 'package:foretale_application/ui/widgets/custom_container.dart';
@@ -14,7 +15,6 @@ import 'package:foretale_application/ui/widgets/custom_loading_indicator.dart';
 import 'package:foretale_application/ui/widgets/custom_toggle.dart';
 import 'package:foretale_application/ui/screens/analysis/data_statistics_panel.dart';
 import 'package:provider/provider.dart';
-import 'package:foretale_application/core/constants/values.dart';
 
 class ResultScreen extends StatefulWidget {
   final Test test;
@@ -29,8 +29,6 @@ class _ResultScreenState extends State<ResultScreen> {
   bool isPageLoading = false;
   String loadText = 'Loading results...';
   final String _currentFileName = "result.dart";
-
-  final GlobalKey<GenericDataGridState> gridKey = GlobalKey<GenericDataGridState>();
 
   bool showFlaggedTransactions = false;
   bool isUpdatingCheckboxes = false;
@@ -51,6 +49,7 @@ class _ResultScreenState extends State<ResultScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
+
       setState(() {
         isPageLoading = true;
         loadText = "Loading...";
@@ -69,23 +68,6 @@ class _ResultScreenState extends State<ResultScreen> {
   @override
   void dispose() {
     super.dispose();
-  }
-
-  Future<void> _loadPage() async {
-    if (!mounted) return;
-    try {
-      await resultModel.updateDataGrid(context, widget.test);
-    } catch (e, error_stack_trace) {
-      if (mounted) {
-        SnackbarMessage.showErrorMessage(context, e.toString(),
-            logError: true,
-            errorMessage: e.toString(),
-            errorStackTrace: error_stack_trace.toString(),
-            errorSource: _currentFileName,
-            severityLevel: 'Critical',
-            requestPath: "_loadPage");
-      }
-    }
   }
 
   @override
@@ -210,7 +192,24 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
-    Widget buildTab(
+  Future<void> _loadPage() async {
+    if (!mounted) return;
+    try {
+      await resultModel.updateDataGrid(context, widget.test);
+    } catch (e, error_stack_trace) {
+      if (mounted) {
+        SnackbarMessage.showErrorMessage(context, e.toString(),
+            logError: true,
+            errorMessage: e.toString(),
+            errorStackTrace: error_stack_trace.toString(),
+            errorSource: _currentFileName,
+            severityLevel: 'Critical',
+            requestPath: "_loadPage");
+      }
+    }
+  }
+
+  Widget buildTab(
       {required IconData icon,
       required String label,
       Color color = AppColors.primaryColor}) {
@@ -254,282 +253,74 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
-  Widget _buildFlaggedTransactionsRightSection(BuildContext context, ResultModel resultModel, List<Map<String, dynamic>> data, List<GenericGridColumn> columns) {
-    return 
-    ModernContainer(
-      padding: const EdgeInsets.all(16),
-      child: Selector<ResultModel, int>(
-        selector: (context, model) => model.getSelectedId(context),
-        builder: (context, selectedId, __) {
-          return Expanded(
-            child: ChatScreen(
-              key: ValueKey('result_$selectedId'),
-              drivingModel: resultModel,
-              isChatEnabled: selectedId > 0,
-              userId: userDetailsModel.getUserMachineId ?? "",
-            ),
-          );
-        },
-      ),
+  Widget _buildFlaggedTransactionsRightSection(BuildContext context, ResultModel resultModel, List<Map<String, dynamic>> data, List<CustomGridColumn> columns) {
+    return Selector<ResultModel, int>(
+      selector: (context, model) => model.getSelectedId(context),
+      builder: (context, selectedId, __) {
+        return ModernContainer(
+          padding: const EdgeInsets.all(16),
+          child: ChatScreen(
+            key: ValueKey('result_chat_$selectedId'),
+            drivingModel: resultModel,
+            isChatEnabled: selectedId > 0,
+            userId: userDetailsModel.getUserMachineId ?? "",
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildFlaggedTransactionsLeftSection(BuildContext context, ResultModel resultModel, List<Map<String, dynamic>> data, List<GenericGridColumn> columns) {
-    return Stack(
+  Widget _buildFlaggedTransactionsLeftSection(BuildContext context, ResultModel resultModel, List<Map<String, dynamic>> data, List<CustomGridColumn> columns) {
+    return ModernContainer(
+        padding: const EdgeInsets.all(5),
+        borderRadius: 5,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            ModernContainer(
-              padding: const EdgeInsets.all(16),
-              borderRadius: 12,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomToggle(
-                        value: showFlaggedTransactions,
-                        width: 40,
-                        height: 20,
-                        onChanged: (value) {
-                          setState(() {
-                            showFlaggedTransactions = value;
-                          });
-                          resultModel.updateSelectedTransactions(value);
-                          // Update the grid with new filtered data
-                          gridKey.currentState?.updateData(resultModel.filteredTableData);
-                        },
-                      )
-                    ]
-                  ),
-                  const SizedBox(height: 12),
-                  GenericDataGrid(
-                    key: gridKey,
-                    columns: columns,
-                    data: data,
-                    showSearchBar: true,
-                    onRowTap: (rowData, rowIndex) async {
-                      await _onRowTap(rowData, rowIndex, resultModel);
-                    },
-                    checkboxInitializationColumns: const {
-                      'is_selected': 'is_selected',
-                      'is_final': 'is_final',
-                    },
-                    checkboxCallbacks: {
-                      'is_selected': (selectedIndices) => _onSelectionChangedForIsSelected(selectedIndices),
-                      'is_final': (selectedIndices) => _onSelectionChangedForIsFinal(selectedIndices),
-                    },
-                    checkboxHeaderSettings: const {
-                      'is_selected': true,
-                      'is_final': false,
-                    },
-                    firstColumnName: 'is_selected',
-                    enablePagination: true,
-                    pageSize: 10,
-                    maxPageSize: 10,
-                    showPageInfo: true,
-                    showPageSizeSelector: true,
-                    pageSizes: const [5, 10, 20, 50, 100],
-                    dropdownInitializationColumns: const {
-                      'feedback_status': 'feedback_status',
-                      'feedback_category': 'feedback_category',
-                      'severity_rating': 'severity_rating',
-                    },
-                    dropdownOptions: {
-                      'feedback_status': feedbackDropdownOptions['feedback_status'] ?? [],
-                      'feedback_category': feedbackDropdownOptions['feedback_category'] ?? [],
-                      'severity_rating': feedbackDropdownOptions['severity_rating'] ?? [],
-                    },
-                    dropdownCallbacks: {
-                      'feedback_status': (selectedValues) {
-                        _onDropdownChanged('feedback_status', selectedValues);
-                      },
-                      'feedback_category': (selectedValues) {
-                        _onDropdownChanged('feedback_category', selectedValues);
-                      },
-                      'severity_rating': (selectedValues) {
-                        _onDropdownChanged('severity_rating', selectedValues);
-                      },
-                    },
-                  ),
-                ],
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomToggle(
+                  value: showFlaggedTransactions,
+                  width: 40,
+                  height: 20,
+                  onChanged: (value) {
+                    setState(() {
+                      showFlaggedTransactions = value;
+                    });
+                    resultModel.updateSelectedTransactions(value);
+                  },
+                )
+              ]
             ),
-            // Loading overlay
-            if (isUpdatingCheckboxes)
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Center(
-                  child: LinearLoadingIndicator(
-                    isLoading: isUpdatingCheckboxes,
-                    loadingText: 'Updating...',
-                    color: AppColors.primaryColor,
-                  ),
-                ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: CustomGrid(
+                columns: columns,
+                data: data,
+                firstColumnName: 'is_selected',
+                enablePagination: true,
+                gridOnRowTap: (rowData, rowIndex) {
+                  updateSelectedResultId(rowData['feedback_id']);
+                },
               ),
+            )
           ],
-        );
+        ),
+      );
   }
 
-  Future<void> _onDropdownChanged(String columnName, Map<int, String> selectedValues) async{    
-    try{
-      if (!mounted) return;
-      final currentData = resultModel.filteredTableData;
+  Future<void> updateSelectedResultId(int selectedId) async{
+    await inquiryResponseModel.setIsPageLoading(true);
 
-      for (var entry in selectedValues.entries) {
-        if (!mounted) return;
-        final rowIndex = entry.key;
-        final selectedValue = entry.value;
-        
-        if (rowIndex < currentData.length) {
-          final rowData = currentData[rowIndex];    
-          if(columnName == 'feedback_status'){
-            await resultModel.updateFeedbackStatus(
-              context, 
-              widget.test, 
-              [rowData],
-              selectedValue
-            );
-          } else if(columnName == 'feedback_category'){
-            await resultModel.updateFeedbackCategory(
-              context, 
-              widget.test, 
-              [rowData],
-              selectedValue
-            );
-          } else if(columnName == 'severity_rating'){
-            await resultModel.updateSeverityRating(
-              context, 
-              widget.test, 
-              [rowData],
-              selectedValue
-            );
-          }
-          if (mounted) {
-            await resultModel.updateDataGrid(context, widget.test);
-            gridKey.currentState?.updateData(resultModel.filteredTableData);
-          }
-        }
-      }
-    } catch (e, error_stack_trace) {
-      if (mounted) {
-        SnackbarMessage.showErrorMessage(context, e.toString(),
-          logError: true,
-          errorMessage: e.toString(),
-          errorStackTrace: error_stack_trace.toString(),
-          errorSource: _currentFileName,
-          severityLevel: 'Critical',
-          requestPath: "_onDropdownChanged");
-      }
+    if(resultModel.getSelectedId(context) == selectedId) {
+      resultModel.updateSelectedFeedback(0);
+    } else {
+      resultModel.updateSelectedFeedback(selectedId);
     }
-  }
+    
+    await inquiryResponseModel.fetchResponsesByReference(context, selectedId, 'feedback');
 
-  Future<void> _onRowTap(Map<String, dynamic> rowData, int rowIndex, ResultModel resultModel) async {
-    try{
-      final feedbackId = rowData['feedback_id'];
-      final isSelected = rowData['is_selected'];
-
-      // Use Future.microtask to ensure this runs after the current build phase
-      Future.microtask(() async {
-        if (!mounted) return;
-        await inquiryResponseModel.setIsPageLoading(true);
-        if (feedbackId != null && isSelected == true) {
-          resultModel.updateSelectedFeedback(feedbackId as int);
-          if (mounted) {
-            inquiryResponseModel.fetchResponsesByReference(context, feedbackId, 'feedback');
-          }
-        } else {
-          resultModel.updateSelectedFeedback(0);
-          if (mounted) {
-            inquiryResponseModel.fetchResponsesByReference(context, 0, 'feedback');
-          }
-        }
-        if (mounted) {
-          await inquiryResponseModel.setIsPageLoading(false);
-        }
-      });
-    } catch (e, error_stack_trace) {
-      if (mounted) {
-        SnackbarMessage.showErrorMessage(context, e.toString(),
-          logError: true,
-          errorMessage: e.toString(),
-          errorStackTrace: error_stack_trace.toString(),
-          errorSource: _currentFileName,
-          severityLevel: 'Critical',
-          requestPath: "_onRowTap");
-      }
-    }
-  }
-
-  void _onSelectionChangedForIsSelected(Set<int> selectedIndices) async {
-    try {
-        if (!mounted) return;
-        setState(() {
-          isUpdatingCheckboxes = true;
-        });
-        
-        final data = resultModel.filteredTableData;
-        final newSelectedData = gridKey.currentState?.getSelectedData('is_selected') ?? [];
-        final existingSelectedData = data.where((item) => item['is_selected'] == true).toList();
-        int index = -1;
-
-        for(var existingItem in existingSelectedData){
-            if (!mounted) return;
-            index = newSelectedData.indexWhere((item) => (item['hash_key'] == existingItem['hash_key']));
-            if(index == -1 && existingItem['is_selected'] == true){
-              await resultModel.deleteFlaggedTransaction(context, widget.test, [existingItem]);
-            }
-        }
-
-        if (selectedIndices.isNotEmpty && mounted) {
-          await resultModel.insertFlaggedTransaction(context, widget.test, newSelectedData);
-        }
-        if (mounted) {
-          await resultModel.updateDataGrid(context, widget.test);
-          gridKey.currentState?.updateData(resultModel.filteredTableData);
-        }
-      } catch (e, error_stack_trace) {
-        if (mounted) {
-          SnackbarMessage.showErrorMessage(context, e.toString(),
-            logError: true,
-            errorMessage: e.toString(),
-            errorStackTrace: error_stack_trace.toString(),
-            errorSource: _currentFileName,
-            severityLevel: 'Critical',
-            requestPath: "_buildDataGridSection");
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            isUpdatingCheckboxes = false;
-          });
-        }
-      }
-  }
-
-  void _onSelectionChangedForIsFinal(Set<int> selectedIndices) async {
-    try{
-      if (!mounted) return;
-      final newSelectedData = gridKey.currentState?.getSelectedData('is_final') ?? [];
-      if(newSelectedData.isNotEmpty && mounted){
-        await resultModel.updateIsFinal(context, widget.test, newSelectedData, !newSelectedData.first['is_final']);
-        if (mounted) {
-          await resultModel.updateDataGrid(context, widget.test);
-          gridKey.currentState?.updateData(resultModel.filteredTableData);
-        }
-      }
-    } catch (e, error_stack_trace) {
-      if (mounted) {
-        SnackbarMessage.showErrorMessage(context, e.toString(),
-          logError: true,
-          errorMessage: e.toString(),
-          errorStackTrace: error_stack_trace.toString(),
-          errorSource: _currentFileName,
-          severityLevel: 'Critical',
-          requestPath: "_onSelectionChangedForIsFinal");
-      }
-    }
+    await inquiryResponseModel.setIsPageLoading(false);
   }
 }

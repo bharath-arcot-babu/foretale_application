@@ -30,4 +30,6 @@ abstract class ChatDrivingModel {
   }
 
   Future<int> updateConfig(BuildContext context, Map<dynamic, dynamic> fullState, {bool finalUpdate = false});
+
+  void clearResponses(BuildContext context);
 }

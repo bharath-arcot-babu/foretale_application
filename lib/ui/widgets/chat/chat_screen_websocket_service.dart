@@ -14,11 +14,13 @@ class ChatScreenWebSocketService {
   bool _isInputDisabled = false;
   String? _websocketProgress;
   Map<String, dynamic>? _websocketData;
+  bool _isDisposed = false;
 
   // Callbacks
   final VoidCallback? onStateChanged;
   final Function(String)? onProgressUpdate;
   final Function(Map<String, dynamic>)? onDataUpdate;
+
 
   ChatScreenWebSocketService({
     required this.drivingModel,
@@ -27,6 +29,7 @@ class ChatScreenWebSocketService {
     this.onStateChanged,
     this.onProgressUpdate,
     this.onDataUpdate,
+
   });
 
   // Getters
@@ -36,9 +39,10 @@ class ChatScreenWebSocketService {
   bool get isInputDisabled => _isInputDisabled;
   String? get websocketProgress => _websocketProgress;
   Map<String, dynamic>? get websocketData => _websocketData;
+  bool get isDisposed => _isDisposed;
 
   void initialize() {
-    if (!enableWebSocket || _websocketDisabled) {
+    if (!enableWebSocket || _websocketDisabled || _isDisposed) {
       return;
     }
     
@@ -64,11 +68,14 @@ class ChatScreenWebSocketService {
   }
 
   void _setupWebSocketListeners() {
-    if (_webSocketService == null) return;
+    if (_webSocketService == null || _isDisposed) return;
     
     // Listen to progress updates
     _webSocketService!.progress.listen(
       (progress) {
+        // Don't process if disposed
+        if (_isDisposed) return;
+        
         _websocketProgress = progress.step;
         _isWebsocketProcessing = progress.isProcessing;
         _websocketData = progress.data;
@@ -79,16 +86,18 @@ class ChatScreenWebSocketService {
         _notifyStateChanged();
       },
       onError: (error, stackTrace) {
-        SnackbarMessage.showErrorMessage(
-          context,
-          "WebSocket Error: $error",
-          logError: true,
-          errorMessage: "WebSocket Error: $error",
-          errorStackTrace: stackTrace.toString(),
-          errorSource: "WebSocket Error",
-          severityLevel: "Critical",
-          requestPath: "ChatScreenWebSocketService",
-        );
+        if (context.mounted) {
+          SnackbarMessage.showErrorMessage(
+            context,
+            "WebSocket Error: $error",
+            logError: true,
+            errorMessage: "WebSocket Error: $error",
+            errorStackTrace: stackTrace.toString(),
+            errorSource: "WebSocket Error",
+            severityLevel: "Critical",
+            requestPath: "ChatScreenWebSocketService",
+          );
+        }
 
         _isWebsocketProcessing = false;
         _isInputDisabled = false;
@@ -99,6 +108,9 @@ class ChatScreenWebSocketService {
     // Listen to message events
     _webSocketService!.messages.listen(
       (message) {
+        // Don't process if disposed
+        if (_isDisposed) return;
+        
         if (message.type == MessageType.complete) {
           _handleWebSocketCompletion(message.data);
         } else if (message.type == MessageType.error) {
@@ -110,16 +122,18 @@ class ChatScreenWebSocketService {
         }
       },
       onError: (error, stackTrace) {
-        SnackbarMessage.showErrorMessage(
-          context,
-          "WebSocket Error: $error",
-          logError: true,
-          errorMessage: "WebSocket Error: $error",
-          errorStackTrace: stackTrace.toString(),
-          errorSource: "WebSocket Error",
-          requestPath: "ChatScreenWebSocketService",
-          severityLevel: "Critical",
-        );
+        if (context.mounted) {
+          SnackbarMessage.showErrorMessage(
+            context,
+            "WebSocket Error: $error",
+            logError: true,
+            errorMessage: "WebSocket Error: $error",
+            errorStackTrace: stackTrace.toString(),
+            errorSource: "WebSocket Error",
+            requestPath: "ChatScreenWebSocketService",
+            severityLevel: "Critical",
+          );
+        }
       },
     );
   }
@@ -132,19 +146,24 @@ class ChatScreenWebSocketService {
   }
 
   void _handleWebSocketCompletion(Map<String, dynamic> parsedData) async {
+    // Don't process if disposed
+    if (_isDisposed) return;
+    
     try {
       await drivingModel.updateConfig(context, parsedData, finalUpdate: false);
     } catch (e) {
-      SnackbarMessage.showErrorMessage(
-        context,
-        "Error handling WebSocket completion: $e",
-        logError: true,
-        errorMessage: "Error handling WebSocket completion: $e",
-        errorStackTrace: e.toString(),
-        errorSource: "WebSocket Error",
-        requestPath: "ChatScreenWebSocketService",
-        severityLevel: "Critical",
-      );
+      if (context.mounted) {
+        SnackbarMessage.showErrorMessage(
+          context,
+          "Error handling WebSocket completion: $e",
+          logError: true,
+          errorMessage: "Error handling WebSocket completion: $e",
+          errorStackTrace: e.toString(),
+          errorSource: "WebSocket Error",
+          requestPath: "ChatScreenWebSocketService",
+          severityLevel: "Critical",
+        );
+      }
     } finally {
       // Always reset processing state, regardless of success or failure
       _isWebsocketProcessing = false;
@@ -160,16 +179,18 @@ class ChatScreenWebSocketService {
     if (errorMessage.isNotEmpty) {
       _handleConnectionError(errorMessage);
       // Show other errors to the user
-      SnackbarMessage.showErrorMessage(
-        context,
-        "WebSocket Error: $errorMessage",
-        logError: true,
-        errorMessage: "WebSocket Error: $errorMessage",
-        errorStackTrace: errorData.toString(),
-        errorSource: "WebSocket Error",
-        requestPath: "ChatScreenWebSocketService",
-        severityLevel: "Critical",
-      );
+      if (context.mounted) {
+        SnackbarMessage.showErrorMessage(
+          context,
+          "WebSocket Error: $errorMessage",
+          logError: true,
+          errorMessage: "WebSocket Error: $errorMessage",
+          errorStackTrace: errorData.toString(),
+          errorSource: "WebSocket Error",
+          requestPath: "ChatScreenWebSocketService",
+          severityLevel: "Critical",
+        );
+      }
     }
 
     // Always reset processing state
@@ -205,10 +226,18 @@ class ChatScreenWebSocketService {
   }
 
   void _notifyStateChanged() {
-    onStateChanged?.call();
+    // Check if the context is still valid and service is not disposed before calling the callback
+    if (context.mounted && !_isDisposed) {
+      onStateChanged?.call();
+    }
   }
 
   void resetForNewTest() {
+    // Don't reset if disposed
+    if (_isDisposed) {
+      return;
+    }
+    
     // Reset local state
     _websocketProgress = null;
     _isWebsocketProcessing = false;
@@ -232,6 +261,9 @@ class ChatScreenWebSocketService {
   }
 
   void dispose() {
+    // Mark as disposed to prevent further callbacks
+    _isDisposed = true;
+    
     // Gracefully disconnect WebSocket if it exists
     if (_webSocketService != null) {
       try {
@@ -240,5 +272,8 @@ class ChatScreenWebSocketService {
         // Continue with disposal even if WebSocket cleanup fails
       }
     }
+    
+    // Clear callbacks to prevent memory leaks
+    _webSocketService = null;
   }
 } 

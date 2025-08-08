@@ -26,45 +26,35 @@ class CustomDropdownSearch extends StatelessWidget {
   InputDecoration _buildInputDecoration(BuildContext context) {
     return InputDecoration(
       hintText: hintText,
+      hintStyle: TextStyles.inputMainTextStyle(context).copyWith(
+        fontSize: 10,
+        color: TextColors.hintTextColor,
+      ),
       labelStyle: TextStyles.inputMainTextStyle(context),
       filled: true,
       fillColor: Colors.transparent, // Light background for the text field
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8), // Rounded corners
+        borderRadius: BorderRadius.circular(4), // Smaller radius for datagrid
         borderSide: const BorderSide(
           color: FillColors.tertiaryColor, // Border color
           width: 0.8, // Border width
         ),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(4),
         borderSide: const BorderSide(
           color: BorderColors.secondaryColor, // Highlight color when focused
           width: 1.5,
         ),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(4),
         borderSide: const BorderSide(
           color: BorderColors.secondaryColor, // Border color when not focused
           width: 0.8,
         ),
       ),
-      contentPadding: const EdgeInsets.symmetric(
-          vertical: 10, horizontal: 12), // Reduced padding
-      hintStyle: TextStyles.inputHintTextStyle(context),
-      suffixIcon: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (selectedItem != null && isEnabled)
-            IconButton(
-              icon: const Icon(Icons.close, size: 18),
-              onPressed: () => onChanged(null),
-            ),
-          const Icon(Icons.arrow_drop_down_rounded,
-              size: 28, color: BorderColors.secondaryColor),
-        ],
-      ),
+      contentPadding: const EdgeInsets.symmetric(vertical: 1, horizontal: 5), // Added left padding for visible text
     );
   }
 
@@ -77,13 +67,30 @@ class CustomDropdownSearch extends StatelessWidget {
       onChanged: onChanged,
       validator: (value) =>
           (value == null || value.isEmpty) ? '$title is required.' : null,
-      clearButtonProps: ClearButtonProps(
-        isVisible: selectedItem != null,
-        icon: const Icon(Icons.clear, size: 18),
-      ),
+
       dropdownDecoratorProps: DropDownDecoratorProps(
-        baseStyle: TextStyles.inputMainTextStyle(context),
-        dropdownSearchDecoration: _buildInputDecoration(context),
+          baseStyle: TextStyles.inputMainTextStyle(context).copyWith(
+            fontSize: 10,
+            overflow: TextOverflow.ellipsis,
+          ),
+          dropdownSearchDecoration: _buildInputDecoration(context),
+        ),
+      clearButtonProps: ClearButtonProps(
+        padding: const EdgeInsets.all(0),
+        isVisible: selectedItem != null && isEnabled,
+        icon: const Icon(Icons.close, size: 12, color: BorderColors.secondaryColor),
+        splashRadius: 16,
+        splashColor: BorderColors.secondaryColor.withOpacity(0.1),
+        highlightColor: BorderColors.secondaryColor.withOpacity(0.05),
+        constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+      ),
+      dropdownButtonProps: const DropdownButtonProps(
+        padding: EdgeInsets.all(0),
+        icon: Icon(Icons.arrow_drop_down_rounded, size: 24, color: BorderColors.secondaryColor),
+        splashRadius: 16,
+        splashColor: BorderColors.secondaryColor,
+        highlightColor: BorderColors.secondaryColor,
+        constraints: BoxConstraints(minWidth: 20, minHeight: 20),
       ),
       popupProps: PopupProps.menu(
         showSelectedItems: true,
@@ -91,8 +98,8 @@ class CustomDropdownSearch extends StatelessWidget {
         fit: FlexFit.loose,
         constraints: const BoxConstraints(maxHeight: 300),
         itemBuilder: (context, item, isSelected) => Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          height: 28,
           decoration: BoxDecoration(
             color: isSelected
                 ? FillColors.tertiaryColor.withOpacity(0.1)
@@ -107,18 +114,25 @@ class CustomDropdownSearch extends StatelessWidget {
           child: Text(
             item,
             style: TextStyles.inputMainTextStyle(context).copyWith(
+              fontSize: 10,
               fontWeight:
                   isSelected ? FontWeight.w500 : FontWeight.normal,
             ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ),
         searchFieldProps: TextFieldProps(
           decoration: InputDecoration(
             hintText: 'Search...',
-            prefixIcon: const Icon(Icons.search, size: 20),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            hintStyle: TextStyles.inputMainTextStyle(context).copyWith(
+              fontSize: 10,
+              color: TextColors.hintTextColor,
+            ),
+            prefixIcon: const Icon(Icons.search, size: 16),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(4),
               borderSide: BorderSide(color: BorderColors.secondaryColor.withOpacity(0.3)),
             ),
             filled: true,
@@ -126,7 +140,7 @@ class CustomDropdownSearch extends StatelessWidget {
           ),
         ),
         menuProps: MenuProps(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           backgroundColor: Colors.white,
           elevation: 8,
         ),

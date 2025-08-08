@@ -211,4 +211,10 @@ class InquiryQuestionModel with ChangeNotifier implements ChatDrivingModel {
   Future<int> updateConfig(BuildContext context, Map<dynamic, dynamic> fullState, {bool finalUpdate = false}) {
     throw UnimplementedError();
   }
+
+  @override
+  void clearResponses(BuildContext context) {
+    var inquiryResponseModel = Provider.of<InquiryResponseModel>(context, listen: false);
+    inquiryResponseModel.responseList = [];
+  }
 }

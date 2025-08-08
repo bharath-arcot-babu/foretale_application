@@ -14,14 +14,6 @@ class _DropdownDataCache {
     }
     return _cache[key]!;
   }
-  
-  static void clearCache() {
-    _cache.clear();
-  }
-  
-  static void removeFromCache(String key) {
-    _cache.remove(key);
-  }
 }
 
 class FutureDropdownSearch extends StatefulWidget {

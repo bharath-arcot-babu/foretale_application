@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foretale_application/models/abstracts/chat_driving_model.dart';
 import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:foretale_application/ui/widgets/chat/websocket_progress_indicator.dart';
@@ -12,12 +13,7 @@ class InputArea extends StatelessWidget {
   final VoidCallback? onInsertMessage;
   final VoidCallback? onSendMessage;
   final String hintText;
-  final IconData attachmentIcon;
-  final IconData sendIcon;
-  final double borderRadius;
-  final double paddingHorizontal;
-  final double paddingVertical;
-  final double iconSize;
+
   final FilePickerResult? filePickerResult;
   final Function(PlatformFile)? onRemoveFile;
   final String? websocketProgress; // New parameter for websocket progress
@@ -32,13 +28,8 @@ class InputArea extends StatelessWidget {
     required this.onFilePick,
     required this.onInsertMessage,
     required this.onSendMessage,
-    this.hintText = "Type your message...",
-    this.attachmentIcon = Icons.attach_file_rounded,
-    this.sendIcon = Icons.send_rounded,
-    this.borderRadius = 24.0,
-    this.paddingHorizontal = 16.0,
-    this.paddingVertical = 12.0,
-    this.iconSize = 20.0,
+    required this.hintText,
+
     this.filePickerResult,
     this.onRemoveFile,
     this.websocketProgress, // New parameter
@@ -144,12 +135,11 @@ class InputArea extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(
-          horizontal: paddingHorizontal, vertical: paddingVertical),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: AppColors.surfaceColor,
-        borderRadius: BorderRadius.circular(borderRadius),
+        borderRadius: BorderRadius.circular(24.0),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.08),
@@ -169,7 +159,7 @@ class InputArea extends StatelessWidget {
             children: [
               IconButton(
                 icon: Icon(
-                  attachmentIcon,
+                  Icons.attach_file_rounded,
                   color: isChatEnabled
                       ? AppColors.primaryColor
                       : ButtonColors.disabledButtonColor,
@@ -187,7 +177,7 @@ class InputArea extends StatelessWidget {
                   maxLines: 5,
                   minLines: 1,
                   decoration: InputDecoration(
-                    hintText: hintText,
+                    hintText: "Type your message...",
                     hintStyle: TextStyles.inputHintTextStyle(context),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(vertical: 8),
@@ -207,7 +197,7 @@ class InputArea extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
                     padding: const EdgeInsets.all(10),
-                    child: Icon(sendIcon, color: Colors.white, size: iconSize),
+                    child: const Icon(Icons.send_rounded, color: Colors.white, size: 20.0),
                   ),
                 ),
               ),

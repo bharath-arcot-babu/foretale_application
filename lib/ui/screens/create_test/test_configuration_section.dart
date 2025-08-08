@@ -3,7 +3,7 @@ import 'package:foretale_application/models/category_list_model.dart';
 import 'package:foretale_application/models/modules_list_model.dart';
 import 'package:foretale_application/models/create_test_model.dart';
 import 'package:foretale_application/ui/widgets/custom_dropdown_search.dart';
-import 'package:foretale_application/ui/widgets/custom_future_dropdown.dart';
+import 'package:foretale_application/ui/widgets/custom_dropdown_future.dart';
 import 'package:provider/provider.dart';
 import 'package:foretale_application/core/constants/values.dart';
 

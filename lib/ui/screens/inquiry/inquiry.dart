@@ -42,11 +42,11 @@ class _InquiryPageState extends State<InquiryPage> {
             flex: 4,
             child: CustomContainer(
               title: "Details / Configuration",
-              child: Selector<InquiryQuestionModel, int>(
+                              child: Selector<InquiryQuestionModel, int>(
                 selector: (context, model) => model.getSelectedId(context),
                 builder: (context, selectedId, __) {
                   return ChatScreen(
-                    key: ValueKey('inquiry_$selectedId'),
+                    key: const ValueKey('inquiry_chat'),
                     drivingModel: inquiryQuestionModel,
                     isChatEnabled: selectedId > 0,
                     userId: userDetailsModel.getUserMachineId ?? "",

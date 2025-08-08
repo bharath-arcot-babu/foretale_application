@@ -1,30 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:foretale_application/models/result_model.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
 import 'package:foretale_application/ui/screens/datagrids/generic_data_grid/multi_checkbox_manager.dart';
 import 'package:foretale_application/ui/screens/datagrids/generic_data_grid/multi_dropdown_manager.dart';
 import 'package:foretale_application/ui/screens/datagrids/generic_data_grid/sfdg_generic_grid.dart';
 import 'package:foretale_application/core/utils/util_date.dart';
 import 'package:intl/intl.dart';
+import 'package:foretale_application/ui/themes/text_styles.dart';
 
 class GenericGridCellBuilder {
   final BuildContext context;
   final MultiCheckboxManager? multiCheckboxManager;
   final MultiDropdownManager? multiDropdownManager;
+  final void Function(Map<String, dynamic> rowData, int rowIndex)? onRowSave;
 
   GenericGridCellBuilder({
     required this.context,
     this.multiCheckboxManager,
     this.multiDropdownManager,
+    this.onRowSave,
   });
 
-  Widget buildCell(
-    dynamic value,
-    GenericGridColumn columnDef,
-    int rowIndex,
-  ) {
+  Widget buildCell(dynamic value, GenericGridColumn columnDef, int rowIndex, Map<String, dynamic>? rowData) {
     Widget cellWidget;
+    
     switch (columnDef.cellType) {
       case CustomCellType.checkbox:
         cellWidget = _buildCheckboxCell(value, columnDef, rowIndex);
@@ -32,17 +31,11 @@ class GenericGridCellBuilder {
       case CustomCellType.dropdown:
         cellWidget = _buildDropdownCell(value, columnDef, rowIndex);
         break;
+      case CustomCellType.save:
+        cellWidget = _buildSaveCell(value, columnDef, rowIndex, rowData);
+        break;
       case CustomCellType.number:
         cellWidget = _buildNumberCell(value);
-        break;
-      case CustomCellType.badge:
-        cellWidget = _buildBadgeCell(value);
-        break;
-      case CustomCellType.avatar:
-        cellWidget = _buildAvatarCell(value);
-        break;
-      case CustomCellType.action:
-        cellWidget = _buildActionCell();
         break;
       case CustomCellType.date:
         cellWidget = _buildDateCell(value);
@@ -56,17 +49,9 @@ class GenericGridCellBuilder {
         break;
     }
 
-    // Use different padding for dropdown cells to ensure full visibility
-    EdgeInsets padding;
-    if (columnDef.cellType == CustomCellType.dropdown) {
-      padding = const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0);
-    } else {
-      padding = const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0);
-    }
-
     return Container(
-      padding: padding,
-      alignment: _getAlignment(columnDef.textAlign),
+      padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
+      alignment: Alignment.center,
       child: cellWidget,
     );
   }
@@ -95,26 +80,58 @@ class GenericGridCellBuilder {
     return const SizedBox.shrink();
   }
 
+  Widget _buildSaveCell(dynamic value, GenericGridColumn columnDef, int rowIndex, Map<String, dynamic>? rowData) {
+    return SizedBox(
+      width: double.infinity,
+      height: double.infinity,
+      child: Center(
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              if (onRowSave != null && rowData != null) {
+                onRowSave!(rowData, rowIndex);
+              }
+            },
+            borderRadius: BorderRadius.circular(4),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              child: Icon(
+                Icons.save_outlined,
+                size: 18,
+                color: Colors.green.shade600,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildTextCell(dynamic value) {
     return Text(
       '${value ?? ''}',
-      style: GoogleFonts.inter(
-        fontSize: 13,
+      style: TextStyles.gridText(context).copyWith(
+        fontSize: 10,
         color: Colors.grey.shade800,
-        fontWeight: FontWeight.w500,
       ),
       overflow: TextOverflow.ellipsis,
+      maxLines: 2,
+      textAlign: TextAlign.center,
     );
   }
 
   Widget _buildNumberCell(dynamic value) {
     return Text(
       '${value ?? ''}',
-      style: GoogleFonts.inter(
-        fontSize: 13,
+      style: TextStyles.gridText(context).copyWith(
+        fontSize: 11,
         color: Colors.grey.shade800,
         fontWeight: FontWeight.w600,
       ),
+      overflow: TextOverflow.ellipsis,
+      maxLines: 2,
+      textAlign: TextAlign.center,
     );
   }
 
@@ -152,29 +169,36 @@ class GenericGridCellBuilder {
 
     return Text(
       formattedDate,
-      style: GoogleFonts.inter(
-        fontSize: 13,
+      style: TextStyles.gridText(context).copyWith(
+        fontSize: 11,
         color: Colors.grey.shade700,
-        fontWeight: FontWeight.w500,
       ),
+      overflow: TextOverflow.ellipsis,
+      maxLines: 2,
+      textAlign: TextAlign.center,
     );
   }
 
   Widget _buildBadgeCell(dynamic value) {
     if (value == null) return const SizedBox.shrink();
     
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.primaryColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        '$value',
-        style: GoogleFonts.inter(
-          fontSize: 11,
-          color: AppColors.primaryColor,
-          fontWeight: FontWeight.w600,
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          '$value',
+          style: TextStyles.gridText(context).copyWith(
+            fontSize: 10,
+            color: AppColors.primaryColor,
+            fontWeight: FontWeight.w600,
+          ),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 2,
+          textAlign: TextAlign.center,
         ),
       ),
     );
@@ -183,22 +207,24 @@ class GenericGridCellBuilder {
   Widget _buildAvatarCell(dynamic value) {
     if (value == null) return const SizedBox.shrink();
     
-    return Container(
-      width: 28,
-      height: 28,
-      decoration: const BoxDecoration(
-        color: AppColors.primaryColor,
-        shape: BoxShape.circle,
-      ),
-      child: Center(
-        child: Text(
-          value.toString().isNotEmpty 
-              ? value.toString().substring(0, 1).toUpperCase()
-              : '?',
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
+    return Center(
+      child: Container(
+        width: 24,
+        height: 24,
+        decoration: const BoxDecoration(
+          color: AppColors.primaryColor,
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: Text(
+            value.toString().isNotEmpty 
+                ? value.toString().substring(0, 1).toUpperCase()
+                : '?',
+            style: TextStyles.gridText(context).copyWith(
+              fontSize: 10,
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ),
@@ -206,68 +232,61 @@ class GenericGridCellBuilder {
   }
 
   Widget _buildActionCell() {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          icon: Icon(
-            Icons.edit_outlined, 
-            size: 16,
-            color: Colors.grey.shade600,
+    return Center(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            icon: Icon(
+              Icons.edit_outlined, 
+              size: 14,
+              color: Colors.grey.shade600,
+            ),
+            onPressed: () {
+              // Handle edit action
+            },
+            padding: const EdgeInsets.all(2),
           ),
-          onPressed: () {
-            // Handle edit action
-          },
-          padding: const EdgeInsets.all(4),
-        ),
-        IconButton(
-          icon: Icon(
-            Icons.delete_outline, 
-            size: 16,
-            color: Colors.red.shade500,
+          IconButton(
+            icon: Icon(
+              Icons.delete_outline, 
+              size: 14,
+              color: Colors.red.shade500,
+            ),
+            onPressed: () {
+              // Handle delete action
+            },
+            padding: const EdgeInsets.all(2),
           ),
-          onPressed: () {
-            // Handle delete action
-          },
-          padding: const EdgeInsets.all(4),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildCategoricalCell(dynamic value) {
     if (value == null) return const SizedBox.shrink();
     
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.blue.shade200, width: 1),
-      ),
-      child: Text(
-        '$value',
-        style: GoogleFonts.inter(
-          fontSize: 12,
-          color: Colors.blue.shade700,
-          fontWeight: FontWeight.w500,
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.blue.shade50,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: Colors.blue.shade200, width: 1),
         ),
-        overflow: TextOverflow.ellipsis,
+        child: Text(
+          '$value',
+          style: TextStyles.gridText(context).copyWith(
+            fontSize: 10,
+            color: Colors.blue.shade700,
+            fontWeight: FontWeight.w500,
+          ),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 2,
+          textAlign: TextAlign.center,
+        ),
       ),
     );
-  }
-
-  Alignment _getAlignment(TextAlign textAlign) {
-    switch (textAlign) {
-      case TextAlign.center:
-        return Alignment.center;
-      case TextAlign.end:
-      case TextAlign.right:
-        return Alignment.centerRight;
-      case TextAlign.start:
-      case TextAlign.left:
-      default:
-        return Alignment.centerLeft;
-    }
   }
 } 

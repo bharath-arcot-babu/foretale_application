@@ -3,39 +3,45 @@ import 'package:foretale_application/core/utils/empty_state.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:foretale_application/core/constants/colors/app_colors.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:foretale_application/ui/screens/datagrids/generic_data_grid/multi_checkbox_manager.dart';
 import 'package:foretale_application/ui/screens/datagrids/generic_data_grid/multi_dropdown_manager.dart';
 import 'package:foretale_application/ui/screens/datagrids/generic_data_grid/generic_grid_cell_builder.dart';
 import 'package:foretale_application/ui/screens/datagrids/generic_data_grid/column_width_calculator.dart';
 import 'package:foretale_application/ui/screens/datagrids/generic_data_grid/row_highlight_manager.dart';
+import 'package:foretale_application/ui/screens/datagrids/generic_data_grid/pagination_manager.dart';
 import 'package:foretale_application/ui/themes/datagrid_theme.dart';
+import 'package:foretale_application/ui/themes/text_styles.dart';
 import 'package:foretale_application/models/result_model.dart';
 
 class GenericDataGrid extends StatefulWidget {
+  //grid properties
   final List<GenericGridColumn> columns;
   final List<Map<String, dynamic>> data;
   final bool allowSorting;
   final bool allowFiltering;
-  final String? title;
-  final List<Widget>? actions;
+
   final bool showSearchBar;
   final String? searchHint;
   final double? height;
   final ColumnWidthMode? columnWidthMode;
-  // Updated to support multiple checkbox columns
-  final Map<String, void Function(Set<int> selectedRows)>? checkboxCallbacks;
-  final Map<String, String>? checkboxInitializationColumns;
-  // Map of checkbox column names to boolean - true shows checkbox in header, false shows header name
-  final Map<String, bool>? checkboxHeaderSettings;
-  // Updated to support multiple dropdown columns
-  final Map<String, void Function(Map<int, String> selectedValues)>? dropdownCallbacks;
-  final Map<String, List<String>>? dropdownOptions;
-  final Map<String, String>? dropdownInitializationColumns;
+
   // Callback for row tap
   final void Function(Map<String, dynamic> rowData, int rowIndex)? onRowTap;
+
+  // Checkbox properties
+  final Map<String, String>? checkboxInitializationColumns;
+  final Map<String, bool>? checkboxHeaderSettings;
+
+  // Dropdown properties
+  final Map<String, List<String>>? dropdownOptions;
+  final Map<String, String>? dropdownInitializationColumns;
+
+  // Save callback for individual rows
+  final void Function(Map<String, dynamic> rowData, int rowIndex)? onRowSave;
+
   // Column name to be displayed as the first column
   final String? firstColumnName;
+
   // Pagination properties
   final bool enablePagination;
   final int pageSize;
@@ -44,32 +50,41 @@ class GenericDataGrid extends StatefulWidget {
   final bool showPageSizeSelector;
   final List<int> pageSizes;
 
+  // Feedback column styling
+  final Map<String, bool>? feedbackColumns;
+
   const GenericDataGrid({
+    //grid properties
     super.key,
     required this.columns,
     required this.data,
     this.allowSorting = true,
     this.allowFiltering = true,
-    this.title,
-    this.actions,
+
     this.showSearchBar = false,
     this.searchHint,
     this.height,
     this.columnWidthMode,
-    this.checkboxCallbacks,
-    this.checkboxInitializationColumns,
-    this.checkboxHeaderSettings,
-    this.dropdownCallbacks,
-    this.dropdownOptions,
-    this.dropdownInitializationColumns,
     this.onRowTap,
     this.firstColumnName,
+    //checkbox properties
+    this.checkboxInitializationColumns,
+    this.checkboxHeaderSettings,
+    //dropdown properties
+    this.dropdownOptions,
+    this.dropdownInitializationColumns,
+    //save callback
+    this.onRowSave,
+    
+    //pagination properties
     this.enablePagination = false,
     this.pageSize = 10,
     this.maxPageSize,
     this.showPageInfo = true,
     this.showPageSizeSelector = true,
     this.pageSizes = const [5, 10, 20, 50, 100],
+    //feedback column properties
+    this.feedbackColumns,
   });
 
   @override
@@ -81,6 +96,11 @@ class GenericDataGridState extends State<GenericDataGrid> {
   late GenericDataSource<Map<String, dynamic>> dataSource;
   late RowHighlightManager _rowHighlightManager;
 
+  int get currentPage => dataSource.currentPageNumber;
+  int get totalPages => dataSource.totalPages;
+  bool get hasNextPage => dataSource.hasNextPage;
+  bool get hasPreviousPage => dataSource.hasPreviousPage;
+
   @override
   void initState() {
     super.initState();
@@ -91,155 +111,27 @@ class GenericDataGridState extends State<GenericDataGrid> {
           columnDefinitions: _getOrderedColumns(),
           context: context,
           itemToMap: (item) => item,
-          checkboxCallbacks: widget.checkboxCallbacks,
-          checkboxInitializationColumns: widget.checkboxInitializationColumns,
-          dropdownCallbacks: widget.dropdownCallbacks,
-          dropdownOptions: widget.dropdownOptions,
-          dropdownInitializationColumns: widget.dropdownInitializationColumns,
           onRowTap: widget.onRowTap,
           rowHighlightManager: _rowHighlightManager,
+          //checkbox properties
+          checkboxInitializationColumns: widget.checkboxInitializationColumns,
+          checkboxHeaderSettings: widget.checkboxHeaderSettings,
+          //dropdown properties
+          dropdownOptions: widget.dropdownOptions,
+          dropdownInitializationColumns: widget.dropdownInitializationColumns,
+          //save callback
+          onRowSave: widget.onRowSave,
+          //pagination properties
           enablePagination: widget.enablePagination,
           pageSize: widget.pageSize,
         );
     
     // Initialize managers after the build is complete
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeManagers();
+      _initializeCheckboxes();
+      _initializeDropdowns();
     });
   }
-
-  void _initializeManagers() {
-    _initializeCheckboxes();
-    _initializeDropdowns();
-  }
-
-  void _initializeCheckboxes() {
-    final checkboxColumns = widget.checkboxInitializationColumns;
-    if (checkboxColumns?.isNotEmpty == true) {
-      dataSource.initializeCheckboxesFromColumns(checkboxColumns!);
-    }
-  }
-
-  void _initializeDropdowns() {
-    final dropdownColumns = widget.dropdownInitializationColumns;
-    if (dropdownColumns?.isNotEmpty == true) {
-      dataSource.initializeDropdownsFromColumns(dropdownColumns!);
-    }
-  }
-
-  @override
-  void didUpdateWidget(GenericDataGrid oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    
-    // Check if data has changed or firstColumnName has changed
-    if (_hasDataChanged(oldWidget) || widget.firstColumnName != oldWidget.firstColumnName) {
-      _updateDataSource();
-    }
-  }
-
-  bool _hasDataChanged(GenericDataGrid oldWidget) {
-    return widget.data != oldWidget.data;
-  }
-
-  void _updateDataSource() {
-    dataSource.data = widget.data;
-    dataSource.updateColumnDefinitions(_getOrderedColumns());
-    _updateManagers();
-    dataSource.buildDataGridRows();
-  }
-
-  void _updateManagers() {
-    _updateCheckboxManager();
-    _updateDropdownManager();
-  }
-
-  void _updateCheckboxManager() {
-    final checkboxColumns = widget.checkboxInitializationColumns;
-    if (checkboxColumns?.isNotEmpty == true) {
-      dataSource.updateCheckboxData(widget.data, checkboxColumns!);
-    } else {
-      dataSource.updateCheckboxData(widget.data);
-    }
-  }
-
-  void _updateDropdownManager() {
-    final dropdownColumns = widget.dropdownInitializationColumns;
-    if (dropdownColumns?.isNotEmpty == true) {
-      dataSource.updateDropdownData(widget.data, dropdownColumns!);
-    } else {
-      dataSource.updateDropdownData(widget.data);
-    }
-  }
-
-  @override
-  void dispose() {
-    dataSource.dispose();
-    super.dispose();
-  }
-
-  /// Get selected row indices for a specific checkbox column
-  Set<int> getSelectedRowIndices(String columnName) {
-    return dataSource.getSelectedRowIndices(columnName);
-  }
-
-  /// Get selected data items for a specific checkbox column
-  List<Map<String, dynamic>> getSelectedData(String columnName) {
-    return dataSource.getSelectedData(columnName);
-  }
-
-  /// Check if any rows are selected for a specific checkbox column
-  bool hasSelectedRows(String columnName) {
-    return dataSource.hasSelectedRows(columnName);
-  }
-
-  /// Clear all selections for a specific checkbox column
-  void clearSelection(String columnName) {
-    dataSource.clearSelection(columnName);
-  }
-
-  /// Get selected values for a specific dropdown column
-  Map<int, String> getSelectedDropdownValues(String columnName) {
-    return dataSource.getSelectedDropdownValues(columnName);
-  }
-
-  /// Get selected value for a specific row in a specific dropdown column
-  String? getSelectedDropdownValue(String columnName, int rowIndex) {
-    return dataSource.getSelectedDropdownValue(columnName, rowIndex);
-  }
-
-  /// Clear all selections for a specific dropdown column
-  void clearDropdownSelection(String columnName) {
-    dataSource.clearDropdownSelection(columnName);
-  }
-
-  /// Get the currently highlighted row index
-  int? getHighlightedRowIndex() {
-    return _rowHighlightManager.highlightedRowIndex;
-  }
-
-  /// Highlight a specific row
-  void highlightRow(int rowIndex) {
-    _rowHighlightManager.highlightRow(rowIndex);
-  }
-
-  /// Clear row highlighting
-  void clearRowHighlight() {
-    _rowHighlightManager.clearHighlight();
-  }
-
-  /// Check if a specific row is highlighted
-  bool isRowHighlighted(int rowIndex) {
-    return _rowHighlightManager.isRowHighlighted(rowIndex);
-  }
-
-
-
-  int get currentPage => dataSource.currentPageNumber;
-  int get totalPages => dataSource.totalPages;
-  bool get hasNextPage => dataSource.hasNextPage;
-  bool get hasPreviousPage => dataSource.hasPreviousPage;
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -263,9 +155,134 @@ class GenericDataGridState extends State<GenericDataGrid> {
     );
   }
 
+  void _updateManagers() {
+    // Add a small delay to prevent concurrent modification during rapid updates
+    Future.microtask(() {
+      _updateCheckboxManager();
+      _updateDropdownManager();
+    });
+  }
+
+  void _initializeCheckboxes() {
+    final checkboxColumns = widget.checkboxInitializationColumns;
+    if (checkboxColumns?.isNotEmpty == true) {
+      dataSource.initializeCheckboxesFromColumns(checkboxColumns!);
+    }
+  }
+
+  void _initializeDropdowns() {
+    final dropdownColumns = widget.dropdownInitializationColumns;
+    if (dropdownColumns?.isNotEmpty == true) {
+      dataSource.initializeDropdownsFromColumns(dropdownColumns!);
+    }
+  }
+
+  void _updateCheckboxManager() {
+    final checkboxColumns = widget.checkboxInitializationColumns;
+    if (checkboxColumns?.isNotEmpty == true) {
+      dataSource.updateCheckboxData(widget.data, checkboxColumns!);
+    } else {
+      dataSource.updateCheckboxData(widget.data);
+    }
+  }
+
+  void _updateDropdownManager() {
+    final dropdownColumns = widget.dropdownInitializationColumns;
+    if (dropdownColumns?.isNotEmpty == true) {
+      dataSource.updateDropdownData(widget.data, dropdownColumns!);
+    } else {
+      dataSource.updateDropdownData(widget.data);
+    }
+  }
+
+  @override
+  void didUpdateWidget(GenericDataGrid oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // Check if data has changed or firstColumnName has changed
+    if ( (widget.data != oldWidget.data) || widget.firstColumnName != oldWidget.firstColumnName) {
+      setState(() {
+        dataSource.data = widget.data;
+        dataSource.updateColumnDefinitions(_getOrderedColumns());
+        _updateManagers();
+        dataSource.buildDataGridRows();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    dataSource.dispose();
+    super.dispose();
+  }
+
+  /**************************CHECKBOX METHODS************************** */
+  /// Get selected row indices for a specific checkbox column
+  Set<int> getSelectedRowIndices(String columnName) {
+    return dataSource.getSelectedRowIndices(columnName);
+  }
+
+  /// Get selected data items for a specific checkbox column
+  List<Map<String, dynamic>> getSelectedData(String columnName) {
+    return dataSource.getSelectedData(columnName);
+  }
+
+  /// Check if any rows are selected for a specific checkbox column
+  bool hasSelectedRows(String columnName) {
+    return dataSource.hasSelectedRows(columnName);
+  }
+
+  /// Clear all selections for a specific checkbox column
+  void clearSelection(String columnName) {
+    dataSource.clearSelection(columnName);
+  }
+
+  /**************************DROPDOWN METHODS************************** */
+  /// Get selected values for a specific dropdown column
+  Map<int, String> getSelectedDropdownValues(String columnName) {
+    return dataSource.getSelectedDropdownValues(columnName);
+  }
+
+  /// Get selected value for a specific row in a specific dropdown column
+  String? getSelectedDropdownValue(String columnName, int rowIndex) {
+    return dataSource.getSelectedDropdownValue(columnName, rowIndex);
+  }
+
+  /// Clear all selections for a specific dropdown column
+  void clearDropdownSelection(String columnName) {
+    dataSource.clearDropdownSelection(columnName);
+  }
+
+  /**************************ROW HIGHLIGHTING METHODS************************** */
+  /// Get the currently highlighted row index
+  int? getHighlightedRowIndex() {
+    return _rowHighlightManager.highlightedRowIndex;
+  }
+
+  /// Highlight a specific row
+  void highlightRow(int rowIndex) {
+    _rowHighlightManager.highlightRow(rowIndex);
+  }
+
+  /// Clear row highlighting
+  void clearRowHighlight() {
+    _rowHighlightManager.clearHighlight();
+  }
+
+  /// Check if a specific row is highlighted
+  bool isRowHighlighted(int rowIndex) {
+    return _rowHighlightManager.isRowHighlighted(rowIndex);
+  }
+
   Widget _buildDataGrid() {
+    // Determine if we should use feedback theme
+    final hasFeedbackColumns = widget.feedbackColumns?.values.any((isFeedback) => isFeedback) ?? false;
+    final themeData = hasFeedbackColumns 
+        ? SFDataGridTheme.sfFeedbackDataGridTheme 
+        : SFDataGridTheme.sfCustomDataGridTheme;
+    
     return SfDataGridTheme(
-      data: SFDataGridTheme.sfCustomDataGridTheme,
+      data: themeData,
       child: SfDataGrid(
         key: _dataGridKey,
         allowSorting: widget.allowSorting,
@@ -274,17 +291,15 @@ class GenericDataGridState extends State<GenericDataGrid> {
         columns: _buildColumnsWithOptimalWidths(),
         gridLinesVisibility: GridLinesVisibility.horizontal,
         headerGridLinesVisibility: GridLinesVisibility.none,
-        rowHeight: 85,
-        headerRowHeight: 54,
+        rowHeight: 48,
+        headerRowHeight: 52,
         horizontalScrollPhysics: const BouncingScrollPhysics(),
         verticalScrollPhysics: const BouncingScrollPhysics(),
         allowColumnsResizing: true,
         columnWidthMode: widget.columnWidthMode ?? ColumnWidthMode.fill,
         columnWidthCalculationRange: ColumnWidthCalculationRange.visibleRows,
         onCellTap: (details) => _onCellTap(details),
-        // Make scrollbars always visible
         isScrollbarAlwaysShown: true,
-
       ),
     );
   }
@@ -333,25 +348,30 @@ class GenericDataGridState extends State<GenericDataGrid> {
       if (col.cellType == CustomCellType.checkbox) {
         return _buildCheckboxColumn(col);
       }
-      return col.toGridColumn();
+      final isFeedbackColumn = widget.feedbackColumns?.containsKey(col.columnName) == true &&
+          widget.feedbackColumns![col.columnName] == true;
+      return col.toGridColumn(isFeedbackColumn: isFeedbackColumn, context: context);
     }).toList();
   }
 
   GridColumn _buildCheckboxColumn(GenericGridColumn col) {
     final showHeaderCheckbox = widget.checkboxHeaderSettings?[col.columnName] ?? true;
+    final isFeedbackColumn = widget.feedbackColumns?.containsKey(col.columnName) == true &&
+        widget.feedbackColumns![col.columnName] == true;
     
     if (showHeaderCheckbox) {
       return col.toGridColumn(
+        isFeedbackColumn: isFeedbackColumn,
         headerWidget: AnimatedBuilder(
           animation: dataSource.multiCheckboxManager!,
           builder: (context, child) {
-            return dataSource.multiCheckboxManager!.buildHeaderCheckbox(col.columnName);
+            return dataSource.multiCheckboxManager!.buildHeaderCheckbox(col.columnName, isFeedbackColumn: isFeedbackColumn);
           },
         ),
       );
     }
     
-    return col.toGridColumn();
+    return col.toGridColumn(isFeedbackColumn: isFeedbackColumn, context: context);
   }
 
   void updateData(List<Map<String, dynamic>> newData) {
@@ -367,8 +387,11 @@ class GenericDataGridState extends State<GenericDataGrid> {
 
   void _updateNonPaginatedData(List<Map<String, dynamic>> newData) {
     dataSource.data = newData;
-    _updateManagers();
-    dataSource.buildDataGridRows();
+    // Use microtask to prevent concurrent modification during rapid updates
+    Future.microtask(() {
+      _updateManagers();
+      dataSource.buildDataGridRows();
+    });
   }
 
   Widget _buildPaginationControls() {
@@ -392,8 +415,8 @@ class GenericDataGridState extends State<GenericDataGrid> {
 
   Widget _buildPageInfo() {
     return Text(
-      'Page ${dataSource.currentPageNumber} of ${dataSource.totalPages}',
-      style: GoogleFonts.poppins(
+      dataSource.paginationManager?.getPageNavigationString() ?? 'Page ${dataSource.currentPageNumber} of ${dataSource.totalPages}',
+      style: TextStyles.subtitleText(context).copyWith(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         color: Colors.grey.shade700,
@@ -447,14 +470,14 @@ class GenericDataGridState extends State<GenericDataGrid> {
       children: [
         Text(
           'Show: ',
-          style: GoogleFonts.poppins(
+          style: TextStyles.subtitleText(context).copyWith(
             fontSize: 14,
             fontWeight: FontWeight.w500,
             color: Colors.grey.shade700,
           ),
         ),
         DropdownButton<int>(
-          value: widget.pageSize,
+          value: dataSource.paginationManager?.pageSize ?? widget.pageSize,
           items: _buildPageSizeItems(),
           onChanged: _onPageSizeChanged,
         ),
@@ -468,7 +491,7 @@ class GenericDataGridState extends State<GenericDataGrid> {
         value: size,
         child: Text(
           '$size',
-          style: GoogleFonts.poppins(
+          style: TextStyles.subtitleText(context).copyWith(
             fontSize: 14,
             fontWeight: FontWeight.w500,
             color: Colors.grey.shade700,
@@ -508,13 +531,22 @@ class GenericGridColumn {
     this.textAlign = TextAlign.start,
   });
 
-  GridColumn toGridColumn({Widget? headerWidget}) {
+  GridColumn toGridColumn({Widget? headerWidget, bool isFeedbackColumn = false, BuildContext? context}) {
     // Calculate appropriate width using the ColumnWidthCalculator
     double calculatedWidth = ColumnWidthCalculator.calculateOptimalWidth(
       label: label,
       cellType: cellType,
       customWidth: width,
     );
+    
+    Widget finalHeaderWidget;
+    if (headerWidget != null) {
+      finalHeaderWidget = headerWidget;
+    } else if (isFeedbackColumn) {
+      finalHeaderWidget = _buildFeedbackHeader(label, context!);
+    } else {
+      finalHeaderWidget = _buildConsistentHeader(label, context!);
+    }
     
     return GridColumn(
       columnName: columnName,
@@ -523,14 +555,40 @@ class GenericGridColumn {
       allowFiltering: cellType == CustomCellType.checkbox ? false : allowFiltering,
       visible: visible,
       columnWidthMode: ColumnWidthMode.fitByCellValue,
-      label: headerWidget ?? Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      label: finalHeaderWidget,
+    );
+  }
+
+  Widget _buildConsistentHeader(String label, BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+      child: Center(
         child: Text(
           label,
-          style: GoogleFonts.inter(
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
-            color: Colors.grey.shade700,
+          style: TextStyles.gridHeaderText(context).copyWith(
+            height: 1.2,
+          ),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeedbackHeader(String label, BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+      child: Center(
+        child: Text(
+          label,
+          style: TextStyles.gridHeaderText(context).copyWith(
+            color: AppColors.primaryColor,
+            height: 1.2,
           ),
           textAlign: TextAlign.center,
           maxLines: 2,
@@ -547,6 +605,7 @@ class GenericDataSource<T> extends DataGridSource {
   final Map<String, dynamic> Function(T item) itemToMap;
   final BuildContext context;
   final void Function(Map<String, dynamic> rowData, int rowIndex)? onRowTap;
+  final void Function(Map<String, dynamic> rowData, int rowIndex)? onRowSave;
   late final MultiCheckboxManager<T>? multiCheckboxManager;
   late final MultiDropdownManager<T>? multiDropdownManager;
   late final GenericGridCellBuilder cellBuilder;
@@ -554,11 +613,8 @@ class GenericDataSource<T> extends DataGridSource {
   VoidCallback? _rowHighlightListener;
   List<DataGridRow> dataGridRows = [];
   
-  // Pagination properties
-  final bool enablePagination;
-  int pageSize;
-  int currentPage = 0;
-  List<T> allData = [];
+  // Pagination manager
+  late final PaginationManager<T>? paginationManager;
 
   GenericDataSource({
     required this.data,
@@ -566,58 +622,95 @@ class GenericDataSource<T> extends DataGridSource {
     required this.itemToMap,
     required this.context,
     this.onRowTap,
-    Map<String, void Function(Set<int> selectedRows)>? checkboxCallbacks,
     Map<String, String>? checkboxInitializationColumns,
-    Map<String, void Function(Map<int, String> selectedValues)>? dropdownCallbacks,
+    Map<String, bool>? checkboxHeaderSettings,
     Map<String, List<String>>? dropdownOptions,
     Map<String, String>? dropdownInitializationColumns,
     RowHighlightManager? rowHighlightManager,
-    this.enablePagination = false,
-    this.pageSize = 10,
+    this.onRowSave,
+    bool enablePagination = false,
+    int pageSize = 10,
   }) {
-    _initializePaginationData();
-    _initializeManagers(checkboxCallbacks, dropdownCallbacks, dropdownOptions);
+    _initializePaginationManager(enablePagination, pageSize);
+    _initializeManagers(checkboxInitializationColumns, dropdownInitializationColumns, dropdownOptions);
     _initializeCellBuilder();
     _initializeRowHighlightManager(rowHighlightManager);
     buildDataGridRows();
   }
 
-  void _initializePaginationData() {
-    allData = List.from(data);
+  void _initializePaginationManager(bool enablePagination, int pageSize) {
+    if (enablePagination) {
+      paginationManager = PaginationManager<T>(
+        enablePagination: enablePagination,
+        pageSize: pageSize,
+        initialData: data,
+        onDataChanged: () {
+          _updateDataFromPagination();
+        },
+      );
+    } else {
+      paginationManager = null;
+    }
   }
 
   void _initializeManagers(
-    Map<String, void Function(Set<int> selectedRows)>? checkboxCallbacks,
-    Map<String, void Function(Map<int, String> selectedValues)>? dropdownCallbacks,
+    Map<String, String>? checkboxInitializationColumns,
+    Map<String, String>? dropdownInitializationColumns,
     Map<String, List<String>>? dropdownOptions,
   ) {
-    _initializeCheckboxManager(checkboxCallbacks);
-    _initializeDropdownManager(dropdownCallbacks, dropdownOptions);
+    _initializeCheckboxManager(checkboxInitializationColumns);
+    _initializeDropdownManager(dropdownInitializationColumns, dropdownOptions);
   }
 
-  void _initializeCheckboxManager(Map<String, void Function(Set<int> selectedRows)>? checkboxCallbacks) {
-    if (checkboxCallbacks?.isNotEmpty == true) {
+  void _initializeCheckboxManager(Map<String, String>? checkboxInitializationColumns) {
+    if (checkboxInitializationColumns?.isNotEmpty == true) {
       multiCheckboxManager = MultiCheckboxManager<T>(
-        data: enablePagination ? _getCurrentPageData() : data,
-        callbacks: checkboxCallbacks!,
+        data: _getCurrentData(),
       );
+      // Initialize the checkbox columns
+      multiCheckboxManager!.initializeColumns(checkboxInitializationColumns!.keys.toSet());
     } else {
       multiCheckboxManager = null;
     }
   }
 
   void _initializeDropdownManager(
-    Map<String, void Function(Map<int, String> selectedValues)>? dropdownCallbacks,
+    Map<String, String>? dropdownInitializationColumns,
     Map<String, List<String>>? dropdownOptions,
   ) {
-    if (dropdownCallbacks?.isNotEmpty == true) {
+    if (dropdownInitializationColumns?.isNotEmpty == true) {
       multiDropdownManager = MultiDropdownManager<T>(
-        data: enablePagination ? _getCurrentPageData() : data,
+        data: _getCurrentData(),
         dropdownOptions: dropdownOptions,
-        callbacks: dropdownCallbacks!,
       );
+      // Initialize the dropdown columns
+      multiDropdownManager!.initializeColumns(dropdownInitializationColumns!.keys.toSet());
     } else {
       multiDropdownManager = null;
+    }
+  }
+
+  List<T> _getCurrentData() {
+    return paginationManager?.data ?? data;
+  }
+
+  void _updateDataFromPagination() {
+    if (paginationManager != null) {
+      data = paginationManager!.data;
+      // Update managers with new data using microtask to prevent concurrent modification
+      Future.microtask(() {
+        // Update checkbox manager with new data
+        if (multiCheckboxManager != null) {
+          multiCheckboxManager!.updateData(data);
+        }
+        
+        // Update dropdown manager with new data
+        if (multiDropdownManager != null) {
+          multiDropdownManager!.updateData(data);
+        }
+        
+        buildDataGridRows();
+      });
     }
   }
 
@@ -626,6 +719,7 @@ class GenericDataSource<T> extends DataGridSource {
       context: context,
       multiCheckboxManager: multiCheckboxManager,
       multiDropdownManager: multiDropdownManager,
+      onRowSave: onRowSave,
     );
   }
 
@@ -639,40 +733,30 @@ class GenericDataSource<T> extends DataGridSource {
       rowHighlightManager.addListener(_rowHighlightListener!);
     }
   }
-  
-  /// Initialize checkboxes based on a column's value
-  void initializeCheckboxesFromColumn(String columnName) {
-    if (multiCheckboxManager != null) {
-      multiCheckboxManager!.initializeSelections(columnName, (item) {
-        final itemMap = itemToMap(item);
-        final value = itemMap[columnName];
-        return _convertToBoolean(value);
-      });
-    }
-  }
 
   /// Initialize checkboxes based on multiple columns
   void initializeCheckboxesFromColumns(Map<String, String> columns) {
     columns.forEach((columnName, _) {
-      initializeCheckboxesFromColumn(columnName);
+        if (multiCheckboxManager != null) {
+          multiCheckboxManager!.initializeSelections(columnName, (item) {
+          final itemMap = itemToMap(item);
+          final value = itemMap[columnName];
+          return _convertToBoolean(value);
+        });
+      }
     });
-  }
-
-  /// Initialize dropdowns based on a column's value
-  void initializeDropdownsFromColumn(String columnName) {
-    if (multiDropdownManager != null) {
-      multiDropdownManager!.initializeSelections(columnName, (item) {
-        final itemMap = itemToMap(item);
-        final value = itemMap[columnName];
-        return value?.toString();
-      });
-    }
   }
 
   /// Initialize dropdowns based on multiple columns
   void initializeDropdownsFromColumns(Map<String, String> columns) {
     columns.forEach((columnName, _) {
-      initializeDropdownsFromColumn(columnName);
+      if (multiDropdownManager != null) {
+          multiDropdownManager!.initializeSelections(columnName, (item) {
+          final itemMap = itemToMap(item);
+          final value = itemMap[columnName];
+          return value?.toString();
+        });
+      }
     });
   }
 
@@ -718,10 +802,10 @@ class GenericDataSource<T> extends DataGridSource {
 
   /// Convert value to boolean for checkbox initialization
   bool _convertToBoolean(dynamic value) {
-    if (value == null) {
-      return false;
-    } else if (value is bool) {
+    if (value is bool) {
       return value;
+    } else if (value ==  null) {
+      return false;
     } else if (value is String) {
       return value.toLowerCase() == 'true' || value.toLowerCase() == '1' || value.toLowerCase() == 'yes';
     } else if (value is int) {
@@ -790,9 +874,12 @@ class GenericDataSource<T> extends DataGridSource {
   }
 
   void buildDataGridRows() {
-    final currentData = enablePagination ? _getCurrentPageData() : data;
+    final currentData = _getCurrentData();
     
-    dataGridRows = currentData.asMap().entries.map<DataGridRow>((entry) {
+    // Create a copy of data to avoid concurrent modification during iteration
+    final dataCopy = List<T>.from(currentData);
+    
+    dataGridRows = dataCopy.asMap().entries.map<DataGridRow>((entry) {
       final item = entry.value;
       final itemMap = itemToMap(item);
       
@@ -821,6 +908,13 @@ class GenericDataSource<T> extends DataGridSource {
       );
     }
     
+    if (col.cellType == CustomCellType.save) {
+      return DataGridCell(
+        columnName: col.columnName,
+        value: 'save', // Use a placeholder value for save cells
+      );
+    }
+    
     return DataGridCell(
       columnName: col.columnName,
       value: itemMap[col.columnName],
@@ -835,6 +929,9 @@ class GenericDataSource<T> extends DataGridSource {
     final rowIndex = dataGridRows.indexOf(row);
     final backgroundColor = rowHighlightManager?.getRowBackgroundColor(rowIndex) ?? 
                            (rowIndex % 2 == 0 ? Colors.white : Colors.grey.shade50);
+    
+    // Get the row data for this row
+    final rowData = rowIndex < data.length ? itemToMap(data[rowIndex]) : <String, dynamic>{};
         
     return DataGridRowAdapter(
       color: backgroundColor,
@@ -844,81 +941,47 @@ class GenericDataSource<T> extends DataGridSource {
         );
         final value = cell.value;
 
-        return cellBuilder.buildCell(value, columnDef, rowIndex);
+        return cellBuilder.buildCell(value, columnDef, rowIndex, rowData);
       }).toList(),
     );
   }
 
   /// Dispose the data source and clean up listeners
+  @override
   void dispose() {
     if (_rowHighlightListener != null && rowHighlightManager != null) {
       rowHighlightManager!.removeListener(_rowHighlightListener!);
     }
+    paginationManager?.dispose();
+    super.dispose();
   }
   
-  // Pagination methods
-  List<T> _getCurrentPageData() {
-    if (!enablePagination) return allData;
-    
-    final startIndex = currentPage * pageSize;
-    final endIndex = (startIndex + pageSize).clamp(0, allData.length);
-    return allData.sublist(startIndex, endIndex);
-  }
+  // Pagination methods - delegate to pagination manager
+  int get totalPages => paginationManager?.totalPages ?? 1;
   
-  int get totalPages => (allData.length / pageSize).ceil();
+  int get currentPageNumber => paginationManager?.currentPageNumber ?? 1;
   
-  int get currentPageNumber => currentPage + 1;
+  bool get hasNextPage => paginationManager?.hasNextPage ?? false;
   
-  bool get hasNextPage => currentPage < totalPages - 1;
-  
-  bool get hasPreviousPage => currentPage > 0;
+  bool get hasPreviousPage => paginationManager?.hasPreviousPage ?? false;
   
   void nextPage() {
-    if (hasNextPage) {
-      currentPage++;
-      _updateDataForPagination();
-    }
+    paginationManager?.nextPage();
   }
   
   void previousPage() {
-    if (hasPreviousPage) {
-      currentPage--;
-      _updateDataForPagination();
-    }
+    paginationManager?.previousPage();
   }
   
   void goToPage(int page) {
-    if (page >= 0 && page < totalPages) {
-      currentPage = page;
-      _updateDataForPagination();
-    }
-  }
-  
-  void _updateDataForPagination() {
-    data = _getCurrentPageData();
-    
-    // Update checkbox manager with new data
-    if (multiCheckboxManager != null) {
-      multiCheckboxManager!.updateData(data);
-    }
-    
-    // Update dropdown manager with new data
-    if (multiDropdownManager != null) {
-      multiDropdownManager!.updateData(data);
-    }
-    
-    buildDataGridRows();
+    paginationManager?.goToPage(page);
   }
   
   void updateAllData(List<T> newAllData) {
-    allData = List.from(newAllData);
-    currentPage = 0; // Reset to first page
-    _updateDataForPagination();
+    paginationManager?.updateAllData(newAllData);
   }
   
   void updatePageSize(int newPageSize) {
-    pageSize = newPageSize;
-    currentPage = 0; // Reset to first page
-    _updateDataForPagination();
+    paginationManager?.updatePageSize(newPageSize);
   }
 }

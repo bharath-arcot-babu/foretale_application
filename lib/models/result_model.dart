@@ -7,19 +7,20 @@ import 'package:foretale_application/models/inquiry_response_model.dart';
 import 'package:foretale_application/models/project_details_model.dart';
 import 'package:foretale_application/models/tests_model.dart';
 import 'package:foretale_application/models/user_details_model.dart';
-import 'package:foretale_application/ui/screens/datagrids/generic_data_grid/sfdg_generic_grid.dart';
+import 'package:foretale_application/ui/screens/datagrids/generic_grid/custom_grid_columns.dart';
 import 'package:provider/provider.dart';
 
 enum CustomCellType {
   text,
   number,
-  badge,
-  avatar,
-  action,
-  checkbox,
-  dropdown,
+  currency,
+  percentage,
   date,
   categorical,
+  badge,
+  checkbox,
+  dropdown,
+  save
 }
 
 class TableColumn{
@@ -31,6 +32,7 @@ class TableColumn{
   final String cellType;
   final bool isVisible;
   final bool isFeedbackColumn;
+  final List<String> allowedValues;
 
   TableColumn({
     this.tableName = '',
@@ -41,6 +43,7 @@ class TableColumn{
     this.cellType = '',
     this.isVisible = false,
     this.isFeedbackColumn = false,
+    this.allowedValues = const [],
   });
 
   factory TableColumn.fromJson(Map<String, dynamic> json) {
@@ -53,6 +56,7 @@ class TableColumn{
       cellType: json['cell_type'] ?? '',
       isVisible: json['is_visible'] ?? false,
       isFeedbackColumn: json['is_feedback_column'] ?? false,
+      allowedValues: json['allowable_values'].toString().split(',').map((e) => e.trim()).toList(),
     );
   }
 
@@ -66,6 +70,7 @@ class TableColumn{
       'cell_type': cellType,
       'is_visible': isVisible,
       'is_feedback_column': isFeedbackColumn,
+      'allowable_values': allowedValues,
     };
   }
 }
@@ -123,7 +128,7 @@ class ResultModel with ChangeNotifier implements ChatDrivingModel {
   List<Map<String, dynamic>> filteredTableData = [];
   List<FeedbackData> feedbackData = [];
   List<TableColumn> tableColumnsList = [];
-  List<GenericGridColumn> genericGridColumns = [];
+  List<CustomGridColumn> genericGridColumns = [];
   int selectedFeedbackId = 0;
 
   Future<void> fetchResultMetadata(BuildContext context, Test test) async {
@@ -144,13 +149,32 @@ class ResultModel with ChangeNotifier implements ChatDrivingModel {
     genericGridColumns.clear();
     
     for (var element in tableColumnsList) {
-      genericGridColumns.add(GenericGridColumn(
+      bool allowSorting = true;
+      bool allowFiltering = true;
+
+      if(element.cellType == 'dropdown' || element.cellType == 'checkbox'){
+        allowSorting = false;
+        allowFiltering = false;
+      }
+
+      genericGridColumns.add(CustomGridColumn(
         columnName: element.columnName,
         label: element.columnLabel,
         cellType: CustomCellType.values.byName(element.cellType),
         visible: element.isVisible ,
-        allowSorting: (element.cellType == 'dropdown' || element.cellType == 'checkbox') ? false : true,
-        allowFiltering: (element.cellType == 'dropdown' || element.cellType == 'checkbox') ? false : true,
+        allowSorting: allowSorting,
+        allowFiltering: allowFiltering,
+        allowedValues: element.allowedValues,
+        isFeedbackColumn: element.isFeedbackColumn,
+        checkboxUpdateCallback: {
+          'is_final': (hashKey, selectedValue) => updateIsFinal(context, hashKey, selectedValue),
+          'is_selected': (hashKey, selectedValue) => insertFlaggedTransaction(context, hashKey, selectedValue),
+        },
+        dropdownUpdateCallback: {
+          'feedback_status': (hashKey, selectedValue) => updateFeedbackStatus(context, hashKey, selectedValue),
+          'feedback_category': (hashKey, selectedValue) => updateFeedbackCategory(context, hashKey, selectedValue),
+          'severity_rating': (hashKey, selectedValue) => updateSeverityRating(context, hashKey, selectedValue),
+        },
       ));
     }
   }
@@ -170,123 +194,120 @@ class ResultModel with ChangeNotifier implements ChatDrivingModel {
     );
   }
 
-  Future<int> insertFlaggedTransaction(BuildContext context, Test test, List<Map<String, dynamic>> transactions) async {
+  Future<int> insertFlaggedTransaction(BuildContext context, String hashKey, bool selectedValue) async {
     var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
     var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
+    var testModel = Provider.of<TestsModel>(context, listen: false);
 
-    for (var transaction in transactions) {
-      final params = {
-        'project_id': projectDetailsModel.getActiveProjectId,
-        'test_id': test.testId,
-        'table_reference': test.analysisTableName,
-        'hash_key': transaction['hash_key'],
-        'last_updated_by': userDetailsModel.getUserMachineId,
-      };
+    final params = {
+      'project_id': projectDetailsModel.getActiveProjectId,
+      'test_id': testModel.getSelectedTestId,
+      'table_reference': testModel.getSelectedTest.analysisTableName,
+      'hash_key': hashKey,
+      'last_updated_by': userDetailsModel.getUserMachineId,
+      'is_selected': selectedValue,
+    };
 
-      await _crudService.addRecord(
-        context,
-        'dbo.sproc_insert_update_feedback',
-        params,
-      );
-    }
+    await _crudService.addRecord(
+      context,
+      'dbo.sproc_insert_update_feedback',
+      params,
+    );
 
     return 1;
   }
 
-  Future<int> updateFeedbackStatus(BuildContext context, Test test, List<Map<String, dynamic>> transactions, String selectedValue) async {
+  Future<int> updateFeedbackStatus(BuildContext context, String hashKey, String selectedValue) async {
     var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
     var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
-    
-    for (var transaction in transactions) {
-      final params = {
-        'project_id': projectDetailsModel.getActiveProjectId,
-        'test_id': test.testId,
-        'table_reference': test.analysisTableName,
-        'hash_key': transaction['hash_key'],
-        'feedback_status': selectedValue,
-        'last_updated_by': userDetailsModel.getUserMachineId,
-      };
+    var testModel = Provider.of<TestsModel>(context, listen: false);
+     
+    final params = {
+      'project_id': projectDetailsModel.getActiveProjectId,
+      'test_id': testModel.getSelectedTestId,
+      'table_reference': testModel.getSelectedTest.analysisTableName,
+      'hash_key': hashKey,
+      'feedback_status': selectedValue,
+      'last_updated_by': userDetailsModel.getUserMachineId,
+    };
 
-      await _crudService.updateRecord(
-        context,
-        'dbo.sproc_update_feedback_status',
-        params,
-      );
-    }
+    await _crudService.updateRecord(
+      context,
+      'dbo.sproc_update_feedback_status',
+      params,
+    );
+    
+    return 1;
+  }
+
+  Future<int> updateFeedbackCategory(BuildContext context, String hashKey, String selectedValue) async {
+    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
+    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
+    var testModel = Provider.of<TestsModel>(context, listen: false);
+    
+    final params = {
+      'project_id': projectDetailsModel.getActiveProjectId,
+      'test_id': testModel.getSelectedTestId,
+      'table_reference': testModel.getSelectedTest.analysisTableName,
+      'hash_key': hashKey,
+      'feedback_category': selectedValue,
+      'last_updated_by': userDetailsModel.getUserMachineId,
+    };
+
+    await _crudService.updateRecord(
+      context,
+      'dbo.sproc_update_feedback_category',
+      params,
+    );
 
     return 1;
   }
 
-  Future<int> updateFeedbackCategory(BuildContext context, Test test, List<Map<String, dynamic>> transactions, String selectedValue) async {
+  Future<int> updateSeverityRating(BuildContext context, String hashKey, String selectedValue) async {
     var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
     var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
+    var testModel = Provider.of<TestsModel>(context, listen: false);
     
-    for (var transaction in transactions) {
-      final params = {
-        'project_id': projectDetailsModel.getActiveProjectId,
-        'test_id': test.testId,
-        'table_reference': test.analysisTableName,
-        'hash_key': transaction['hash_key'],
-        'feedback_category': selectedValue,
-        'last_updated_by': userDetailsModel.getUserMachineId,
-      };
+    final params = {
+      'project_id': projectDetailsModel.getActiveProjectId,
+      'test_id': testModel.getSelectedTestId, 
+      'table_reference': testModel.getSelectedTest.analysisTableName,
+      'hash_key': hashKey,
+      'severity_rating': selectedValue,
+      'last_updated_by': userDetailsModel.getUserMachineId,
+    };
 
-      await _crudService.updateRecord(
-        context,
-        'dbo.sproc_update_feedback_category',
-        params,
-      );
-    }
+    await _crudService.updateRecord(
+      context,
+      'dbo.sproc_update_feedback_severity_rating',
+      params,
+    );
 
     return 1;
   }
 
-  Future<int> updateSeverityRating(BuildContext context, Test test, List<Map<String, dynamic>> transactions, String selectedValue) async {
+  Future<int> updateIsFinal(BuildContext context, String hashKey, bool selectedValue) async {
     var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
     var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
+    var testModel = Provider.of<TestsModel>(context, listen: false);
     
-    for (var transaction in transactions) {
-      final params = {
-        'project_id': projectDetailsModel.getActiveProjectId,
-        'test_id': test.testId, 
-        'table_reference': test.analysisTableName,
-        'hash_key': transaction['hash_key'],
-        'severity_rating': selectedValue,
-        'last_updated_by': userDetailsModel.getUserMachineId,
-      };
 
-      await _crudService.updateRecord(
-        context,
-        'dbo.sproc_update_feedback_severity_rating',
-        params,
-      );
-    }
+    final params = {
+      'project_id': projectDetailsModel.getActiveProjectId,
+      'test_id': testModel.getSelectedTestId,
+      'table_reference': testModel.getSelectedTest.analysisTableName,
+      'hash_key': hashKey,
+      'is_final': selectedValue,
+      'last_updated_by': userDetailsModel.getUserMachineId,
+    };
 
-    return 1;
-  }
-
-  Future<int> updateIsFinal(BuildContext context, Test test, List<Map<String, dynamic>> transactions, bool selectedValue) async {
-    var projectDetailsModel = Provider.of<ProjectDetailsModel>(context, listen: false);
-    var userDetailsModel = Provider.of<UserDetailsModel>(context, listen: false);
-    
-    for (var transaction in transactions) {
-      final params = {
-        'project_id': projectDetailsModel.getActiveProjectId,
-        'test_id': test.testId,
-        'table_reference': test.analysisTableName,
-        'hash_key': transaction['hash_key'],
-        'is_final': selectedValue,
-        'last_updated_by': userDetailsModel.getUserMachineId,
-      };
-
-      await _crudService.updateRecord(
-        context,
-        'dbo.sproc_update_feedback_is_final',
-        params,
-      );
-    }
-
-    return 1;
+    int updatedId = await _crudService.updateRecord(
+      context,
+      'dbo.sproc_update_feedback_is_final',
+      params,
+    );
+  
+    return updatedId;
   }
 
   Future<int> deleteFlaggedTransaction(BuildContext context, Test test, List<Map<String, dynamic>> transactions) async {
@@ -433,5 +454,11 @@ class ResultModel with ChangeNotifier implements ChatDrivingModel {
   @override
   Future<int> updateConfig(BuildContext context, Map<dynamic, dynamic> fullState, {bool finalUpdate = false}) async{
     return 0;
+  }
+
+  @override
+  void clearResponses(BuildContext context) {
+    var inquiryResponseModel = Provider.of<InquiryResponseModel>(context, listen: false);
+    inquiryResponseModel.responseList = [];
   }
 }
